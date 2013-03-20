@@ -1,4 +1,12 @@
+import sys
+
 from IPython.core.magic import Magics, magics_class, cell_magic 
+from IPython.core.plugin import Plugin
+from IPython.utils.traitlets import Bool, Instance
+from IPython.zmq import displayhook
+from IPython.core import displaypub
+import ipy_table
+import texttable
 
 import connection
 import parse
@@ -18,15 +26,19 @@ class SQLMagics(Magics):
         Examples::
 
           %%sql postgresql://me:mypw@localhost/mydb
-          SELECT * FROM table
+          SELECT * FROM mytable
 
           %%sql me@mydb
-          DELETE FROM table
+          DELETE FROM mytable
+          
+          %%sql
+          DROP TABLE mytable
           
         """
-        parsed = parse.parse(cell)
+        parsed = parse.parse('%s\n%s' % (line, cell))
         conn = connection.connection(parsed['connection'])
         result = run.run(conn, parsed['sql'])
+        display(result)
     
 class SQLMagic(Plugin):
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
@@ -44,3 +56,26 @@ def load_ipython_extension(ip):
         plugin = SQLMagic(shell=ip, config=ip.config)
         ip.plugin_manager.register_plugin('sqlmagic', plugin)
         _loaded = True    
+        
+        
+
+def plaintable(result):
+    tt = texttable.Texttable()
+    tt.set_deco(texttable.Texttable.HEADER)
+    tt.header(result.keys())
+    for row in result:
+        tt.add_row(row)
+    return tt.draw()
+    # TODO: stop chopping columns so narrow
+       
+def display(content):
+    if isinstance(sys.displayhook, displayhook.ZMQShellDisplayHook):
+        if hasattr(content, 'fetchall'):
+            ipy_table.make_table(content.fetchall())
+            ipy_table.apply_theme('basic')            
+        else:
+            displaypub.publish_html(content)
+    else:
+        if hasattr(content, 'fetchall'):
+            content = plaintable(content)
+        displaypub.publish_pretty(content)

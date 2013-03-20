@@ -9,6 +9,8 @@ NEWS = open(os.path.join(here, 'NEWS.txt')).read()
 version = '0.1'
 
 install_requires = [
+    'ipy-table',
+    'texttable',
     # List your project dependencies here.
     # For more details, see:
     # http://packages.python.org/distribute/setuptools.html#declaring-dependencies
@@ -32,7 +34,5 @@ setup(name='ipython-sql',
     zip_safe=False,
     install_requires=install_requires,
     entry_points={
-        'console_scripts':
-            ['ipython-sql=ipythonsql:main']
     }
 )

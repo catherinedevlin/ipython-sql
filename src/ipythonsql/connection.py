@@ -4,13 +4,13 @@ connections = {}
 _connection = None
 
 class Connection(object):
-    def __init__(connect_str=None):
+    def __init__(self, connect_str=None):
         try:
             engine = sqlalchemy.create_engine(connect_str)
         except: # TODO: bare except; but what's an ArgumentError?
-            raise (SyntaxError, 
-                   ("Format: (postgresql|mysql)://username:password@hostname/dbname, or one of %s" %
-                    str(connections.keys())))        
+            print("Format: (postgresql|mysql)://username:password@hostname/dbname, or one of %s" %
+                   str(connections.keys()))       
+            raise
         self.metadata = sqlalchemy.MetaData(bind=engine)
         self.name = assign_name(engine)
         self.session = engine.connect() 

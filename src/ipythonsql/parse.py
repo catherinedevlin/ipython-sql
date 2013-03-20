@@ -1,13 +1,23 @@
 import re
+import nose
 
 sql_keywords = """insert update delete select create drop alter""".split()
 
-parser_spec = r"""(?P<connection>.*?)(?P<sql>(%s).*)""" % "|".join(sql_keywords)
+parser_spec = r"""\s*(?P<connection>[^@ \t]+@\w+)?\s+(?P<sql>(%s).*)""" % "|".join(sql_keywords)
 parser = re.compile(parser_spec, re.IGNORECASE | re.DOTALL)
 
 def parse(cell):
-    result = parser.search(cell).groupdict()
-    return {'connection': result['connection'].strip(),
-            'sql': result['sql'].strip()
+    parts = cell.split(None, 1)
+    if '@' in parts[0]:
+        connection = parts[0]
+        if len(parts) > 1:
+            sql = parts[1]
+        else:
+            sql = ''
+    else:
+        connection = ''
+        sql = cell
+    return {'connection': connection.strip(),
+            'sql': sql.strip()
             }
-    
+   
