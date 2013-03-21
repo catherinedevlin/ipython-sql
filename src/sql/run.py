@@ -37,7 +37,7 @@ html_table_template = jinja2.Template(r"""
 
 def printable(resultProxy):
     resultProxy.__class__ = PrettyProxy
-    if not isinstance(sys.displayhook, displayhook.ZMQShellDisplayHook):
+    if resultProxy.returns_rows and not isinstance(sys.displayhook, displayhook.ZMQShellDisplayHook):
         print(_tabular_str_(resultProxy))  # attempts to set PrettyProxy.__str__ not working
     return resultProxy
     

@@ -17,6 +17,7 @@ class Connection(object):
         self.name = self.assign_name(engine)
         self.session = engine.connect() 
         self.connections[self.name] = self
+        self.connections[str(self.metadata.bind.url)] = self
         Connection.current = self
     @classmethod
     def get(cls, descriptor):
@@ -24,15 +25,15 @@ class Connection(object):
         if isinstance(descriptor, Connection):
             cls.current = descriptor
         elif descriptor:
-            key = cls.connections.get(descriptor.lower()) 
-            if key:
-                cls.current = cls.connections[key]
+            conn = cls.connections.get(descriptor.lower()) 
+            if conn:
+                cls.current = conn
             else:
                 cls.current = Connection(descriptor)
         if cls.current:
             return cls.current
         else:
-            raise Exception('Please specify a database connector')
+            raise Exception(cls.tell_format())
     @classmethod
     def assign_name(cls, engine):
         core_name = '%s@%s' % (engine.url.username, engine.url.database)
