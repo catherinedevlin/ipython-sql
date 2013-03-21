@@ -36,9 +36,10 @@ class SQLMagics(Magics):
           
         """
         parsed = parse.parse('%s\n%s' % (line, cell))
-        conn = connection.connection(parsed['connection'])
+        conn = connection.Connection.get(parsed['connection'])
         result = run.run(conn, parsed['sql'])
-        display(result)
+        #print(result._repr_html_())
+        return result
     
 class SQLMagic(Plugin):
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
