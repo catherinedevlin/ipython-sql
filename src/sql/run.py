@@ -4,14 +4,12 @@ import types
 import jinja2
 import texttable
 import sys
-import IPython
    
 class PrettyProxy(sqlalchemy.engine.result.ResultProxy):
     def _repr_html_(self):
         return html_table_template.render(headers=self.keys(), rows=self)    
 
 def _tabular_str_(self):
-    # I want to make this PrettyProxy's __sql__, but that doesn't seem to work.
     tt = texttable.Texttable()
     tt.set_deco(texttable.Texttable.HEADER)
     tt.header(self.keys())
@@ -38,11 +36,9 @@ html_table_template = jinja2.Template(r"""
 
 def printable(resultProxy):
     resultProxy.__class__ = PrettyProxy
-    if resultProxy.returns_rows and isinstance(sys.displayhook, IPython.core.displayhook.DisplayHook):
+    if resultProxy.returns_rows and not hasattr(sys.displayhook, 'write_format_data'):
         # not in the Notebook
-        result = _tabular_str_(resultProxy)  # attempts to set PrettyProxy.__str__ not working
-        print(result)
-        return resultProxy 
+        print(_tabular_str_(resultProxy))  # attempts to set PrettyProxy.__str__ not working
     return resultProxy
     
 def run(conn, sql):
