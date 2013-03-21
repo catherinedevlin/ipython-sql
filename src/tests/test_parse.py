@@ -1,4 +1,4 @@
-from ipythonsql.parse import parse
+from sql.parse import parse
 
 def test_parse_no_sql():
     assert parse("will:longliveliz@localhost/shakes") == \

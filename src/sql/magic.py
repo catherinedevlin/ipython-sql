@@ -5,12 +5,16 @@ from IPython.core.plugin import Plugin
 from IPython.utils.traitlets import Bool, Instance
 from IPython.zmq import displayhook
 from IPython.core import displaypub
-import ipy_table
-import texttable
 
 import connection
 import parse
 import run
+
+def execute(line, cell):
+    parsed = parse.parse('%s\n%s' % (line, cell))
+    conn = connection.Connection.get(parsed['connection'])
+    result = run.run(conn, parsed['sql'])
+    return result    
 
 @magics_class
 class SQLMagics(Magics):
@@ -35,11 +39,8 @@ class SQLMagics(Magics):
           DROP TABLE mytable
           
         """
-        parsed = parse.parse('%s\n%s' % (line, cell))
-        conn = connection.Connection.get(parsed['connection'])
-        result = run.run(conn, parsed['sql'])
-        return result
-    
+        return execute(line, cell)
+   
 class SQLMagic(Plugin):
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
     
