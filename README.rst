@@ -1,19 +1,55 @@
-This file requires editing
-==========================
+ipython-sql
+===========
 
-Note to the author: Please add something informative to this README *before*
-releasing your software, as `a little documentation goes a long way`_.  Both
-README.rst (this file) and NEWS.txt (release notes) will be included in your
-package metadata which gets displayed in the PyPI page for your project.
+Introduces a %%sql magic.  
 
-You can take a look at the README.txt of other projects, such as repoze.bfg
-(http://bfg.repoze.org/trac/browser/trunk/README.txt) for some ideas.
+Connect to a database, using SQLAlchemy connect strings, then issue SQL
+commands within IPython or IPython Notebook.
 
-.. _`a little documentation goes a long way`: http://www.martinaspeli.net/articles/a-little-documentation-goes-a-long-way
+Examples::
+
+    In [1]: %load_ext sql
+
+    In [2]: %%sql postgres://will:longliveliz@localhost/shakes
+       ...: select * from character
+       ...: where abbrev = 'ALICE'
+       ...: 
+       charid        charname        abbrev      description    speechcount  
+    ========================================================================
+    Alice          Alice          ALICE          a lady         22           
+                                                 attending on                
+                                                 Princess                    
+                                                 Katherine                   
+    Out[2]: <sql.run.PrettyProxy at 0x26eebd0>
+   
+After the first connection, connect info can be omitted::
+
+    In [3]: %%sql
+       ...: select count(*) from work;
+       ...: 
+    count 
+    =====
+    43    
+    Out[3]: <sql.run.PrettyProxy at 0x273cd90>
+
+Connections to multiple databases can be maintained.  You can refer to 
+an existing connection by username@database::
+
+    In [4]: %%sql will@shakes
+       ...: select charname, speechcount from character 
+       ...: where  speechcount = (select max(speechcount) 
+       ...:                       from character);
+       ...: 
+    charname   speechcount 
+    ======================
+    Poet       733         
+    Out[4]: <sql.run.PrettyProxy at 0x273d490>
 
 Credits
 -------
 
+- `sqlitemagic`_ for ideas and copied code 
+- `texttable`_
 - `Distribute`_
 - `Buildout`_
 - `modern-package-template`_
@@ -21,3 +57,5 @@ Credits
 .. _Buildout: http://www.buildout.org/
 .. _Distribute: http://pypi.python.org/pypi/distribute
 .. _`modern-package-template`: http://pypi.python.org/pypi/modern-package-template
+.. _sqlitemagic: https://github.com/tkf/ipython-sqlitemagic
+.. _texttable: https://pypi.python.org/pypi/texttable

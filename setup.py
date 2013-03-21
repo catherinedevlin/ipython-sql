@@ -11,6 +11,7 @@ version = '0.1'
 install_requires = [
     'texttable',
     'ipython>=0.13',
+    'pyzmq >= 2.1.4', 
 ]
 
 

@@ -56,26 +56,3 @@ def load_ipython_extension(ip):
         plugin = SQLMagic(shell=ip, config=ip.config)
         ip.plugin_manager.register_plugin('sqlmagic', plugin)
         _loaded = True    
-        
-        
-
-def plaintable(result):
-    tt = texttable.Texttable()
-    tt.set_deco(texttable.Texttable.HEADER)
-    tt.header(result.keys())
-    for row in result:
-        tt.add_row(row)
-    return tt.draw()
-    # TODO: stop chopping columns so narrow
-       
-def display(content):
-    if isinstance(sys.displayhook, displayhook.ZMQShellDisplayHook):
-        if hasattr(content, 'fetchall'):
-            ipy_table.make_table(content.fetchall())
-            ipy_table.apply_theme('basic')            
-        else:
-            displaypub.publish_html(content)
-    else:
-        if hasattr(content, 'fetchall'):
-            content = plaintable(content)
-        displaypub.publish_pretty(content)

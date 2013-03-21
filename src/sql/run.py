@@ -4,7 +4,6 @@ import types
 import jinja2
 import texttable
 import sys
-from IPython.zmq import displayhook
    
 class PrettyProxy(sqlalchemy.engine.result.ResultProxy):
     def _repr_html_(self):
@@ -37,7 +36,8 @@ html_table_template = jinja2.Template(r"""
 
 def printable(resultProxy):
     resultProxy.__class__ = PrettyProxy
-    if resultProxy.returns_rows and not isinstance(sys.displayhook, displayhook.ZMQShellDisplayHook):
+    if resultProxy.returns_rows and not hasattr(sys.displayhook, 'write_format_data'):
+        # not in the Notebook
         print(_tabular_str_(resultProxy))  # attempts to set PrettyProxy.__str__ not working
     return resultProxy
     
