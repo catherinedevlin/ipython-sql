@@ -9,11 +9,8 @@ NEWS = open(os.path.join(here, 'NEWS.txt')).read()
 version = '0.1'
 
 install_requires = [
-    'ipy-table',
     'texttable',
-    # List your project dependencies here.
-    # For more details, see:
-    # http://packages.python.org/distribute/setuptools.html#declaring-dependencies
+    'ipython>=0.13',
 ]
 
 
@@ -22,7 +19,10 @@ setup(name='ipython-sql',
     description="RDBMS access via IPython",
     long_description=README + '\n\n' + NEWS,
     classifiers=[
-      # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+        'Development Status :: 3 - Alpha',
+        'Environment :: Console',
+        'License :: OSI Approved :: MIT License',
+        'Topic :: Database',
     ],
     keywords='database ipython postgresql mysql',
     author='Catherine Devlin',
@@ -30,9 +30,8 @@ setup(name='ipython-sql',
     url='pypi.python.org/pypi/ipython-sql',
     license='MIT',
     packages=find_packages('src'),
-    package_dir = {'': 'src'},include_package_data=True,
+    package_dir = {'': 'src'},
+    include_package_data=True,
     zip_safe=False,
     install_requires=install_requires,
-    entry_points={
-    }
 )

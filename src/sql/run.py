@@ -5,15 +5,11 @@ import jinja2
 import texttable
 import sys
 from IPython.zmq import displayhook
-
-class PrettyStr(unicode):
-    def _repr_html_(self):
-        return html_table_template.render(headers=self.keys(), rows=self)    
-    
+   
 class PrettyProxy(sqlalchemy.engine.result.ResultProxy):
     def _repr_html_(self):
         return html_table_template.render(headers=self.keys(), rows=self)    
-    
+
 def _tabular_str_(self):
     tt = texttable.Texttable()
     tt.set_deco(texttable.Texttable.HEADER)
@@ -39,13 +35,10 @@ html_table_template = jinja2.Template(r"""
   </table>
 """)
 
-def _repr_html_(self):
-    return html_table_template.render(headers=self.keys(), rows=self)
-
 def printable(resultProxy):
-    if not isinstance(sys.displayhook, displayhook.ZMQShellDisplayHook):
-        return _tabular_str_(resultProxy)
     resultProxy.__class__ = PrettyProxy
+    if not isinstance(sys.displayhook, displayhook.ZMQShellDisplayHook):
+        print(_tabular_str_(resultProxy))  # attempts to set PrettyProxy.__str__ not working
     return resultProxy
     
 def run(conn, sql):
