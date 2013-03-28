@@ -2,9 +2,7 @@ import sys
 
 from IPython.core.magic import Magics, magics_class, cell_magic, line_magic
 from IPython.core.plugin import Plugin
-from IPython.utils.traitlets import Bool, Instance
-from IPython.zmq import displayhook
-from IPython.core import displaypub
+from IPython.utils.traitlets import Instance
 
 import connection
 import parse
@@ -18,13 +16,15 @@ def execute(line, cell=''):
 
 @magics_class
 class SQLMagics(Magics):
-    """%%sql <SQLAlchemy connection string> <sql statement> runs SQL against a database."""
-
+    """Runs SQL statement on a database, specified by SQLAlchemy connect string.
+    
+    Provides the %%sql magic."""
+    
     @line_magic('sql')
     @cell_magic('sql')
     def execute(self, line, cell=''):
-        """
-        Run SQL
+        """Runs SQL statement against a database, specified by SQLAlchemy connect string.
+    
         If no database connection has been established, first word
         should be a SQLAlchemy connection string, or the user@db name
         of an established connection.
@@ -40,10 +40,17 @@ class SQLMagics(Magics):
           %%sql
           DROP TABLE mytable
           
+        SQLAlchemy connect string syntax examples:
+            
+          postgresql://me:mypw@localhost/mydb
+          sqlite://
+          mysql+pymysql://me:mypw@localhost/mydb
+          
         """
         return execute(line, cell)
    
 class SQLMagic(Plugin):
+    """%%sql <SQLAlchemy connection string> <sql statement> runs SQL against a database."""
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
     
     def __init__(self, shell, config):
