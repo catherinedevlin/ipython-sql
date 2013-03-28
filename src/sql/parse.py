@@ -1,10 +1,5 @@
 import re
 
-sql_keywords = """insert update delete select create drop alter""".split()
-
-parser_spec = r"""\s*(?P<connection>[^@ \t]+@\w+)?\s+(?P<sql>(%s).*)""" % "|".join(sql_keywords)
-parser = re.compile(parser_spec, re.IGNORECASE | re.DOTALL)
-
 def parse(cell):
     parts = cell.split(None, 1)
     if not parts:
