@@ -1,6 +1,6 @@
 import sys
 
-from IPython.core.magic import Magics, magics_class, cell_magic 
+from IPython.core.magic import Magics, magics_class, cell_magic, line_magic
 from IPython.core.plugin import Plugin
 from IPython.utils.traitlets import Bool, Instance
 from IPython.zmq import displayhook
@@ -10,7 +10,7 @@ import connection
 import parse
 import run
 
-def execute(line, cell):
+def execute(line, cell=''):
     parsed = parse.parse('%s\n%s' % (line, cell))
     conn = connection.Connection.get(parsed['connection'])
     result = run.run(conn, parsed['sql'])
@@ -18,9 +18,11 @@ def execute(line, cell):
 
 @magics_class
 class SQLMagics(Magics):
+    """%%sql <SQLAlchemy connection string> <sql statement> runs SQL against a database."""
 
+    @line_magic('sql')
     @cell_magic('sql')
-    def execute(self, line, cell):
+    def execute(self, line, cell=''):
         """
         Run SQL
         If no database connection has been established, first word
