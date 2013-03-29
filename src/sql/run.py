@@ -1,11 +1,10 @@
 import sqlalchemy
-import connection
 import types
 import jinja2
 import texttable
 import sys
 import IPython.core
-   
+
 class ResultSet(list):
     ip = IPython.core.ipapi.get()
     html_template = jinja2.Template(r"""

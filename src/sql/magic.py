@@ -4,14 +4,14 @@ from IPython.core.magic import Magics, magics_class, cell_magic, line_magic
 from IPython.core.plugin import Plugin
 from IPython.utils.traitlets import Instance, Bool, Int
 
-import connection
-import parse
-import run
+import sql.connection
+import sql.parse
+import sql.run
 
 def execute(line, cell='', config={}):
-    parsed = parse.parse('%s\n%s' % (line, cell))
-    conn = connection.Connection.get(parsed['connection'])
-    result = run.run(conn, parsed['sql'], config)
+    parsed = sql.parse.parse('%s\n%s' % (line, cell))
+    conn = sql.connection.Connection.get(parsed['connection'])
+    result = sql.run.run(conn, parsed['sql'], config)
     return result    
 
 @magics_class
