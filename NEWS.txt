@@ -11,12 +11,14 @@ News
 0.1.1
 -----
 
-*Release date: -2013*
+*Release date: 29-Mar-2013*
 
 * Release to PyPI
 
 * Results returned as lists
 
 * print(_) to get table form in text console
+
+* set autolimit and text wrap in configuration
 
 
