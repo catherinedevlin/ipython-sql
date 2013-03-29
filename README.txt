@@ -1,5 +1,8 @@
+===========
 ipython-sql
 ===========
+
+:Author: Catherine Devlin, http://catherinedevlin.blogspot.com
 
 Introduces a %sql / %%sql magic.  
 
