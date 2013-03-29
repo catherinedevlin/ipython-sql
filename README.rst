@@ -60,7 +60,7 @@ Connecting
 
 Connection strings are `SQLAlchemy`_ standard.
 
-Some example connection strings:
+Some example connection strings::
 
     mysql+pymysql://scott:tiger@localhost/foo
     oracle://scott:tiger@127.0.0.1:1521/sidname
@@ -76,13 +76,13 @@ Query results are loaded as lists, so very large result sets may use up
 your system's memory.  There is no autolimit by default.
 
 You can stop text wrapping and set an autolimit by adding this to your
-:file:`ipython_config.py` file::
+`ipython_config.py` file::
 
 
     c.SqlMagic.wrap = False
     c.SqlMagic.autolimit = 1000 
     
-You can create and find your :file:`ipython_config.py` file from
+You can create and find your `ipython_config.py` file from
 the command line::
 
     ipython profile create
