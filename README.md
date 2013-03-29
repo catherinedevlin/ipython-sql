@@ -6,6 +6,8 @@ Introduces a %sql / %%sql magic.
 Connect to a database, using SQLAlchemy connect strings, then issue SQL
 commands within IPython or IPython Notebook.
 
+<img src="examples/writers.png" width="600px" alt="ipython-sql notepad usage screenshot">
+
 Examples::
 
     In [1]: %load_ext sql

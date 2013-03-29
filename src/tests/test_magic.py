@@ -21,3 +21,13 @@ def test_print():
 def test_plain_style():
     result = execute('', "sqlite:// SELECT * FROM test;", {'style': 'PLAIN_COLUMNS'})
     assert re.search(r'1\s+foo', str(result))
+
+def test_multi_sql():
+    result = execute('', """
+        sqlite://
+        CREATE TABLE writer (first_name, last_name, year_of_death);
+        INSERT INTO writer VALUES ('William', 'Shakespeare', 1616);
+        INSERT INTO writer VALUES ('Bertold', 'Brecht', 1956);
+        SELECT last_name FROM writer;
+        """, {})
+    assert 'Shakespeare' in str(result) and 'Brecht' in str(result)
