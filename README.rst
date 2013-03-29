@@ -96,7 +96,7 @@ You can set an autolimit by adding this to your
     c.SqlMagic.autolimit = 1000 
  
 You can similarly change the table printing style to any of `prettytable`_'s
-defined styles (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM):
+defined styles (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)::
 
     c.SqlMagic.style = 'PLAIN_COLUMNS'
     
