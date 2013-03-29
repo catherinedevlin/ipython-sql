@@ -52,6 +52,17 @@ an existing connection by username@database::
     ======================
     Poet       733  
    
+You may use multiple SQL statements inside a single cell, but you will
+only see any query results from the last of them, so this really only
+makes sense for statements with no output.
+
+    In [11]: %%sql sqlite://
+       ....: CREATE TABLE writer (first_name, last_name, year_of_death);
+       ....: INSERT INTO writer VALUES ('William', 'Shakespeare', 1616);
+       ....: INSERT INTO writer VALUES ('Bertold', 'Brecht', 1956);
+       ....:     
+    Out[11]: []   
+    
 Connecting
 ----------
 

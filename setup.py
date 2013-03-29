@@ -12,6 +12,7 @@ install_requires = [
     'prettytable',
     'ipython>=0.13',
     'sqlalchemy',
+    'sqlparse',
 ]
 
 

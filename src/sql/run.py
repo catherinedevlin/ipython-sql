@@ -1,7 +1,6 @@
 import sqlalchemy
-import types
+import sqlparse
 import prettytable
-import sys
 
 class ResultSet(list):
     def __init__(self, sqlaproxy, sql, config):
@@ -32,8 +31,11 @@ class ResultSet(list):
 
 def run(conn, sql, config):
     if sql.strip():
-        statement = sqlalchemy.sql.text(sql)
-        return ResultSet(conn.session.execute(statement), sql, config) 
+        for statement in sqlparse.split(sql):
+            txt = sqlalchemy.sql.text(statement)
+            result = conn.session.execute(txt)
+        return ResultSet(result, statement, config)
+        #returning only last result, intentionally
     else:
         return 'Connected: %s' % conn.name
      

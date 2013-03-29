@@ -30,3 +30,5 @@ News
 * Python 3 compatibility
 
 * use prettyprint package
+
+* allow multiple SQL per cell
