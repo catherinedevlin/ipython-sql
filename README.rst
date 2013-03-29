@@ -4,15 +4,15 @@ ipython-sql
 
 :Author: Catherine Devlin, http://catherinedevlin.blogspot.com
 
-Introduces a %sql / %%sql magic.  
+Introduces a %sql (or %%sql) magic.  
 
 Connect to a database, using SQLAlchemy connect strings, then issue SQL
 commands within IPython or IPython Notebook.
 
-.. image:: examples/writers.png
+.. image:: https://raw.github.com/catherinedevlin/ipython-sql/master/examples/writers.png 
    :width: 600px
-   :alt: ipython-sql notepad usage screenshot
-
+   :alt: screenshot of ipython-sql in the Notebook
+   
 Examples::
 
     In [1]: %load_ext sql
