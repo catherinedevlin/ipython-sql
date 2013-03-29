@@ -2,16 +2,16 @@ import sys
 
 from IPython.core.magic import Magics, magics_class, cell_magic, line_magic
 from IPython.core.plugin import Plugin
-from IPython.utils.traitlets import Instance
+from IPython.utils.traitlets import Instance, Bool, Int
 
 import connection
 import parse
 import run
 
-def execute(line, cell=''):
+def execute(line, cell='', config={}):
     parsed = parse.parse('%s\n%s' % (line, cell))
     conn = connection.Connection.get(parsed['connection'])
-    result = run.run(conn, parsed['sql'])
+    result = run.run(conn, parsed['sql'], config)
     return result    
 
 @magics_class
@@ -47,11 +47,13 @@ class SQLMagics(Magics):
           mysql+pymysql://me:mypw@localhost/mydb
           
         """
-        return execute(line, cell)
+        return execute(line, cell, self.shell.config.get('SqlMagic') or {})
    
 class SQLMagic(Plugin):
     """%%sql <SQLAlchemy connection string> <sql statement> runs SQL against a database."""
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    wrap = Bool(False, config=True)
+    autolimit = Int(0, config=True)
     
     def __init__(self, shell, config):
         super(SQLMagic, self).__init__(shell=shell, config=config)

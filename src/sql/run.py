@@ -24,19 +24,22 @@ class ResultSet(list):
     {% endfor %}
   </table>
     """)
-    def __init__(self, sqlaproxy, sql):
+    def __init__(self, sqlaproxy, sql, wrap, limit):
         self.keys = sqlaproxy.keys()
         self.sql = sql
+        self.wrap = wrap
         if sqlaproxy.returns_rows:
-            list.__init__(self, sqlaproxy.fetchall())
+            if limit:
+                list.__init__(self, sqlaproxy.fetchmany(size=limit))
+            else:
+                list.__init__(self, sqlaproxy.fetchall())
         else:
             list.__init__(self, [])
     def _repr_html_(self):
         return self.html_template.render(headers=self.keys, rows=self)    
     def __str__(self, *arg, **kwarg):
-        if ('max_width' not in kwarg):
-            if ('wrap' in self.ip.user_ns) and (not self.ip.user_ns['wrap']):
-                kwarg['max_width'] = 0
+        if ('max_width' not in kwarg) and (not self.wrap):
+            kwarg['max_width'] = 0
         tt = texttable.Texttable(*arg, **kwarg)
         tt.set_deco(texttable.Texttable.HEADER)
         tt.header(self.keys)
@@ -46,10 +49,11 @@ class ResultSet(list):
     def unwrapped(self):
         return self.__repr__(max_width=0)
 
-def run(conn, sql):
+def run(conn, sql, config):
     if sql.strip():
         statement = sqlalchemy.sql.text(sql)
-        return ResultSet(conn.session.execute(statement), sql)
+        return ResultSet(conn.session.execute(statement), sql, 
+                         config.get('wrap'), config.get('autolimit'))
     else:
         return 'Connected: %s' % conn.name
      
