@@ -24,8 +24,9 @@ class ResultSet(list):
     {% endfor %}
   </table>
     """)
-    def __init__(self, sqlaproxy):
+    def __init__(self, sqlaproxy, sql):
         self.keys = sqlaproxy.keys()
+        self.sql = sql
         if sqlaproxy.returns_rows:
             list.__init__(self, sqlaproxy.fetchall())
         else:
@@ -48,7 +49,7 @@ class ResultSet(list):
 def run(conn, sql):
     if sql.strip():
         statement = sqlalchemy.sql.text(sql)
-        return ResultSet(conn.session.execute(statement))
+        return ResultSet(conn.session.execute(statement), sql)
     else:
         return 'Connected: %s' % conn.name
      

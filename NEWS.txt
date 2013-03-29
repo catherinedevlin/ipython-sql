@@ -7,4 +7,16 @@ News
 *Release date: 21-Mar-2013*
 
 * Initial release
+ 
+0.1.1
+-----
+
+*Release date: -2013*
+
+* Release to PyPI
+
+* Results returned as lists
+
+* print(_) to get table form in text console
+
 

@@ -64,3 +64,15 @@ an existing connection by username@database::
     ======================
     Poet       733  
     
+Connection strings are SQLAlchemy standard; see 
+http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls
+
+Some example connection strings:
+
+    mysql+pymysql://scott:tiger@localhost/foo
+    oracle://scott:tiger@127.0.0.1:1521/sidname
+    sqlite://
+    sqlite:///foo.db
+    
+Query results are loaded as lists, so very large result sets may use up
+your system's memory.  
