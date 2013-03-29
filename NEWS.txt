@@ -21,4 +21,12 @@ News
 
 * set autolimit and text wrap in configuration
 
+ 
+0.1.2
+-----
 
+*Release date: 29-Mar-2013*
+
+* Python 3 compatibility
+
+* use prettyprint package
