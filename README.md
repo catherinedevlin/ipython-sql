@@ -12,7 +12,7 @@ Examples::
 
     In [1]: %load_ext sql
 
-    In [2]: %%sql postgres://will:longliveliz@localhost/shakes
+    In [2]: %%sql postgresql://will:longliveliz@localhost/shakes
        ...: select * from character
        ...: where abbrev = 'ALICE'
        ...: 
