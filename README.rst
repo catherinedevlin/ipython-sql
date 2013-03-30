@@ -111,6 +111,19 @@ for more details on IPython configuration.
 
 .. _prettytable: http://code.google.com/p/prettytable/wiki/Tutorial
 
+Pandas
+------
+
+Once your data is in IPython, you may want to manipulate it with `Pandas`_::
+
+    In [3]: import pandas as pd
+    
+    In [4]: result = %sql SELECT * FROM character WHERE speechcount > 25
+    
+    In [5]: dataframe = pd.DataFrame(result, columns=result.keys)
+    
+.. _Pandas: http://pandas.pydata.org/
+
 Development
 -----------
 

@@ -68,7 +68,7 @@ makes sense for statements with no output.
 Connecting
 ----------
 
-Connection strings are `SQLAlchemy`_ standard.
+Connection strings are [SQLAlchemy](http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls) standard.
 
 Some example connection strings::
 
@@ -77,8 +77,6 @@ Some example connection strings::
     sqlite://
     sqlite:///foo.db
     
-.. _SQLAlchemy: http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls
-
 Configuration
 -------------
     
@@ -90,8 +88,9 @@ You can set an autolimit by adding this to your
 
     c.SqlMagic.autolimit = 1000 
  
-You can similarly change the table printing style to any of `prettytable`_'s
-defined styles (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM):
+You can similarly change the table printing style to any of 
+[prettytable](http://code.google.com/p/prettytable/wiki/Tutorial)'s
+defined styles (currently DEFAULT, MSWORD\_FRIENDLY, PLAIN\_COLUMNS, RANDOM):
 
     c.SqlMagic.style = 'PLAIN_COLUMNS'
     
@@ -104,8 +103,17 @@ the command line::
 See http://ipython.org/ipython-doc/stable/config/overview.html#configuration-objects-and-files  
 for more details on IPython configuration. 
 
-.. _prettytable: http://code.google.com/p/prettytable/wiki/Tutorial
+Pandas
+------
 
+Once your data is in IPython, you may want to manipulate it with [Pandas](pandas.pydata.org):
+
+    In [3]: import pandas as pd
+    
+    In [4]: result = %sql SELECT * FROM character WHERE speechcount > 25
+    
+    In [5]: dataframe = pd.DataFrame(result, columns=result.keys)
+    
 Development
 -----------
 
@@ -115,10 +123,6 @@ Credits
 -------
 
 - Matthias Bussonnier for help with configuration
-- `Distribute`_
-- `Buildout`_
-- `modern-package-template`_
-
-.. _Buildout: http://www.buildout.org/
-.. _Distribute: http://pypi.python.org/pypi/distribute
-.. _`modern-package-template`: http://pypi.python.org/pypi/modern-package-template
+- [Distribute](http://pypi.python.org/pypi/distribute)
+- [Buildout](http://www.buildout.org/)
+- [modern-package-template](http://pypi.python.org/pypi/modern-package-template)
