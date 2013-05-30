@@ -32,3 +32,11 @@ News
 * use prettyprint package
 
 * allow multiple SQL per cell
+
+0.2.0
+-----
+
+*Release date: 30-May-2013*
+
+* Accept bind variables (Thanks Mike Wilson!)
+

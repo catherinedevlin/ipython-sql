@@ -70,6 +70,15 @@ makes sense for statements with no output::
        ....:     
     Out[11]: []   
 
+
+Bind variables (bind parameters) can be used in the "named" (:x) style.
+The variable names used should be defined in the local namespace::
+
+    In [12]: name = 'Countess'
+
+    In [13]: %sql select description from character where charname = :name
+    Out[14]: [(u'mother to Bertram',)]
+
 Connecting
 ----------
 

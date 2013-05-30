@@ -64,7 +64,15 @@ makes sense for statements with no output.
        ....: INSERT INTO writer VALUES ('Bertold', 'Brecht', 1956);
        ....:     
     Out[11]: []   
-    
+
+Bind variables (bind parameters) can be used in the "named" (:x) style.
+The variable names used should be defined in the local namespace.
+
+    In [12]: name = 'Countess'
+
+    In [13]: %sql select description from character where charname = :name
+    Out[14]: [(u'mother to Bertram',)]
+
 Connecting
 ----------
 
@@ -126,3 +134,5 @@ Credits
 - [Distribute](http://pypi.python.org/pypi/distribute)
 - [Buildout](http://www.buildout.org/)
 - [modern-package-template](http://pypi.python.org/pypi/modern-package-template)
+- Mike Wilson for bind variable code
+

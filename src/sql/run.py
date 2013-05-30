@@ -29,11 +29,11 @@ class ResultSet(list):
     def __str__(self, *arg, **kwarg):
         return str(self.pretty or '')
 
-def run(conn, sql, config):
+def run(conn, sql, config, user_namespace):
     if sql.strip():
         for statement in sqlparse.split(sql):
             txt = sqlalchemy.sql.text(statement)
-            result = conn.session.execute(txt)
+            result = conn.session.execute(txt, user_namespace)
         return ResultSet(result, statement, config)
         #returning only last result, intentionally
     else:

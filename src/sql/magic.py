@@ -8,10 +8,16 @@ import sql.connection
 import sql.parse
 import sql.run
 
-def execute(line, cell='', config={}):
+def execute(line, cell='', config={}, magics=None):
+    # save locals so they can be referenced in bind vars
+    if magics:
+        user_ns = magics.shell.user_ns
+    else:
+        user_ns = {}
+
     parsed = sql.parse.parse('%s\n%s' % (line, cell))
     conn = sql.connection.Connection.get(parsed['connection'])
-    result = sql.run.run(conn, parsed['sql'], config)
+    result = sql.run.run(conn, parsed['sql'], config, user_ns)
     return result    
 
 @magics_class
@@ -47,7 +53,7 @@ class SQLMagics(Magics):
           mysql+pymysql://me:mypw@localhost/mydb
           
         """
-        return execute(line, cell, self.shell.config.get('SqlMagic') or {})
+        return execute(line, cell, self.shell.config.get('SqlMagic') or {}, self)
    
 class SQLMagic(Plugin):
     """%%sql <SQLAlchemy connection string> <sql statement> runs SQL against a database."""
