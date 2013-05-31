@@ -77,7 +77,7 @@ The variable names used should be defined in the local namespace::
     In [12]: name = 'Countess'
 
     In [13]: %sql select description from character where charname = :name
-    Out[14]: [(u'mother to Bertram',)]
+    Out[13]: [(u'mother to Bertram',)]
 
 Connecting
 ----------
@@ -132,6 +132,18 @@ Once your data is in IPython, you may want to manipulate it with `Pandas`_::
     In [5]: dataframe = pd.DataFrame(result, columns=result.keys)
     
 .. _Pandas: http://pandas.pydata.org/
+
+Installing
+----------
+
+Install the lastest release with:
+
+    pip install ipython-sql
+
+or download from https://github.com/catherinedevlin/ipython-sql and:
+
+    cd ipython-sql
+    sudo python setup.py install
 
 Development
 -----------
