@@ -21,11 +21,11 @@ class Connection(object):
         Connection.current = self
     @classmethod
     def get(cls, descriptor):
-        #import pdb; pdb.set_trace()
         if isinstance(descriptor, Connection):
             cls.current = descriptor
         elif descriptor:
-            conn = cls.connections.get(descriptor.lower()) 
+            conn = cls.connections.get(descriptor) or \
+                   cls.connections.get(descriptor.lower()) 
             if conn:
                 cls.current = conn
             else:

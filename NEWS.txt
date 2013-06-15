@@ -40,3 +40,11 @@ News
 
 * Accept bind variables (Thanks Mike Wilson!)
 
+0.2.1
+-----
+
+*Release date: 15-June-2013*
+
+* Recognize socket connection strings
+
+* Bugfix - issue 4 (remember existing connections by case)

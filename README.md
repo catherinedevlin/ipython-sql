@@ -84,6 +84,12 @@ Some example connection strings::
     oracle://scott:tiger@127.0.0.1:1521/sidname
     sqlite://
     sqlite:///foo.db
+
+Note that ``mysql`` and ``mysql+pymysql`` connections (and perhaps others)
+don't read your client character set information from .my.cnf.  You need
+to specify it in the connection string::
+
+    mysql+pymysql://scott:tiger@localhost/foo?charset=utf8
     
 Configuration
 -------------

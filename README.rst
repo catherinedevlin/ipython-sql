@@ -93,6 +93,12 @@ Some example connection strings::
     
 .. _SQLAlchemy: http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls
 
+Note that ``mysql`` and ``mysql+pymysql`` connections (and perhaps others) 
+don't read your client character set information from .my.cnf.  You need
+to specify it in the connection string::
+
+    mysql+pymysql://scott:tiger@localhost/foo?charset=utf8
+
 Configuration
 -------------
     
