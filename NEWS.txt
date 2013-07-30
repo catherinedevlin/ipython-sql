@@ -48,3 +48,11 @@ News
 * Recognize socket connection strings
 
 * Bugfix - issue 4 (remember existing connections by case)
+
+0.2.2
+-----
+
+*Release date: 30-July-2013*
+
+Converted from an IPython Plugin to an Extension for 1.0 compatibility
+

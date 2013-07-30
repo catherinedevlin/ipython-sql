@@ -54,23 +54,8 @@ class SQLMagics(Magics):
           
         """
         return execute(line, cell, self.shell.config.get('SqlMagic') or {}, self)
-   
-class SQLMagic(Plugin):
-    """%%sql <SQLAlchemy connection string> <sql statement> runs SQL against a database."""
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
-    wrap = Bool(False, config=True)
-    autolimit = Int(0, config=True)
-    
-    def __init__(self, shell, config):
-        super(SQLMagic, self).__init__(shell=shell, config=config)
-        shell.register_magics(SQLMagics)
-        
-_loaded = False
 
+       
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
-    global _loaded
-    if not _loaded:
-        plugin = SQLMagic(shell=ip, config=ip.config)
-        ip.plugin_manager.register_plugin('sqlmagic', plugin)
-        _loaded = True    
+    ip.register_magics(SQLMagics)
