@@ -56,3 +56,9 @@ News
 
 Converted from an IPython Plugin to an Extension for 1.0 compatibility
 
+0.2.2.1
+-------
+
+*Release date: 01-Aug-2013*
+
+Deleted Plugin import left behind in 0.2.2
