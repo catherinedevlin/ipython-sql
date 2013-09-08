@@ -31,3 +31,10 @@ def test_multi_sql():
         SELECT last_name FROM writer;
         """, {})
     assert 'Shakespeare' in str(result) and 'Brecht' in str(result)
+    
+def test_duplicate_column_names_accepted():
+    result = execute('', """
+        sqlite://
+        SELECT last_name, last_name FROM writer;
+        """, {})
+    assert (u'Brecht', u'Brecht') in result
