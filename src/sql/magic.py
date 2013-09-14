@@ -8,8 +8,8 @@ import sql.run
 
 
 class SqlMagic(Configurable):
-    autolimit = Int(0, config=True)
-    style = Unicode('DEFAULT', config=True)
+    autolimit = Int(0, config=True, help="Automatically limit the size of the returned result sets")
+    style = Unicode('DEFAULT', config=True, help="Set the table printing style to any of prettytable's defined styles (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)")
 
 def execute(line, cell='', config=SqlMagic(), magics=None):
     # save locals so they can be referenced in bind vars
