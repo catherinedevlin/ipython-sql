@@ -1,7 +1,4 @@
-import sys
-
 from IPython.core.magic import Magics, magics_class, cell_magic, line_magic
-from IPython.utils.traitlets import Instance, Bool, Int
 
 import sql.connection
 import sql.parse
