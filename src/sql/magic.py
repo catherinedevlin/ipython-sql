@@ -32,7 +32,7 @@ class SQLMagics(Magics):
 
     def __init__(self, shell):
         super(SQLMagics, self).__init__(shell)
-        self.config = SqlMagic()
+        self.config = SqlMagic(config=self.shell.config)
         # Add ourself to the list of module configurable via %config
         self.shell.configurables.append(self.config)
     
