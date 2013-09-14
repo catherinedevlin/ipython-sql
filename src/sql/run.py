@@ -20,8 +20,8 @@ class ResultSet(list):
     def __init__(self, sqlaproxy, sql, config):
         self.keys = sqlaproxy.keys()
         self.sql = sql
-        self.limit = config.get('autolimit')
-        style_name = config.get('style', 'DEFAULT')
+        self.limit = config.autolimit
+        style_name = config.style
         self.style = prettytable.__dict__[style_name.upper()]
         if sqlaproxy.returns_rows:
             if self.limit:

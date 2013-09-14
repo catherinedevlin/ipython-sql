@@ -19,7 +19,8 @@ def test_print():
     assert re.search(r'1\s+\|\s+foo', str(result))
 
 def test_plain_style():
-    result = execute('', "sqlite:// SELECT * FROM test;", {'style': 'PLAIN_COLUMNS'})
+    config = SqlMagic.style = 'PLAIN_COLUMNS'
+    result = execute('', "sqlite:// SELECT * FROM test;", config)
     assert re.search(r'1\s+foo', str(result))
 
 def test_multi_sql():
@@ -29,12 +30,12 @@ def test_multi_sql():
         INSERT INTO writer VALUES ('William', 'Shakespeare', 1616);
         INSERT INTO writer VALUES ('Bertold', 'Brecht', 1956);
         SELECT last_name FROM writer;
-        """, {})
+        """, )
     assert 'Shakespeare' in str(result) and 'Brecht' in str(result)
     
 def test_duplicate_column_names_accepted():
     result = execute('', """
         sqlite://
         SELECT last_name, last_name FROM writer;
-        """, {})
+        """, )
     assert (u'Brecht', u'Brecht') in result

@@ -1,10 +1,17 @@
 from IPython.core.magic import Magics, magics_class, cell_magic, line_magic
+from IPython.config.configurable import Configurable
+from IPython.utils.traitlets import Int, Unicode
 
 import sql.connection
 import sql.parse
 import sql.run
 
-def execute(line, cell='', config={}, magics=None):
+
+class SqlMagic(Configurable):
+    autolimit = Int(0, config=True)
+    style = Unicode('DEFAULT', config=True)
+
+def execute(line, cell='', config=SqlMagic(), magics=None):
     # save locals so they can be referenced in bind vars
     if magics:
         user_ns = magics.shell.user_ns
@@ -16,11 +23,18 @@ def execute(line, cell='', config={}, magics=None):
     result = sql.run.run(conn, parsed['sql'], config, user_ns)
     return result    
 
+
 @magics_class
 class SQLMagics(Magics):
     """Runs SQL statement on a database, specified by SQLAlchemy connect string.
     
     Provides the %%sql magic."""
+
+    def __init__(self, shell):
+        super(SQLMagics, self).__init__(shell)
+        self.config = SqlMagic()
+        # Add ourself to the list of module configurable via %config
+        self.shell.configurables.append(self.config)
     
     @line_magic('sql')
     @cell_magic('sql')
@@ -49,7 +63,7 @@ class SQLMagics(Magics):
           mysql+pymysql://me:mypw@localhost/mydb
           
         """
-        return execute(line, cell, self.shell.config.get('SqlMagic') or {}, self)
+        return execute(line, cell, self.config, self)
 
        
 def load_ipython_extension(ip):
