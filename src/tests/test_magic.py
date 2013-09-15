@@ -1,49 +1,47 @@
-from sql.magic import execute, SqlMagic
-import sys
-import nose
+from sql.magic import SqlMagic
 import re
 
 ip = get_ipython()
 
+def setup():
+    ip = get_ipython()
+
+    sqlmagic = SqlMagic(shell=ip)
+    ip.register_magics(sqlmagic)
+
 def test_memory_db():
-    config = SqlMagic(shell = ip)
-    execute('', 'sqlite:// CREATE TABLE test (n INT, name TEXT)', config)
-    execute('', "sqlite:// INSERT INTO test VALUES (1, 'foo');", config)
-    execute('', "sqlite:// INSERT INTO test VALUES (2, 'bar');", config)
-    assert execute('', "sqlite:// SELECT * FROM test;", config)[0][0] == 1
-    assert execute('', "sqlite:// SELECT * FROM test;", config)[1]['name'] == 'bar'
+    ip.run_line_magic('sql', 'sqlite:// CREATE TABLE test (n INT, name TEXT)')
+    ip.run_line_magic('sql', "sqlite:// INSERT INTO test VALUES (1, 'foo');")
+    ip.run_line_magic('sql', "sqlite:// INSERT INTO test VALUES (2, 'bar');")
+    assert ip.run_line_magic('sql', "sqlite:// SELECT * FROM test;")[0][0] == 1
+    assert ip.run_line_magic('sql', "sqlite:// SELECT * FROM test;")[1]['name'] == 'bar'
 
 def test_html():
-    config = SqlMagic(shell = ip)
-    result = execute('', "sqlite:// SELECT * FROM test;", config)
+    result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM test;")
     assert '<td>foo</td>' in result._repr_html_().lower()
 
 def test_print():
-    config = SqlMagic(shell = ip)
-    result = execute('', "sqlite:// SELECT * FROM test;", config)
+    result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM test;")
     assert re.search(r'1\s+\|\s+foo', str(result))
 
 def test_plain_style():
-    config = SqlMagic(shell = ip)
-    config.style = 'PLAIN_COLUMNS'
-    result = execute('', "sqlite:// SELECT * FROM test;", config)
+    ip.run_line_magic('config',  "SqlMagic.style = 'PLAIN_COLUMNS'")
+    result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM test;")
     assert re.search(r'1\s+foo', str(result))
 
 def test_multi_sql():
-    config = SqlMagic(shell = ip)
-    result = execute('', """
+    result = ip.run_cell_magic('sql', '', """
         sqlite://
         CREATE TABLE writer (first_name, last_name, year_of_death);
         INSERT INTO writer VALUES ('William', 'Shakespeare', 1616);
         INSERT INTO writer VALUES ('Bertold', 'Brecht', 1956);
         SELECT last_name FROM writer;
-        """, config )
+        """)
     assert 'Shakespeare' in str(result) and 'Brecht' in str(result)
     
 def test_duplicate_column_names_accepted():
-    config = SqlMagic(shell = ip)
-    result = execute('', """
+    result = ip.run_cell_magic('sql', '', """
         sqlite://
         SELECT last_name, last_name FROM writer;
-        """, config)
+        """)
     assert (u'Brecht', u'Brecht') in result

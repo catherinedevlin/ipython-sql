@@ -7,18 +7,6 @@ import sql.parse
 import sql.run
 
 
-def execute(line, cell='', config=None, magics=None):
-    # save locals so they can be referenced in bind vars
-    if magics:
-        user_ns = magics.shell.user_ns
-    else:
-        user_ns = {}
-
-    parsed = sql.parse.parse('%s\n%s' % (line, cell))
-    conn = sql.connection.Connection.get(parsed['connection'])
-    result = sql.run.run(conn, parsed['sql'], config, user_ns)
-    return result    
-
 
 @magics_class
 class SqlMagic(Magics, Configurable):
@@ -64,7 +52,13 @@ class SqlMagic(Magics, Configurable):
           mysql+pymysql://me:mypw@localhost/mydb
           
         """
-        return execute(line, cell, self, self)
+        # save locals so they can be referenced in bind vars
+        user_ns = self.shell.user_ns
+
+        parsed = sql.parse.parse('%s\n%s' % (line, cell))
+        conn = sql.connection.Connection.get(parsed['connection'])
+        result = sql.run.run(conn, parsed['sql'], self, user_ns)
+        return result
 
        
 def load_ipython_extension(ip):
