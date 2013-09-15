@@ -45,3 +45,11 @@ def test_duplicate_column_names_accepted():
         SELECT last_name, last_name FROM writer;
         """)
     assert (u'Brecht', u'Brecht') in result
+
+def test_autolimit():
+    ip.run_line_magic('config',  "SqlMagic.autolimit = 0")
+    result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM test;")
+    assert len(result) == 2
+    ip.run_line_magic('config',  "SqlMagic.autolimit = 1")
+    result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM test;")
+    assert len(result) == 1
