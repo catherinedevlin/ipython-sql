@@ -7,11 +7,7 @@ import sql.parse
 import sql.run
 
 
-class SqlMagic(Configurable):
-    autolimit = Int(0, config=True, help="Automatically limit the size of the returned result sets")
-    style = Unicode('DEFAULT', config=True, help="Set the table printing style to any of prettytable's defined styles (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)")
-
-def execute(line, cell='', config=SqlMagic(), magics=None):
+def execute(line, cell='', config=None, magics=None):
     # save locals so they can be referenced in bind vars
     if magics:
         user_ns = magics.shell.user_ns
@@ -25,16 +21,21 @@ def execute(line, cell='', config=SqlMagic(), magics=None):
 
 
 @magics_class
-class SQLMagics(Magics):
+class SqlMagic(Magics, Configurable):
     """Runs SQL statement on a database, specified by SQLAlchemy connect string.
     
     Provides the %%sql magic."""
 
+    autolimit = Int(0, config=True, help="Automatically limit the size of the returned result sets")
+    style = Unicode('DEFAULT', config=True, help="Set the table printing style to any of prettytable's defined styles (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)")
+
     def __init__(self, shell):
-        super(SQLMagics, self).__init__(shell)
-        self.config = SqlMagic(config=self.shell.config)
+        Configurable.__init__(self, config=shell.config)
+        Magics.__init__(self, shell=shell)
+
         # Add ourself to the list of module configurable via %config
-        self.shell.configurables.append(self.config)
+        self.shell.configurables.append(self)
+
     
     @line_magic('sql')
     @cell_magic('sql')
@@ -63,9 +64,9 @@ class SQLMagics(Magics):
           mysql+pymysql://me:mypw@localhost/mydb
           
         """
-        return execute(line, cell, self.config, self)
+        return execute(line, cell, self, self)
 
        
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
-    ip.register_magics(SQLMagics)
+    ip.register_magics(SqlMagic)
