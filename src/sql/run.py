@@ -17,45 +17,6 @@ def unduplicate_field_names(field_names):
         res.append(k)
     return res
 
-
-def _plot(self, plot_func):
-    return plot_func(self[self.columns[-1]], labels=self[self.columns[0]])
-  
-try:
-    import matplotlib.pylab as plt
-    def _pie(self):
-        """Display a matplotlib pie chart based on the DataFrame.
-            
-            Values (pie slice sizes) are taken from the rightmost column;
-            labels from the leftmost.
-        """
-        dtypes = [str, ] * len(self.columns) - 1 + [float, ]
-        return plt.pie(self[self.columns[-1]], 
-                       labels=self[self.columns[0]],
-                       dtype=dtypes)
-    
-    def _bar(self):
-        """Display a matplotlib bar chart based on the DataFrame.
-            
-            Values (bar heights) are taken from the rightmost column;
-            labels from the leftmost.
-        """ 
-        return plt.bar(self[self.columns[-1]], labels=self[self.columns[0]])
-        return _plot(self, plt.bar)
-    
-    def _scatter(self):
-        """Display a matplotlib scatter plot based on the DataFrame.
-            
-            y values are taken from the rightmost column;
-            x values from the leftmost.
-        """ 
-        return _plot(self, plt.scatter)
-    
-except ImportError:
-    def _pie(self):
-        return ImportError("Could not import matplotlib; is it installed?")
-    _bar = _pie
-    _scatter = _pie
     
 class ResultSet(list):
     def __init__(self, sqlaproxy, sql, config):
@@ -91,6 +52,38 @@ class ResultSet(list):
         frame.bar = types.MethodType(_bar, frame)
         frame.scatter = types.MethodType(_scatter, frame)
         return frame
+    def _find_columns(self, key_word_sep=" "):
+        self._plot_values = [tuple(r)[-1] for r in self]
+        self._plot_keys = [key_word_sep.join(tuple(r)[:-1])
+                                             for r in self]
+        self._plot_value_label = self.keys[-1]
+        self._plot_key_label = key_word_sep.join(self.keys[:-1])
+    def pie(self, key_word_sep=" ", **kwargs):
+        """Generates a pylab pie chart from the result set.
+       
+        ``matplotlib`` must be installed, and in an
+        IPython Notebook, inlining must be on::
+        
+            %%matplotlib inline
+            
+        Values (pie slice sizes) are taken from the 
+        rightmost column (numerical values required).
+        All other columns are used to label the pie slices.
+        
+        Parameters
+        ----------
+        key_word_sep: string used to separate column values
+                      from each other in pie labels
+        Any additional keyword arguments will be passsed 
+        through to ``matplotlib.pylab.pie``.
+        
+        """
+        self._find_columns(key_word_sep)
+        import matplotlib.pylab as plt
+        return plt.pie(self._plot_values, labels=self._plot_keys)
+        
+        
+        
 
 def run(conn, sql, config, user_namespace):
     if sql.strip():
