@@ -41,7 +41,9 @@ class TestOneNum(Harness):
         results.guess_pie_columns(xlabel_sep="//")
         assert results.ys[0].is_quantity
         assert results.ys == [[1.01, 2.01, 3.01]]
-        assert results.xlabel == []
+        assert results.x == []
+        assert results.xlabels == []
+        assert results.xlabel == ''
 
     @with_setup(setup, teardown)
     def test_plot(self):
@@ -49,12 +51,7 @@ class TestOneNum(Harness):
         results.guess_plot_columns()
         assert results.ys == [[1.01, 2.01, 3.01]]
         assert results.x == []
-
-    @with_setup(setup, teardown)
-    @raises(AttributeError)
-    def test_scatter(self):
-        results = self.run_query()
-        results.guess_scatter_columns()
+        assert results.x.name == ''
 
 class TestOneStrOneNum(Harness):
     query = "SELECT name, y1 FROM manycoltbl"
@@ -65,7 +62,8 @@ class TestOneStrOneNum(Harness):
         results.guess_pie_columns(xlabel_sep="//")
         assert results.ys[0].is_quantity
         assert results.ys == [[1.01, 2.01, 3.01]]
-        assert results.xlabel == ['r1-txt1', 'r2-txt1', 'r3-txt1']
+        assert results.xlabels == ['r1-txt1', 'r2-txt1', 'r3-txt1']
+        assert results.xlabel == 'name'
 
     @with_setup(setup, teardown)
     def test_plot(self):
@@ -73,12 +71,6 @@ class TestOneStrOneNum(Harness):
         results.guess_plot_columns()
         assert results.ys == [[1.01, 2.01, 3.01]]
         assert results.x == []
-
-    @with_setup(setup, teardown)
-    @raises(AttributeError)
-    def test_scatter(self):
-        results = self.run_query()
-        results.guess_scatter_columns()
 
 
 class TestTwoStrTwoNum(Harness):
@@ -90,9 +82,10 @@ class TestTwoStrTwoNum(Harness):
         results.guess_pie_columns(xlabel_sep="//")
         assert results.ys[0].is_quantity
         assert results.ys == [[1.01, 2.01, 3.01]]
-        assert results.xlabel == ['r1-txt2//1.04//r1-txt1',
+        assert results.xlabels == ['r1-txt2//1.04//r1-txt1',
                                   'r2-txt2//2.04//r2-txt1',
                                   'r3-txt2//3.04//r3-txt1']
+        assert results.xlabel == 'name2, y3, name'
 
     @with_setup(setup, teardown)
     def test_plot(self):
@@ -100,14 +93,6 @@ class TestTwoStrTwoNum(Harness):
         results.guess_plot_columns()
         assert results.ys == [[1.01, 2.01, 3.01]]
         assert results.x == [1.04, 2.04, 3.04]
-
-    @with_setup(setup, teardown)
-    def test_scatter(self):
-        results = self.run_query()
-        results.guess_scatter_columns()
-        assert results.ys == [[1.01, 2.01, 3.01]]
-        assert results.x == [1.04, 2.04, 3.04]
-
 
 
 class TestTwoStrThreeNum(Harness):
@@ -119,7 +104,7 @@ class TestTwoStrThreeNum(Harness):
         results.guess_pie_columns(xlabel_sep="//")
         assert results.ys[0].is_quantity
         assert results.ys == [[1.04, 2.04, 3.04]]
-        assert results.xlabel == ['r1-txt1//1.01//r1-txt2//1.02',
+        assert results.xlabels == ['r1-txt1//1.01//r1-txt2//1.02',
                                   'r2-txt1//2.01//r2-txt2//2.02',
                                   'r3-txt1//3.01//r3-txt2//3.02']
 
@@ -127,12 +112,5 @@ class TestTwoStrThreeNum(Harness):
     def test_plot(self):
         results = self.run_query()
         results.guess_plot_columns()
-        assert results.ys == [[1.02, 2.02, 3.02], [1.04, 2.04, 3.04]]
-        assert results.x == [1.01, 2.01, 3.01]
-
-    @with_setup(setup, teardown)
-    def test_scatter(self):
-        results = self.run_query()
-        results.guess_scatter_columns()
         assert results.ys == [[1.02, 2.02, 3.02], [1.04, 2.04, 3.04]]
         assert results.x == [1.01, 2.01, 3.01]

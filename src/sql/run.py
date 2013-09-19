@@ -1,4 +1,5 @@
 import functools
+import operator
 import types
 import sqlalchemy
 import sqlparse
@@ -73,9 +74,10 @@ class ResultSet(list, ColumnGuesserMixin):
         """
         self.guess_pie_columns(xlabel_sep=key_word_sep)
         import matplotlib.pylab as plt
-        pie = plt.pie(self.ys[0], labels=self.xlabel, **kwargs)
+        pie = plt.pie(self.ys[0], labels=self.xlabels, **kwargs)
         plt.title(title or self.ys[0].name)
         return pie
+  
     def plot(self, title=None, **kwargs):
         """Generates a pylab plot from the result set.
        
@@ -94,20 +96,48 @@ class ResultSet(list, ColumnGuesserMixin):
         Any additional keyword arguments will be passsed 
         through to ``matplotlib.pylab.plot``.
         """
-        self.guess_plot_columns()
         import matplotlib.pylab as plt
-        if self.x:
-            plot = plt.plot(self.x, *self.ys, **kwargs)
+        self.guess_plot_columns()
+        self.x = self.x or range(len(self.ys[0]))
+        coords = reduce(operator.add, [(self.x, y) for y in self.ys])
+        plot = plt.plot(*coords, **kwargs)
+        if hasattr(self.x, 'name'):
             plt.xlabel(self.x.name)
-        else:
-            plot = plt.plot(*self.ys, **kwargs)
         ylabel = ", ".join(y.name for y in self.ys)
         plt.title(title or ylabel)
         plt.ylabel(ylabel)
         return plot
+    
+    def bar(self, key_word_sep = " ", title=None, **kwargs):
+        """Generates a pylab bar plot from the result set.
+       
+        ``matplotlib`` must be installed, and in an
+        IPython Notebook, inlining must be on::
         
+            %%matplotlib inline
+           
+        The last quantitative column is taken as the Y values;
+        all other columns are combined to label the X axis. 
         
-        
+        Parameters
+        ----------
+        title: Plot title, defaults to names of Y value columns
+        key_word_sep: string used to separate column values
+                      from each other in labels
+                      
+        Any additional keyword arguments will be passsed 
+        through to ``matplotlib.pylab.bar``.
+        """
+        import matplotlib.pylab as plt
+        self.guess_pie_columns(xlabel_sep=key_word_sep)
+        plot = plt.bar(range(len(self.ys[0])), self.ys[0], **kwargs)
+        if self.xlabels:
+            plt.xticks(range(len(self.xlabels)), self.xlabels,
+                       rotation=45)
+        plt.xlabel(self.xlabel)
+        plt.ylabel(self.ys[0].name)
+        return plot        
+
 
 def run(conn, sql, config, user_namespace):
     if sql.strip():
