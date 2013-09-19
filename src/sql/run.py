@@ -3,7 +3,7 @@ import types
 import sqlalchemy
 import sqlparse
 import prettytable
-from .column_guesser import ColumnFinderMixin
+from .column_guesser import ColumnGuesserMixin
 
 
 def unduplicate_field_names(field_names):
@@ -19,7 +19,7 @@ def unduplicate_field_names(field_names):
     return res
 
     
-class ResultSet(list, ColumnFinderMixin):
+class ResultSet(list, ColumnGuesserMixin):
     def __init__(self, sqlaproxy, sql, config):
         self.keys = sqlaproxy.keys()
         self.sql = sql
@@ -49,24 +49,7 @@ class ResultSet(list, ColumnFinderMixin):
         "Returns a Pandas DataFrame instance built from the result set."
         import pandas as pd
         frame = pd.DataFrame(self, columns=self.keys)
-        frame.pie = types.MethodType(_pie, frame)
-        frame.bar = types.MethodType(_bar, frame)
-        frame.scatter = types.MethodType(_scatter, frame)
         return frame
-    def _find_columns(self, key_word_sep=" ", multi_column_keys=False):
-        self._plot_value_label = self.keys[-1]
-        self._plot_values = [tuple(r)[-1] for r in self]
-        if multi_column_keys: 
-            self._plot_keys = [key_word_sep.join(tuple(r)[:-1])
-                                                 for r in self]
-            self._plot_key_label = key_word_sep.join(self.keys[:-1])
-        else:
-            if len(self.keys) > 1:
-                self._plot_keys = [r[0] for r in self]
-                self._plot_key_label = self.keys[0]
-            else:
-                self._plot_keys = range(len(self))
-                self._plot_key_label = 'index'
     def pie(self, key_word_sep=" ", title=None, **kwargs):
         """Generates a pylab pie chart from the result set.
        
@@ -83,17 +66,15 @@ class ResultSet(list, ColumnFinderMixin):
         ----------
         key_word_sep: string used to separate column values
                       from each other in pie labels
-        title: Plot title, defaults to Y by X              
+        title: Plot title, defaults to name of value column
 
         Any additional keyword arguments will be passsed 
         through to ``matplotlib.pylab.pie``.
         """
-    def pie(self, key_word_sep=" ", title=None, **kwargs):
-        self._find_columns(key_word_sep=key_word_sep, multi_column_keys=True)
+        self.guess_pie_columns(xlabel_sep=key_word_sep)
         import matplotlib.pylab as plt
-        pie = plt.pie(self._plot_values, labels=self._plot_keys, **kwargs)
-        plt.title(title or '%s by %s' % (self._plot_value_label, 
-                                            self._plot_key_label))
+        pie = plt.pie(self.ys[0], labels=self.xlabel, **kwargs)
+        plt.title(title or self.ys[0].name)
         return pie
     def plot(self, title=None, **kwargs):
         """Generates a pylab plot from the result set.
@@ -108,16 +89,21 @@ class ResultSet(list, ColumnFinderMixin):
         
         Parameters
         ----------
-        title: Plot title, defaults to Y by X              
+        title: Plot title, defaults to names of Y value columns
 
         Any additional keyword arguments will be passsed 
         through to ``matplotlib.pylab.plot``.
         """
-        self._find_columns(multi_column_keys=False)
+        self.guess_plot_columns()
         import matplotlib.pylab as plt
-        plot = plt.plot(self._plot_keys, self._plot_values, **kwargs)
-        plt.xlabel(self._plot_key_label)
-        plt.ylabel(self._plot_value_label)
+        if self.x:
+            plot = plt.plot(self.x, *self.ys, **kwargs)
+            plt.xlabel(self.x.name)
+        else:
+            plot = plt.plot(*self.ys, **kwargs)
+        ylabel = ", ".join(y.name for y in self.ys)
+        plt.title(title or ylabel)
+        plt.ylabel(ylabel)
         return plot
         
         

@@ -12,7 +12,7 @@ def is_quantity(val):
     """
     return hasattr(val, '__sub__')
 
-class ColumnFinderMixin(object):
+class ColumnGuesserMixin(object):
     """
     plot: [x, y, y...], y
     pie: ... y
