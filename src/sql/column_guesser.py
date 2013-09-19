@@ -47,19 +47,20 @@ class ColumnGuesserMixin(object):
     
     def get_xlabel(self, xlabel_sep):
         self.xlabel = []
-        for row_idx in range(len(self.columns[0])):
-            self.xlabel.append(xlabel_sep.join(
-                str(c[row_idx]) for c in self.columns))
+        if self.columns:
+            for row_idx in range(len(self.columns[0])):
+                self.xlabel.append(xlabel_sep.join(
+                    str(c[row_idx]) for c in self.columns))
       
     def _guess_columns(self):
         self.build_columns()
         self.get_y()
         if not self.ys:
-            raise(AttributeError, "No quantitative columns found for chart")
+            raise AttributeError("No quantitative columns found for chart")
         
     def guess_pie_columns(self, xlabel_sep=" "):
         """
-        Assigns x, y, and x labels from the data set.
+        Assigns x, y, and x labels from the data set for a pie chart.
         
         Pie charts simply use the last quantity column as 
         the pie slice size, and everything else as the
@@ -70,7 +71,7 @@ class ColumnGuesserMixin(object):
         
     def guess_plot_columns(self):
         """
-        Assigns ``x`` and ``y`` series from the data set.
+        Assigns ``x`` and ``y`` series from the data set for a plot.
         
         Plots use:
           the rightmost quantity column as a Y series
@@ -81,3 +82,20 @@ class ColumnGuesserMixin(object):
         self.get_x()
         while self.get_y():
             pass
+        
+    def guess_scatter_columns(self):
+        """
+        Assigns ``x`` and ``y`` series from the data set for a scatter chart.
+        
+        Scatter plots use:
+          the rightmost quantity column as a Y series
+          the leftmost quantity column as the X series
+          any other quantity columns as additional Y series
+        """
+        self._guess_columns()
+        self.get_x()
+        if not self.x:
+            raise AttributeError("No quantitative column found for X values")
+        while self.get_y():
+            pass
+        
