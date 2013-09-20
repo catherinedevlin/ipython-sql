@@ -129,15 +129,30 @@ for more details on IPython configuration.
 Pandas
 ------
 
-Once your data is in IPython, you may want to manipulate it with `Pandas`_::
+If you have installed ``pandas``, you can use a result set's 
+``.DataFrame()`` method::
 
-    In [3]: import pandas as pd
+    In [3]: result = %sql SELECT * FROM character WHERE speechcount > 25
     
-    In [4]: result = %sql SELECT * FROM character WHERE speechcount > 25
-    
-    In [5]: dataframe = pd.DataFrame(result, columns=result.keys)
+    In [4]: dataframe = result.DataFrame()
     
 .. _Pandas: http://pandas.pydata.org/
+
+Graphing
+--------
+
+If you have installed ``matplotlib``, you can use a result set's
+``.plot()``, ``.pie()``, and ``.bar()`` methods for quick plotting::
+
+    In[5]: result = %sql SELECT title, totalwords FROM work WHERE genretype = 'c'
+
+    In[6]: %matplotlib inline
+
+    In[7]: result.pie()
+
+.. image:: https://raw.github.com/catherinedevlin/ipython-sql/master/examples/wordcount.png 
+   :alt: pie chart of word count of Shakespeare's comedies
+   
 
 Installing
 ----------

@@ -62,3 +62,12 @@ Converted from an IPython Plugin to an Extension for 1.0 compatibility
 *Release date: 01-Aug-2013*
 
 Deleted Plugin import left behind in 0.2.2
+
+0.2.3
+-----
+
+*Release date: 20-Sep-2013*
+
+Added .DataFrame(), .pie(), .plot(), and .bar() methods to 
+result sets
+
