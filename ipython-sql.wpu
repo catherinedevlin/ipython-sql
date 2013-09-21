@@ -745,9 +745,9 @@ guimgr.visual-state = {loc('../astropy/astropy/table/table.py'): {'attrib-st'\
         'selection_end': 0,
         'selection_start': 0},
                        loc('build/lib.linux-x86_64-2.7/sql/magic.py'): {'att'\
-        'rib-starts': [('SQLMagics',
+        'rib-starts': [('SqlMagic',
                         17),
-                       ('SQLMagics.execute',
+                       ('SqlMagic.execute',
                         24)],
         'first-line': 44,
         'folded-linenos': [],
@@ -839,7 +839,7 @@ guimgr.visual-state = {loc('../astropy/astropy/table/table.py'): {'attrib-st'\
                        loc('src/sql/magic.py'): {'attrib-starts': [('SQLMagi'\
         'cs',
         17),
-        ('SQLMagics.execute',
+        ('SqlMagic.execute',
          24)],
         'first-line': 37,
         'folded-linenos': [],
