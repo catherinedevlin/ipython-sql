@@ -17,7 +17,7 @@ class SqlMagic(Magics, Configurable):
 
     autolimit = Int(0, config=True, help="Automatically limit the size of the returned result sets")
     style = Unicode('DEFAULT', config=True, help="Set the table printing style to any of prettytable's defined styles (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)")
-    short_errors = Bool(False, config=True, help="Don't display the full traceback on SQL Programming Error")
+    short_errors = Bool(True, config=True, help="Don't display the full traceback on SQL Programming Error")
 
     def __init__(self, shell):
         Configurable.__init__(self, config=shell.config)
@@ -61,10 +61,10 @@ class SqlMagic(Magics, Configurable):
         try:
             result = sql.run.run(conn, parsed['sql'], self, user_ns)
             return result
-        except (ProgrammingError, OperationalError), e:
+        except (ProgrammingError, OperationalError) as e:
             # Sqlite apparently return all errors as OperationalError :/
             if self.short_errors:
-                print e
+                print(e)
             else:
                 raise
 

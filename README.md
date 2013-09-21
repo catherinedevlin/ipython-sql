@@ -93,35 +93,30 @@ to specify it in the connection string::
     
 Configuration
 -------------
-    
+
 Query results are loaded as lists, so very large result sets may use up
-your system's memory.  There is no autolimit by default.
+your system's memory and/or hang your browser.  There is no autolimit 
+by default.
 
-You can set an autolimit by adding this to your
-`ipython_config.py` file::
-
-    c.SqlMagic.autolimit = 1000 
- 
-You can similarly change the table printing style to any of 
-[prettytable](http://code.google.com/p/prettytable/wiki/Tutorial)'s
-defined styles (currently DEFAULT, MSWORD\_FRIENDLY, PLAIN\_COLUMNS, RANDOM):
-
-    c.SqlMagic.style = 'PLAIN_COLUMNS'
+    In [2]: %config SqlMagic
+    SqlMagic options
+    --------------
+    SqlMagic.autolimit=<Int>
+        Current: 0
+        Automatically limit the size of the returned result sets
+    SqlMagic.short_errors=<Bool>
+        Current: True
+        Don't display the full traceback on SQL Programming Error
+    SqlMagic.style=<Unicode>
+        Current: 'DEFAULT'
+        Set the table printing style to any of prettytable's defined styles
+        (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)
     
-You can create and find your `ipython_config.py` file from
-the command line::
-
-    ipython profile create
-    ipython locate profile
-    
-See http://ipython.org/ipython-doc/stable/config/overview.html#configuration-objects-and-files  
-for more details on IPython configuration. 
-
 Pandas
 ------
 
-If you have installed [`pandas`](http://pandas.pydata.org), you can use a result set's
-`.DataFrame()` method:
+If you have installed [`pandas`](http://pandas.pydata.org), you can 
+use a result set's `.DataFrame()` method:
 
     In [3]: result = %sql SELECT * FROM character WHERE speechcount > 25
     
@@ -162,6 +157,7 @@ Credits
 -------
 
 - Matthias Bussonnier for help with configuration
+- Olivier Le Thanh Duong for %config fixes and improvements
 - [Distribute](http://pypi.python.org/pypi/distribute)
 - [Buildout](http://www.buildout.org/)
 - [modern-package-template](http://pypi.python.org/pypi/modern-package-template)

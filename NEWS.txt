@@ -68,6 +68,12 @@ Deleted Plugin import left behind in 0.2.2
 
 *Release date: 20-Sep-2013*
 
-Added .DataFrame(), .pie(), .plot(), and .bar() methods to 
+* Contributions from Olivier Le Thanh Duong: 
+
+  - SQL errors reported without internal IPython error stack 
+  
+  - Proper handling of configuration 
+  
+* Added .DataFrame(), .pie(), .plot(), and .bar() methods to 
 result sets
 
