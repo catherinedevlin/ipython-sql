@@ -21,6 +21,11 @@ def unduplicate_field_names(field_names):
 
     
 class ResultSet(list, ColumnGuesserMixin):
+    """
+    Results of a SQL query.
+    
+    Can access rows listwise, or by string value of leftmost column.
+    """
     def __init__(self, sqlaproxy, sql, config):
         self.keys = sqlaproxy.keys()
         self.sql = sql
@@ -46,6 +51,20 @@ class ResultSet(list, ColumnGuesserMixin):
             return None
     def __str__(self, *arg, **kwarg):
         return str(self.pretty or '')
+    def __getitem__(self, key):
+        """
+        Access by integer (row position within result set)
+        or by string (value of leftmost column)
+        """
+        try:
+            return list.__getitem__(self, key)
+        except TypeError:
+            result = [row for row in self if row[0] == key]
+            if not result:
+                raise KeyError(key)
+            if len(result) > 1:
+                raise KeyError('%d results for "%s"' % (len(result), key))
+            return result[0]
     def DataFrame(self):
         "Returns a Pandas DataFrame instance built from the result set."
         import pandas as pd

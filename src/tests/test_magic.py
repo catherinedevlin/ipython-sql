@@ -39,6 +39,9 @@ def test_multi_sql():
         """)
     assert 'Shakespeare' in str(result) and 'Brecht' in str(result)
     
+def test_access_results_by_keys():
+    assert ip.run_line_magic('sql', "sqlite:// SELECT * FROM writer;")['William'] == (u'William', u'Shakespeare', 1616)
+    
 def test_duplicate_column_names_accepted():
     result = ip.run_cell_magic('sql', '', """
         sqlite://
