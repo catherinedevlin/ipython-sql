@@ -30,6 +30,7 @@ class ResultSet(list, ColumnGuesserMixin):
         self.keys = sqlaproxy.keys()
         self.sql = sql
         self.limit = config.autolimit
+        self.displaylimit = config.displaylimit
         style_name = config.style
         self.style = prettytable.__dict__[style_name.upper()]
         if sqlaproxy.returns_rows:
@@ -38,7 +39,7 @@ class ResultSet(list, ColumnGuesserMixin):
             else:
                 list.__init__(self, sqlaproxy.fetchall())
             self.pretty = prettytable.PrettyTable(unduplicate_field_names(self.keys))
-            for row in self:
+            for row in self[:self.displaylimit or None]:
                 self.pretty.add_row(row)
             self.pretty.set_style(self.style)
         else:
@@ -46,7 +47,11 @@ class ResultSet(list, ColumnGuesserMixin):
             self.pretty = None
     def _repr_html_(self):
         if self.pretty:
-            return self.pretty.get_html_string()
+            result = self.pretty.get_html_string()
+            if self.displaylimit and len(self) > self.displaylimit:
+                result = '%s\n<span style="font-style:italic;text-align:center;">%d rows, truncated to displaylimit of %d</span>' % (
+                    result, len(self), self.displaylimit)
+            return result
         else:
             return None
     def __str__(self, *arg, **kwarg):
