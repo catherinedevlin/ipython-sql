@@ -1,13 +1,20 @@
-from sql.magic import execute
+from sql.magic import SqlMagic
 import sys
 from nose.tools import with_setup, raises
 import re
+
+ip = get_ipython()
+
+def setup():
+    ip = get_ipython()
+    sqlmagic = SqlMagic(shell=ip)
+    ip.register_magics(sqlmagic)
 
 class SqlEnv(object):
     def __init__(self, connectstr):
         self.connectstr = connectstr
     def query(self, txt):
-        return execute("", "%s %s" % (self.connectstr, txt))
+        return ip.run_line_magic('sql', "%s %s" % (self.connectstr, txt))
 
 sql_env = SqlEnv('sqlite://')
 
@@ -114,3 +121,4 @@ class TestTwoStrThreeNum(Harness):
         results.guess_plot_columns()
         assert results.ys == [[1.02, 2.02, 3.02], [1.04, 2.04, 3.04]]
         assert results.x == [1.01, 2.01, 3.01]
+        

@@ -4,8 +4,6 @@ import re
 ip = get_ipython()
 
 def setup():
-    ip = get_ipython()
-
     sqlmagic = SqlMagic(shell=ip)
     ip.register_magics(sqlmagic)
 
@@ -60,8 +58,8 @@ def test_autolimit():
 
 def test_displaylimit():
     ip.run_line_magic('config',  "SqlMagic.displaylimit = 0")
-    result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM test;")
+    result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM writer;")
     assert result._repr_html_().count("<tr>") == 3
     ip.run_line_magic('config',  "SqlMagic.displaylimit = 1")
-    result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM test;")
+    result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM writer;")
     assert result._repr_html_().count("<tr>") == 2
