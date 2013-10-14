@@ -57,6 +57,7 @@ def test_autolimit():
 
 
 def test_displaylimit():
+    ip.run_line_magic('config',  "SqlMagic.autolimit = 0")
     ip.run_line_magic('config',  "SqlMagic.displaylimit = 0")
     result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM writer;")
     assert result._repr_html_().count("<tr>") == 3

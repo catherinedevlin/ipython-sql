@@ -3,12 +3,8 @@ import sys
 from nose.tools import with_setup, raises
 import re
 
+global ip
 ip = get_ipython()
-
-def setup():
-    ip = get_ipython()
-    sqlmagic = SqlMagic(shell=ip)
-    ip.register_magics(sqlmagic)
 
 class SqlEnv(object):
     def __init__(self, connectstr):
@@ -19,6 +15,8 @@ class SqlEnv(object):
 sql_env = SqlEnv('sqlite://')
 
 def setup():
+    sqlmagic = SqlMagic(shell=ip)
+    ip.register_magics(sqlmagic)
     creator = """
         DROP TABLE IF EXISTS manycoltbl;
         CREATE TABLE manycoltbl 
