@@ -128,6 +128,9 @@ only the screen display is truncated.
     SqlMagic.autolimit=<Int>
         Current: 0
         Automatically limit the size of the returned result sets
+    SqlMagic.autopandas=<Bool>
+        Current: False
+        Return Pandas DataFrames instead of regular result sets
     SqlMagic.displaylimit=<Int>
         Current: 0
         Automatically limit the number of rows displayed (full result set is still
