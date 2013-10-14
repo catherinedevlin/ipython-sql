@@ -56,3 +56,12 @@ def test_autolimit():
     ip.run_line_magic('config',  "SqlMagic.autolimit = 1")
     result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM test;")
     assert len(result) == 1
+
+
+def test_displaylimit():
+    ip.run_line_magic('config',  "SqlMagic.displaylimit = 0")
+    result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM test;")
+    assert result._repr_html_().count("<tr>") == 3
+    ip.run_line_magic('config',  "SqlMagic.displaylimit = 1")
+    result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM test;")
+    assert result._repr_html_().count("<tr>") == 2

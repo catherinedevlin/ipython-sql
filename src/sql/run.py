@@ -161,6 +161,13 @@ class ResultSet(list, ColumnGuesserMixin):
         plt.xlabel(self.xlabel)
         plt.ylabel(self.ys[0].name)
         return plot        
+    
+def interpret_rowcount(rowcount):
+    if rowcount < 0:
+        result = 'Done.'
+    else:
+        result = '%d rows affected.' % rowcount
+    return result
 
 
 def run(conn, sql, config, user_namespace):
@@ -168,6 +175,8 @@ def run(conn, sql, config, user_namespace):
         for statement in sqlparse.split(sql):
             txt = sqlalchemy.sql.text(statement)
             result = conn.session.execute(txt, user_namespace)
+            if result:
+                print interpret_rowcount(result.rowcount)
         return ResultSet(result, statement, config)
         #returning only last result, intentionally
     else:
