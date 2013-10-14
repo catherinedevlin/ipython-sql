@@ -1,14 +1,15 @@
-from sql.magic import execute
 import sys
 from nose.tools import with_setup, raises
 import re
+
+ip = get_ipython()
 
 class SqlEnv(object):
     def __init__(self, connectstr):
         self.connectstr = connectstr
     def query(self, txt):
-        return execute("", "%s %s" % (self.connectstr, txt))
-
+        return ip.run_line_magic('sql', "%s %s" % (self.connectstr, txt))
+    
 sql_env = SqlEnv('sqlite://')
 
 def setup():
