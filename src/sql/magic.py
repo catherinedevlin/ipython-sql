@@ -12,13 +12,14 @@ import sql.run
 @magics_class
 class SqlMagic(Magics, Configurable):
     """Runs SQL statement on a database, specified by SQLAlchemy connect string.
-
+n 
     Provides the %%sql magic."""
 
     autolimit = Int(0, config=True, help="Automatically limit the size of the returned result sets")
     style = Unicode('DEFAULT', config=True, help="Set the table printing style to any of prettytable's defined styles (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)")
     short_errors = Bool(True, config=True, help="Don't display the full traceback on SQL Programming Error")
     displaylimit = Int(0, config=True, help="Automatically limit the number of rows displayed (full result set is still stored)")
+    autopandas = Bool(False, config=True, help="Return Pandas DataFrames instead of regular result sets")
 
     def __init__(self, shell):
         Configurable.__init__(self, config=shell.config)

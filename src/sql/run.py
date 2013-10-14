@@ -29,8 +29,8 @@ class ResultSet(list, ColumnGuesserMixin):
     def __init__(self, sqlaproxy, sql, config):
         self.keys = sqlaproxy.keys()
         self.sql = sql
+        self.config = config
         self.limit = config.autolimit
-        self.displaylimit = config.displaylimit
         style_name = config.style
         self.style = prettytable.__dict__[style_name.upper()]
         if sqlaproxy.returns_rows:
@@ -38,9 +38,11 @@ class ResultSet(list, ColumnGuesserMixin):
                 list.__init__(self, sqlaproxy.fetchmany(size=self.limit))
             else:
                 list.__init__(self, sqlaproxy.fetchall())
-            self.pretty = prettytable.PrettyTable(unduplicate_field_names(self.keys))
-            for row in self[:self.displaylimit or None]:
-                self.pretty.add_row(row)
+            field_names = unduplicate_field_names(self.keys)
+            self.pretty = prettytable.PrettyTable(field_names)
+            if not config.autopandas:
+                for row in self[:config.displaylimit or None]:
+                    self.pretty.add_row(row)
             self.pretty.set_style(self.style)
         else:
             list.__init__(self, [])
@@ -48,9 +50,9 @@ class ResultSet(list, ColumnGuesserMixin):
     def _repr_html_(self):
         if self.pretty:
             result = self.pretty.get_html_string()
-            if self.displaylimit and len(self) > self.displaylimit:
+            if self.config.displaylimit and len(self) > config.displaylimit:
                 result = '%s\n<span style="font-style:italic;text-align:center;">%d rows, truncated to displaylimit of %d</span>' % (
-                    result, len(self), self.displaylimit)
+                    result, len(self), self.config.displaylimit)
             return result
         else:
             return None
@@ -73,7 +75,7 @@ class ResultSet(list, ColumnGuesserMixin):
     def DataFrame(self):
         "Returns a Pandas DataFrame instance built from the result set."
         import pandas as pd
-        frame = pd.DataFrame(self, columns=self.keys)
+        frame = pd.DataFrame(self, columns=(self and self.keys) or [])
         return frame
     def pie(self, key_word_sep=" ", title=None, **kwargs):
         """Generates a pylab pie chart from the result set.
@@ -176,8 +178,12 @@ def run(conn, sql, config, user_namespace):
             txt = sqlalchemy.sql.text(statement)
             result = conn.session.execute(txt, user_namespace)
             if result:
-                print interpret_rowcount(result.rowcount)
-        return ResultSet(result, statement, config)
+                print(interpret_rowcount(result.rowcount))
+        resultset = ResultSet(result, statement, config)
+        if config.autopandas:
+            return resultset.DataFrame()
+        else:
+            return resultset
         #returning only last result, intentionally
     else:
         return 'Connected: %s' % conn.name
