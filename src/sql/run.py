@@ -163,7 +163,6 @@ class ResultSet(list, ColumnGuesserMixin):
         return plot        
     
 def interpret_rowcount(rowcount):
-    return
     if rowcount < 0:
         result = 'Done.'
     else:

@@ -77,3 +77,15 @@ Deleted Plugin import left behind in 0.2.2
 * Added .DataFrame(), .pie(), .plot(), and .bar() methods to 
 result sets
 
+0.3.0
+-----
+
+*Release date: 13-Oct-2013*
+
+* displaylimit config parameter
+
+* reports number of rows affected by each query
+
+* test suite working again
+
+* dict-style access for result sets by primary key

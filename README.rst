@@ -79,6 +79,17 @@ The variable names used should be defined in the local namespace::
     In [13]: %sql select description from character where charname = :name
     Out[13]: [(u'mother to Bertram',)]
 
+As a convenience, dict-style access for result sets is supported, with the
+leftmost column serving as key, for unique values.
+
+::
+
+    In [14]: result = %sql select * from work
+    43 rows affected.
+
+    In [15]: result['richard2']
+    Out[15]: (u'richard2', u'Richard II', u'History of Richard II', 1595, u'h', None, u'Moby', 22411, 628)
+
 Connecting
 ----------
 
@@ -104,7 +115,10 @@ Configuration
 
 Query results are loaded as lists, so very large result sets may use up
 your system's memory and/or hang your browser.  There is no autolimit 
-by default.
+by default.  However, `autolimit` (if set) limits the size of the result
+set (usually with a `LIMIT` clause in the SQL).  `displaylimit` is similar,
+but the entire result set is still pulled into memory (for later analysis);
+only the screen display is truncated.
 
 ::
 
@@ -114,6 +128,10 @@ by default.
     SqlMagic.autolimit=<Int>
         Current: 0
         Automatically limit the size of the returned result sets
+    SqlMagic.displaylimit=<Int>
+        Current: 0
+        Automatically limit the number of rows displayed (full result set is still
+        stored)
     SqlMagic.short_errors=<Bool>
         Current: True
         Don't display the full traceback on SQL Programming Error
@@ -121,7 +139,7 @@ by default.
         Current: 'DEFAULT'
         Set the table printing style to any of prettytable's defined styles
         (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)
-    
+   
 Pandas
 ------
 

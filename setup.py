@@ -6,11 +6,11 @@ README = open(os.path.join(here, 'README.rst')).read()
 NEWS = open(os.path.join(here, 'NEWS.txt')).read()
 
 
-version = '0.2.3'
+version = '0.3.0'
 
 install_requires = [
     'prettytable',
-    'ipython>=0.13',
+    'ipython>=1.0',
     'sqlalchemy',
     'sqlparse',
 ]
