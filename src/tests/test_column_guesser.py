@@ -1,6 +1,7 @@
+import re
 import sys
 from nose.tools import with_setup, raises
-import re
+from sql.magic import SqlMagic
 
 ip = get_ipython()
 
@@ -9,10 +10,12 @@ class SqlEnv(object):
         self.connectstr = connectstr
     def query(self, txt):
         return ip.run_line_magic('sql', "%s %s" % (self.connectstr, txt))
-    
+
 sql_env = SqlEnv('sqlite://')
 
 def setup():
+    sqlmagic = SqlMagic(shell=ip)
+    ip.register_magics(sqlmagic)
     creator = """
         DROP TABLE IF EXISTS manycoltbl;
         CREATE TABLE manycoltbl 
@@ -115,3 +118,4 @@ class TestTwoStrThreeNum(Harness):
         results.guess_plot_columns()
         assert results.ys == [[1.02, 2.02, 3.02], [1.04, 2.04, 3.04]]
         assert results.x == [1.01, 2.01, 3.01]
+        
