@@ -177,7 +177,7 @@ def run(conn, sql, config, user_namespace):
         for statement in sqlparse.split(sql):
             txt = sqlalchemy.sql.text(statement)
             result = conn.session.execute(txt, user_namespace)
-            if result:
+            if result and config.feedback:
                 print(interpret_rowcount(result.rowcount))
         resultset = ResultSet(result, statement, config)
         if config.autopandas:

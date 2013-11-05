@@ -123,6 +123,9 @@ only the screen display is truncated.
         Current: 0
         Automatically limit the number of rows displayed (full result set is still
         stored)
+    SqlMagin.feedback=<Bool>
+        Current: True
+        Print number of rows affected by DML 
     SqlMagic.short_errors=<Bool>
         Current: True
         Don't display the full traceback on SQL Programming Error
@@ -130,6 +133,8 @@ only the screen display is truncated.
         Current: 'DEFAULT'
         Set the table printing style to any of prettytable's defined styles
         (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)
+   
+    In[3]: %config SqlMagic.feedback = False
     
 Pandas
 ------

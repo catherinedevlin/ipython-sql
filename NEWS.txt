@@ -89,3 +89,8 @@ result sets
 * test suite working again
 
 * dict-style access for result sets by primary key
+
+0.3.1
+-----
+
+* Reporting of number of rows affected configurable with 
