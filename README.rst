@@ -197,10 +197,10 @@ Credits
 -------
 
 - Matthias Bussonnier for help with configuration
-- `Distribute`_
-- `Buildout`_
-- `modern-package-template`_
+- Olivier Le Thanh Duong for %config fixes and improvements
+- [Distribute](http://pypi.python.org/pypi/distribute)
+- [Buildout](http://www.buildout.org/)
+- [modern-package-template](http://pypi.python.org/pypi/modern-package-template)
+- Mike Wilson for bind variable code
+- Thomas Kluyver and Steve Holden for debugging help
 
-.. _Buildout: http://www.buildout.org/
-.. _Distribute: http://pypi.python.org/pypi/distribute
-.. _`modern-package-template`: http://pypi.python.org/pypi/modern-package-template

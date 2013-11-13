@@ -186,4 +186,4 @@ Credits
 - [Buildout](http://www.buildout.org/)
 - [modern-package-template](http://pypi.python.org/pypi/modern-package-template)
 - Mike Wilson for bind variable code
-
+- Thomas Kluyver and Steve Holden for debugging help
