@@ -135,7 +135,7 @@ only the screen display is truncated.
         Current: 0
         Automatically limit the number of rows displayed (full result set is still
         stored)
-    SqlMagin.feedback=<Bool>
+    SqlMagic.feedback=<Bool>
         Current: True
         Print number of rows affected by DML 
     SqlMagic.short_errors=<Bool>

@@ -1,4 +1,4 @@
-from IPython.core.magic import Magics, magics_class, cell_magic, line_magic
+from IPython.core.magic import Magics, magics_class, cell_magic, line_magic, needs_local_scope
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Bool, Int, Unicode
 
@@ -12,7 +12,7 @@ import sql.run
 @magics_class
 class SqlMagic(Magics, Configurable):
     """Runs SQL statement on a database, specified by SQLAlchemy connect string.
-n 
+
     Provides the %%sql magic."""
 
     autolimit = Int(0, config=True, help="Automatically limit the size of the returned result sets")
@@ -29,9 +29,10 @@ n
         # Add ourself to the list of module configurable via %config
         self.shell.configurables.append(self)
 
+    @needs_local_scope
     @line_magic('sql')
     @cell_magic('sql')
-    def execute(self, line, cell=''):
+    def execute(self, line, cell='', local_ns={}):
         """Runs SQL statement against a database, specified by SQLAlchemy connect string.
 
         If no database connection has been established, first word
@@ -56,8 +57,9 @@ n
           mysql+pymysql://me:mypw@localhost/mydb
 
         """
-        # save locals so they can be referenced in bind vars
+        # save globals and locals so they can be referenced in bind vars
         user_ns = self.shell.user_ns
+        user_ns.update(local_ns)
 
         parsed = sql.parse.parse('%s\n%s' % (line, cell))
         conn = sql.connection.Connection.get(parsed['connection'])

@@ -93,4 +93,7 @@ result sets
 0.3.1
 -----
 
-* Reporting of number of rows affected configurable with 
+* Reporting of number of rows affected configurable with ``feedback`` 
+
+* Local variables usable as SQL bind variables
+

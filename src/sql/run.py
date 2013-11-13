@@ -50,7 +50,7 @@ class ResultSet(list, ColumnGuesserMixin):
     def _repr_html_(self):
         if self.pretty:
             result = self.pretty.get_html_string()
-            if self.config.displaylimit and len(self) > config.displaylimit:
+            if self.config.displaylimit and len(self) > self.config.displaylimit:
                 result = '%s\n<span style="font-style:italic;text-align:center;">%d rows, truncated to displaylimit of %d</span>' % (
                     result, len(self), self.config.displaylimit)
             return result
