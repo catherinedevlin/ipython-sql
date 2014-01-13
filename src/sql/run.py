@@ -1,6 +1,9 @@
 import functools
 import operator
 import types
+import csv
+import StringIO
+import os.path
 import sqlalchemy
 import sqlparse
 import prettytable
@@ -38,8 +41,8 @@ class ResultSet(list, ColumnGuesserMixin):
                 list.__init__(self, sqlaproxy.fetchmany(size=self.limit))
             else:
                 list.__init__(self, sqlaproxy.fetchall())
-            field_names = unduplicate_field_names(self.keys)
-            self.pretty = prettytable.PrettyTable(field_names)
+            self.field_names = unduplicate_field_names(self.keys)
+            self.pretty = prettytable.PrettyTable(self.field_names)
             if not config.autopandas:
                 for row in self[:config.displaylimit or None]:
                     self.pretty.add_row(row)
@@ -163,6 +166,25 @@ class ResultSet(list, ColumnGuesserMixin):
         plt.xlabel(self.xlabel)
         plt.ylabel(self.ys[0].name)
         return plot        
+    
+    def csv(self, filename=None, **format_params):
+        if not self.pretty:
+            return None # no results
+        if filename:
+            outfile = open(filename, 'w')
+        else:
+            outfile = StringIO.StringIO()
+        writer = csv.writer(outfile, **format_params)
+        writer.writerow(self.field_names)
+        for row in self:
+            writer.writerow(row)
+        if filename:
+            outfile.close()
+            if self.config.feedback:
+                print('Written to %s' % os.path.join(os.path.abspath('.'), filename))
+        else:
+            return outfile.getvalue()
+        
     
 def interpret_rowcount(rowcount):
     if rowcount < 0:
