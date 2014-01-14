@@ -37,12 +37,10 @@ class UnicodeWriter(object):
         self.encoder = codecs.getincrementalencoder(encoding)()
 
     def writerow(self, row):
-        _row = []
-        for s in row:
-            try:
-                _row.append(s.encode("utf-8"))
-            except AttributeError:
-                _row.append(s)
+        _row = [s.encode("utf-8")
+                if hasattr(s, "encode")
+                else s
+                for s in row]
         self.writer.writerow(_row)
         # Fetch UTF-8 output from the queue ...
         data = self.queue.getvalue()
