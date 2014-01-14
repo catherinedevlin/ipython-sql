@@ -2,7 +2,8 @@ import functools
 import operator
 import types
 import csv
-import StringIO
+import cStringIO
+import codecs
 import os.path
 import sqlalchemy
 import sqlparse
@@ -21,6 +22,41 @@ def unduplicate_field_names(field_names):
             k += '_' + str(i)
         res.append(k)
     return res
+
+class UnicodeWriter(object):
+    """
+    A CSV writer which will write rows to CSV file "f",
+    which is encoded in the given encoding.
+    """
+
+    def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
+        # Redirect output to a queue
+        self.queue = cStringIO.StringIO()
+        self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
+        self.stream = f
+        self.encoder = codecs.getincrementalencoder(encoding)()
+
+    def writerow(self, row):
+        _row = []
+        for s in row:
+            try:
+                _row.append(s.encode("utf-8"))
+            except AttributeError:
+                _row.append(s)
+        self.writer.writerow(_row)
+        # Fetch UTF-8 output from the queue ...
+        data = self.queue.getvalue()
+        data = data.decode("utf-8")
+        # ... and reencode it into the target encoding
+        data = self.encoder.encode(data)
+        # write to the target stream
+        self.stream.write(data)
+        # empty queue
+        self.queue.truncate(0)
+
+    def writerows(self, rows):
+        for row in rows:
+            self.writerow(row)
 
     
 class ResultSet(list, ColumnGuesserMixin):
@@ -173,8 +209,8 @@ class ResultSet(list, ColumnGuesserMixin):
         if filename:
             outfile = open(filename, 'w')
         else:
-            outfile = StringIO.StringIO()
-        writer = csv.writer(outfile, **format_params)
+            outfile = cStringIO.StringIO()
+        writer = UnicodeWriter(outfile, **format_params)
         writer.writerow(self.field_names)
         for row in self:
             writer.writerow(row)
