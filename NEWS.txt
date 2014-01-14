@@ -97,3 +97,8 @@ result sets
 
 * Local variables usable as SQL bind variables
 
+0.3.2
+-----
+
+* ``.csv(filename=None)`` method added to result sets
+

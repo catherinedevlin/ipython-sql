@@ -188,6 +188,13 @@ or download from https://github.com/catherinedevlin/ipython-sql and:
     cd ipython-sql
     sudo python setup.py install
 
+Dumping
+-------
+ 
+Result sets come with a ``.csv(filename=None)`` method.  This generates
+comma-separated text either as a return value (if ``filename`` is not
+specified``) or in a file of the given name.
+
 Development
 -----------
 

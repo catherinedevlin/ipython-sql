@@ -202,6 +202,7 @@ class ResultSet(list, ColumnGuesserMixin):
         return plot        
     
     def csv(self, filename=None, **format_params):
+        """Generate results in comma-separated form.  Write to ``filename`` if given."""
         if not self.pretty:
             return None # no results
         if filename:

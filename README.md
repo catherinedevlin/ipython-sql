@@ -159,7 +159,14 @@ If you have installed `matplotlib`, you can use a result set's
     In[7]: result.pie()
 
 ![pie chart of word count of Shakespeare's comedies](https://raw.github.com/catherinedevlin/ipython-sql/master/examples/wordcount.png)
-    
+   
+Dumping
+-------
+
+Result sets come with a ``.csv(filename=None)`` method.  This generates
+comma-separated text either as a return value (if ``filename`` is not
+specified``) or in a file of the given name.
+ 
 Development
 -----------
 
