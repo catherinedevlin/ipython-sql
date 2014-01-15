@@ -56,6 +56,13 @@ class UnicodeWriter(object):
         for row in rows:
             self.writerow(row)
 
+class CsvResultDescriptor(object):
+    def __init__(self, file_path):
+        self.file_path = file_path
+    def __repr__(self):
+        return 'CSV results at %s' % os.path.join(os.path.abspath('.'), self.file_path)
+    def _repr_html_(self):
+        return '<a href="%s">CSV results</a>' % os.path.join('.', 'files', self.file_path)
     
 class ResultSet(list, ColumnGuesserMixin):
     """
@@ -215,8 +222,7 @@ class ResultSet(list, ColumnGuesserMixin):
             writer.writerow(row)
         if filename:
             outfile.close()
-            if self.config.feedback:
-                print('Written to %s' % os.path.join(os.path.abspath('.'), filename))
+            return CsvResultDescriptor(filename)
         else:
             return outfile.getvalue()
         
