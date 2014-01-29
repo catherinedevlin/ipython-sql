@@ -12,7 +12,7 @@ from .column_guesser import ColumnGuesserMixin
 
 
 def unduplicate_field_names(field_names):
-    """ Append a number to duplicate field names to make them unique. """
+    """Append a number to duplicate field names to make them unique. """
     res = []
     for k in field_names:
         if k in res:
@@ -57,6 +57,7 @@ class UnicodeWriter(object):
             self.writerow(row)
 
 class CsvResultDescriptor(object):
+    """Provides IPython Notebook-friendly output for the feedback after a ``.csv`` called."""
     def __init__(self, file_path):
         self.file_path = file_path
     def __repr__(self):
@@ -209,7 +210,8 @@ class ResultSet(list, ColumnGuesserMixin):
         return plot        
     
     def csv(self, filename=None, **format_params):
-        """Generate results in comma-separated form.  Write to ``filename`` if given."""
+        """Generate results in comma-separated form.  Write to ``filename`` if given.
+           Any other parameterw will be passed on to csv.writer."""
         if not self.pretty:
             return None # no results
         if filename:
