@@ -7,14 +7,12 @@ def parse(cell, config):
     if not parts:
         return {'connection': '', 'sql': ''}
     if parts[0].startswith('[') and parts[0].endswith(']'):
+        section = parts[0].lstrip('[').rstrip(']')
         parser = ConfigParser()
         parser.read(config.dsn_filename)
-        section = parts[0].lstrip('[').rstrip(']')
-        connection = str(URL(drivername=parser.get(section, 'drivername'),
-                             username=parser.get(section, 'username'),
-                             password=parser.get(section, 'password'),
-                             host=parser.get(section, 'host'),
-                             database=parser.get(section, 'database')))
+        cfg_dict = dict(parser.items(section))
+
+        connection = str(URL(**cfg_dict))
         sql = parts[1] if len(parts) > 1 else ''
     elif '@' in parts[0] or '://' in parts[0]:
         connection = parts[0]
@@ -26,6 +24,4 @@ def parse(cell, config):
         connection = ''
         sql = cell
     return {'connection': connection.strip(),
-            'sql': sql.strip()
-            }
-   
+            'sql': sql.strip()}
