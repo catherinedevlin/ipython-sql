@@ -21,6 +21,10 @@ class SqlMagic(Magics, Configurable):
     displaylimit = Int(0, config=True, help="Automatic,ally limit the number of rows displayed (full result set is still stored)")
     autopandas = Bool(False, config=True, help="Return Pandas DataFrames instead of regular result sets")
     feedback = Bool(True, config=True, help="Print number of rows affected by DML")
+    dsn_filename = Unicode('odbc.ini', config=True, help="Path to DSN file. \
+                           When the first argument is of the form [section], \
+                           a sqlalchemy connection string is formed from the \
+                           matching section in the DSN file.")
 
     def __init__(self, shell):
         Configurable.__init__(self, config=shell.config)
@@ -61,7 +65,7 @@ class SqlMagic(Magics, Configurable):
         user_ns = self.shell.user_ns
         user_ns.update(local_ns)
 
-        parsed = sql.parse.parse('%s\n%s' % (line, cell))
+        parsed = sql.parse.parse('%s\n%s' % (line, cell), self)
         conn = sql.connection.Connection.get(parsed['connection'])
         try:
             result = sql.run.run(conn, parsed['sql'], self, user_ns)
