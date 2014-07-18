@@ -210,4 +210,5 @@ Credits
 - [modern-package-template](http://pypi.python.org/pypi/modern-package-template)
 - Mike Wilson for bind variable code
 - Thomas Kluyver and Steve Holden for debugging help
+- Berton Earnshaw for DSN connection syntax
 
