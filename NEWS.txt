@@ -102,3 +102,9 @@ result sets
 
 * ``.csv(filename=None)`` method added to result sets
 
+0.3.3
+-----
+
+* Python 3 compatibility restored
+* DSN access supported (thanks Berton Earnshaw)
+
