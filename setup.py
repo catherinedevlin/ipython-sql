@@ -13,6 +13,7 @@ install_requires = [
     'ipython>=1.0',
     'sqlalchemy>=0.6.7',
     'sqlparse',
+    'six',
 ]
 
 

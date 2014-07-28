@@ -2,7 +2,8 @@ import functools
 import operator
 import types
 import csv
-import cStringIO
+import six
+from six.moves import cStringIO
 import codecs
 import os.path
 import sqlalchemy
