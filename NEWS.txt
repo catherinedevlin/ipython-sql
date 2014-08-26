@@ -7,7 +7,7 @@ News
 *Release date: 21-Mar-2013*
 
 * Initial release
- 
+
 0.1.1
 -----
 
@@ -21,7 +21,7 @@ News
 
 * set autolimit and text wrap in configuration
 
- 
+
 0.1.2
 -----
 
@@ -68,13 +68,13 @@ Deleted Plugin import left behind in 0.2.2
 
 *Release date: 20-Sep-2013*
 
-* Contributions from Olivier Le Thanh Duong: 
+* Contributions from Olivier Le Thanh Duong:
 
-  - SQL errors reported without internal IPython error stack 
-  
-  - Proper handling of configuration 
-  
-* Added .DataFrame(), .pie(), .plot(), and .bar() methods to 
+  - SQL errors reported without internal IPython error stack
+
+  - Proper handling of configuration
+
+* Added .DataFrame(), .pie(), .plot(), and .bar() methods to
 result sets
 
 0.3.0
@@ -93,7 +93,7 @@ result sets
 0.3.1
 -----
 
-* Reporting of number of rows affected configurable with ``feedback`` 
+* Reporting of number of rows affected configurable with ``feedback``
 
 * Local variables usable as SQL bind variables
 
@@ -108,3 +108,7 @@ result sets
 * Python 3 compatibility restored
 * DSN access supported (thanks Berton Earnshaw)
 
+0.3.4
+-----
+
+* PERSIST pseudo-SQL command added

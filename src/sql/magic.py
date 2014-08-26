@@ -1,6 +1,12 @@
+import re
 from IPython.core.magic import Magics, magics_class, cell_magic, line_magic, needs_local_scope
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Bool, Int, Unicode
+try:
+    from pandas.core.frame import DataFrame, Series
+except ImportError:
+    DataFrame = None
+    Series = None
 
 from sqlalchemy.exc import ProgrammingError, OperationalError
 
@@ -67,6 +73,9 @@ class SqlMagic(Magics, Configurable):
 
         parsed = sql.parse.parse('%s\n%s' % (line, cell), self)
         conn = sql.connection.Connection.get(parsed['connection'])
+        first_word = parsed['sql'].split(None, 1)[:1]
+        if first_word and first_word[0].lower() == 'persist':
+            return self._persist_dataframe(parsed['sql'], conn, user_ns)
         try:
             result = sql.run.run(conn, parsed['sql'], self, user_ns)
             return result
@@ -76,6 +85,22 @@ class SqlMagic(Magics, Configurable):
                 print(e)
             else:
                 raise
+
+    legal_sql_identifier = re.compile(r'^[A-Za-z0-9#_$]+')
+    def _persist_dataframe(self, raw, conn, user_ns):
+        if not DataFrame:
+            raise ImportError("Must `pip install pandas` to use DataFrames")
+        pieces = raw.split()
+        if len(pieces) != 2:
+            raise SyntaxError("Format: %sql [connection] persist <DataFrameName>")
+        frame_name = pieces[1].strip(';')
+        frame = eval(frame_name, user_ns)
+        if not isinstance(frame, DataFrame) and not isinstance(frame, Series):
+            raise TypeError('%s is not a Pandas DataFrame or Series' % frame_name)
+        table_name = frame_name.lower()
+        table_name = self.legal_sql_identifier.search(table_name).group(0)
+        frame.to_sql(table_name, conn.session.engine)
+        return 'Persisted %s' % table_name
 
 
 def load_ipython_extension(ip):

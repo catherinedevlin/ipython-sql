@@ -4,15 +4,15 @@ ipython-sql
 
 :Author: Catherine Devlin, http://catherinedevlin.blogspot.com
 
-Introduces a %sql (or %%sql) magic.  
+Introduces a %sql (or %%sql) magic.
 
 Connect to a database, using SQLAlchemy connect strings, then issue SQL
 commands within IPython or IPython Notebook.
 
-.. image:: https://raw.github.com/catherinedevlin/ipython-sql/master/examples/writers.png 
+.. image:: https://raw.github.com/catherinedevlin/ipython-sql/master/examples/writers.png
    :width: 600px
    :alt: screenshot of ipython-sql in the Notebook
-   
+
 Examples::
 
     In [1]: %load_ext sql
@@ -20,45 +20,45 @@ Examples::
     In [2]: %%sql postgresql://will:longliveliz@localhost/shakes
        ...: select * from character
        ...: where abbrev = 'ALICE'
-       ...: 
+       ...:
     Out[2]: [(u'Alice', u'Alice', u'ALICE', u'a lady attending on Princess Katherine', 22)]
-  
+
     In [3]: result = _
-   
+
     In [4]: print(result)
-    charid   charname   abbrev                description                 speechcount 
+    charid   charname   abbrev                description                 speechcount
     =================================================================================
-    Alice    Alice      ALICE    a lady attending on Princess Katherine   22         
-                                                 
+    Alice    Alice      ALICE    a lady attending on Princess Katherine   22
+
     In [4]: result.keys
     Out[5]: [u'charid', u'charname', u'abbrev', u'description', u'speechcount']
-    
+
     In [6]: result[0][0]
     Out[6]: u'Alice'
-    
+
     In [7]: result[0].description
     Out[7]: u'a lady attending on Princess Katherine'
-                                                 
+
 After the first connection, connect info can be omitted::
 
     In [8]: %sql select count(*) from work
     Out[8]: [(43L,)]
-   
-Connections to multiple databases can be maintained.  You can refer to 
+
+Connections to multiple databases can be maintained.  You can refer to
 an existing connection by username@database::
 
     In [9]: %%sql will@shakes
-       ...: select charname, speechcount from character 
-       ...: where  speechcount = (select max(speechcount) 
+       ...: select charname, speechcount from character
+       ...: where  speechcount = (select max(speechcount)
        ...:                       from character);
-       ...: 
+       ...:
     Out[9]: [(u'Poet', 733)]
-    
+
     In [10]: print(_)
-    charname   speechcount 
+    charname   speechcount
     ======================
-    Poet       733  
-   
+    Poet       733
+
 You may use multiple SQL statements inside a single cell, but you will
 only see any query results from the last of them, so this really only
 makes sense for statements with no output::
@@ -67,8 +67,8 @@ makes sense for statements with no output::
        ....: CREATE TABLE writer (first_name, last_name, year_of_death);
        ....: INSERT INTO writer VALUES ('William', 'Shakespeare', 1616);
        ....: INSERT INTO writer VALUES ('Bertold', 'Brecht', 1956);
-       ....:     
-    Out[11]: []   
+       ....:
+    Out[11]: []
 
 
 Bind variables (bind parameters) can be used in the "named" (:x) style.
@@ -101,10 +101,10 @@ Some example connection strings::
     oracle://scott:tiger@127.0.0.1:1521/sidname
     sqlite://
     sqlite:///foo.db
-    
+
 .. _SQLAlchemy: http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls
 
-Note that ``mysql`` and ``mysql+pymysql`` connections (and perhaps others) 
+Note that ``mysql`` and ``mysql+pymysql`` connections (and perhaps others)
 don't read your client character set information from .my.cnf.  You need
 to specify it in the connection string::
 
@@ -114,7 +114,7 @@ Configuration
 -------------
 
 Query results are loaded as lists, so very large result sets may use up
-your system's memory and/or hang your browser.  There is no autolimit 
+your system's memory and/or hang your browser.  There is no autolimit
 by default.  However, `autolimit` (if set) limits the size of the result
 set (usually with a `LIMIT` clause in the SQL).  `displaylimit` is similar,
 but the entire result set is still pulled into memory (for later analysis);
@@ -137,7 +137,7 @@ only the screen display is truncated.
         stored)
     SqlMagic.feedback=<Bool>
         Current: True
-        Print number of rows affected by DML 
+        Print number of rows affected by DML
     SqlMagic.short_errors=<Bool>
         Current: True
         Don't display the full traceback on SQL Programming Error
@@ -145,19 +145,26 @@ only the screen display is truncated.
         Current: 'DEFAULT'
         Set the table printing style to any of prettytable's defined styles
         (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)
-        
+
     In[3]: %config SqlMagic.feedback = False
-   
+
 Pandas
 ------
 
-If you have installed ``pandas``, you can use a result set's 
+If you have installed ``pandas``, you can use a result set's
 ``.DataFrame()`` method::
 
     In [3]: result = %sql SELECT * FROM character WHERE speechcount > 25
-    
+
     In [4]: dataframe = result.DataFrame()
-    
+
+The bogus non-standard pseudo-SQL command ``PERSIST`` will create a table name
+in the database from the named DataFrame.
+
+    In [5]: %sql PERSIST dataframe
+
+    In [6]: %sql SELECT * FROM dataframe;
+
 .. _Pandas: http://pandas.pydata.org/
 
 Graphing
@@ -172,9 +179,9 @@ If you have installed ``matplotlib``, you can use a result set's
 
     In[7]: result.pie()
 
-.. image:: https://raw.github.com/catherinedevlin/ipython-sql/master/examples/wordcount.png 
+.. image:: https://raw.github.com/catherinedevlin/ipython-sql/master/examples/wordcount.png
    :alt: pie chart of word count of Shakespeare's comedies
-   
+
 
 Installing
 ----------
@@ -190,7 +197,7 @@ or download from https://github.com/catherinedevlin/ipython-sql and:
 
 Dumping
 -------
- 
+
 Result sets come with a ``.csv(filename=None)`` method.  This generates
 comma-separated text either as a return value (if ``filename`` is not
 specified``) or in a file of the given name.
@@ -211,4 +218,3 @@ Credits
 - Mike Wilson for bind variable code
 - Thomas Kluyver and Steve Holden for debugging help
 - Berton Earnshaw for DSN connection syntax
-
