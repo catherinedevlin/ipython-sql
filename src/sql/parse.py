@@ -1,5 +1,5 @@
 import six
-from six.moves import configparser
+from six.moves import configparser as CP
 from sqlalchemy.engine.url import URL
 
 
@@ -9,7 +9,7 @@ def parse(cell, config):
         return {'connection': '', 'sql': ''}
     if parts[0].startswith('[') and parts[0].endswith(']'):
         section = parts[0].lstrip('[').rstrip(']')
-        parser = configparser()
+        parser = CP.ConfigParser()
         parser.read(config.dsn_filename)
         cfg_dict = dict(parser.items(section))
 
