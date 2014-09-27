@@ -13,7 +13,10 @@ commands within IPython or IPython Notebook.
    :width: 600px
    :alt: screenshot of ipython-sql in the Notebook
 
-Examples::
+Examples
+--------
+
+.. code-block:: python
 
     In [1]: %load_ext sql
 
