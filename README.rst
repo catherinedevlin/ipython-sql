@@ -45,7 +45,9 @@ After the first connection, connect info can be omitted::
     Out[8]: [(43L,)]
 
 Connections to multiple databases can be maintained.  You can refer to
-an existing connection by username@database::
+an existing connection by username@database
+
+.. code-block:: python
 
     In [9]: %%sql will@shakes
        ...: select charname, speechcount from character
@@ -61,7 +63,9 @@ an existing connection by username@database::
 
 You may use multiple SQL statements inside a single cell, but you will
 only see any query results from the last of them, so this really only
-makes sense for statements with no output::
+makes sense for statements with no output
+
+.. code-block:: python
 
     In [11]: %%sql sqlite://
        ....: CREATE TABLE writer (first_name, last_name, year_of_death);
@@ -72,7 +76,9 @@ makes sense for statements with no output::
 
 
 Bind variables (bind parameters) can be used in the "named" (:x) style.
-The variable names used should be defined in the local namespace::
+The variable names used should be defined in the local namespace
+
+.. code-block:: python
 
     In [12]: name = 'Countess'
 
@@ -82,7 +88,7 @@ The variable names used should be defined in the local namespace::
 As a convenience, dict-style access for result sets is supported, with the
 leftmost column serving as key, for unique values.
 
-::
+.. code-block:: python
 
     In [14]: result = %sql select * from work
     43 rows affected.
@@ -120,7 +126,7 @@ set (usually with a `LIMIT` clause in the SQL).  `displaylimit` is similar,
 but the entire result set is still pulled into memory (for later analysis);
 only the screen display is truncated.
 
-::
+.. code-block:: python
 
     In [2]: %config SqlMagic
     SqlMagic options
@@ -152,7 +158,9 @@ Pandas
 ------
 
 If you have installed ``pandas``, you can use a result set's
-``.DataFrame()`` method::
+``.DataFrame()`` method
+
+.. code-block:: python
 
     In [3]: result = %sql SELECT * FROM character WHERE speechcount > 25
 
@@ -160,6 +168,8 @@ If you have installed ``pandas``, you can use a result set's
 
 The bogus non-standard pseudo-SQL command ``PERSIST`` will create a table name
 in the database from the named DataFrame.
+
+.. code-block:: python
 
     In [5]: %sql PERSIST dataframe
 
@@ -171,7 +181,9 @@ Graphing
 --------
 
 If you have installed ``matplotlib``, you can use a result set's
-``.plot()``, ``.pie()``, and ``.bar()`` methods for quick plotting::
+``.plot()``, ``.pie()``, and ``.bar()`` methods for quick plotting
+
+.. code-block:: python
 
     In[5]: result = %sql SELECT title, totalwords FROM work WHERE genretype = 'c'
 
@@ -186,11 +198,11 @@ If you have installed ``matplotlib``, you can use a result set's
 Installing
 ----------
 
-Install the lastest release with:
+Install the lastest release with::
 
     pip install ipython-sql
 
-or download from https://github.com/catherinedevlin/ipython-sql and:
+or download from https://github.com/catherinedevlin/ipython-sql and::
 
     cd ipython-sql
     sudo python setup.py install
@@ -200,7 +212,7 @@ Dumping
 
 Result sets come with a ``.csv(filename=None)`` method.  This generates
 comma-separated text either as a return value (if ``filename`` is not
-specified``) or in a file of the given name.
+specified) or in a file of the given name.
 
 Development
 -----------
@@ -211,10 +223,14 @@ Credits
 -------
 
 - Matthias Bussonnier for help with configuration
-- Olivier Le Thanh Duong for %config fixes and improvements
-- [Distribute](http://pypi.python.org/pypi/distribute)
-- [Buildout](http://www.buildout.org/)
-- [modern-package-template](http://pypi.python.org/pypi/modern-package-template)
+- Olivier Le Thanh Duong for ``%config`` fixes and improvements
+- Distribute_
+- Buildout_
+- modern-package-template_
 - Mike Wilson for bind variable code
 - Thomas Kluyver and Steve Holden for debugging help
 - Berton Earnshaw for DSN connection syntax
+
+.. _Distribute: http://pypi.python.org/pypi/distribute
+.. _Buildout: http://www.buildout.org/
+.. _modern-package-template: http://pypi.python.org/pypi/modern-package-template
