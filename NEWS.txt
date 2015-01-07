@@ -112,3 +112,9 @@ result sets
 -----
 
 * PERSIST pseudo-SQL command added
+
+0.3.5
+-----
+
+* Indentations visible in HTML cells
+
