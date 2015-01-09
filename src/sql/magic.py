@@ -26,11 +26,13 @@ class SqlMagic(Magics, Configurable):
     short_errors = Bool(True, config=True, help="Don't display the full traceback on SQL Programming Error")
     displaylimit = Int(0, config=True, help="Automatic,ally limit the number of rows displayed (full result set is still stored)")
     autopandas = Bool(False, config=True, help="Return Pandas DataFrames instead of regular result sets")
+    column_local_vars = Bool(False, config=True, help="Return data into local variables from column names")
     feedback = Bool(True, config=True, help="Print number of rows affected by DML")
     dsn_filename = Unicode('odbc.ini', config=True, help="Path to DSN file. \
                            When the first argument is of the form [section], \
                            a sqlalchemy connection string is formed from the \
                            matching section in the DSN file.")
+
 
     def __init__(self, shell):
         Configurable.__init__(self, config=shell.config)
@@ -76,9 +78,31 @@ class SqlMagic(Magics, Configurable):
         first_word = parsed['sql'].split(None, 1)[:1]
         if first_word and first_word[0].lower() == 'persist':
             return self._persist_dataframe(parsed['sql'], conn, user_ns)
+
         try:
             result = sql.run.run(conn, parsed['sql'], self, user_ns)
-            return result
+
+            if result and ~isinstance(result, str) and self.column_local_vars:
+                #Instead of returning values, set variables directly in the
+                #users namespace. Variable names given by column names
+
+                if self.autopandas:
+                    keys = result.keys()
+                else:
+                    keys = result.keys
+                    result = result.dict()
+
+                if self.feedback:
+                    print('Returning data to local variables [{}]'.format(
+                        ', '.join(keys)))
+
+                self.shell.user_ns.update(result)
+
+                return None
+            else:
+                #Return results into the default ipython _ variable
+                return result
+
         except (ProgrammingError, OperationalError) as e:
             # Sqlite apparently return all errors as OperationalError :/
             if self.short_errors:
