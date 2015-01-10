@@ -27,10 +27,10 @@ class SqlMagic(Magics, Configurable):
     displaylimit = Int(0, config=True, help="Automatically limit the number of rows displayed (full result set is still stored)")
     autopandas = Bool(False, config=True, help="Return Pandas DataFrames instead of regular result sets")
     feedback = Bool(True, config=True, help="Print number of rows affected by DML")
-    dsn_filename = Unicode('odbc.ini', config=True, help="Path to DSN file. \
-                           When the first argument is of the form [section], \
-                           a sqlalchemy connection string is formed from the \
-                           matching section in the DSN file.")
+    dsn_filename = Unicode('odbc.ini', config=True, help="Path to DSN file. "
+                           "When the first argument is of the form [section], "
+                           "a sqlalchemy connection string is formed from the "
+                           "matching section in the DSN file.")
 
     def __init__(self, shell):
         Configurable.__init__(self, config=shell.config)
