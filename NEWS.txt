@@ -117,4 +117,5 @@ result sets
 -----
 
 * Indentations visible in HTML cells
+* COMMIT each SQL statement immediately - prevent locks
 

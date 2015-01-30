@@ -258,8 +258,11 @@ def interpret_rowcount(rowcount):
 def run(conn, sql, config, user_namespace):
     if sql.strip():
         for statement in sqlparse.split(sql):
+            if sql.strip().split()[0].lower() == 'begin':
+                raise Exception("ipython_sql does not support transactions")
             txt = sqlalchemy.sql.text(statement)
             result = conn.session.execute(txt, user_namespace)
+            conn.session.execute('commit')
             if result and config.feedback:
                 print(interpret_rowcount(result.rowcount))
         resultset = ResultSet(result, statement, config)
