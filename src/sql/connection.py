@@ -1,45 +1,109 @@
 import sqlalchemy
 
+
 class Connection(object):
-    current = None
-    connections = {}
     @classmethod
-    def tell_format(cls):
-        return "Format: (postgresql|mysql)://username:password@hostname/dbname, or one of %s" \
-               % str(cls.connections.keys())
-    def __init__(self, connect_str=None):
-        try:
-            engine = sqlalchemy.create_engine(connect_str)
-        except: # TODO: bare except; but what's an ArgumentError?
-            print(self.tell_format())
-            raise 
+    def from_engine(cls, engine):
+        # Call the constructor
+        return cls(engine)
+
+    @classmethod
+    def from_str(cls, connect_str):
+        # Create an engine, and pass it off
+        engine = sqlalchemy.create_engine(connect_str)
+        return cls.from_engine(engine)
+
+    def __init__(self, engine, name=None):
         self.metadata = sqlalchemy.MetaData(bind=engine)
-        self.name = self.assign_name(engine)
-        self.session = engine.connect() 
-        self.connections[self.name] = self
-        self.connections[str(self.metadata.bind.url)] = self
-        Connection.current = self
-    @classmethod
-    def get(cls, descriptor):
-        if isinstance(descriptor, Connection):
-            cls.current = descriptor
-        elif descriptor:
-            conn = cls.connections.get(descriptor) or \
-                   cls.connections.get(descriptor.lower()) 
-            if conn:
-                cls.current = conn
-            else:
-                cls.current = Connection(descriptor)
-        if cls.current:
-            return cls.current
-        else:
-            raise Exception(cls.tell_format())
-    @classmethod
-    def assign_name(cls, engine):
-        core_name = '%s@%s' % (engine.url.username, engine.url.database)
-        incrementer = 1
-        name = core_name
-        while name in cls.connections:
-            name = '%s_%d' % (core_name, incrementer)
-            incrementer += 1
-        return name
+        self.session = engine.connect()
+        self.name = '%s@%s' % (engine.url.username, engine.url.database)
+        self.engine = engine
+
+
+class ConnectionManager(object):
+    def __init__(self):
+        self._connections = {}
+        self._current = None
+
+    def get(self, handle):
+        if not handle:
+            assert self._current is not None
+            return self._current
+
+        try:
+            return self._connections[handle]
+        except KeyError:
+            # Connection doesn't exist yet
+            pass
+
+        self.register(handle)
+        self._current = self._connections[handle]
+        return self._current
+
+    def register(self, descriptor, name=None):
+        conn = None
+        cxn_string = None  # raw connection string, may contain password
+
+        if isinstance(descriptor, sqlalchemy.engine.base.Engine):
+            conn = Connection.from_engine(descriptor)
+
+        elif isinstance(descriptor, basestring):
+            cxn_string = descriptor
+            conn = Connection.from_str(descriptor)
+
+        elif isinstance(descriptor, Connection):
+            pass
+
+        assert isinstance(conn, Connection)
+
+        # there are potentially 3 names for a giveen connection
+        # 1) the short name '{user}@{database}'  (always exists)
+        # 2) the raw connection string (if provided)
+        # 3) a manually specified name (if provided)
+
+        names = [conn.name]  # short name (1)
+        if cxn_string:  # connection string (2)
+            names.append(cxn_string)
+        if name:  # manually specified name (3)
+            names.append(name)
+
+        for name in names:
+            self._connections[name] = conn
+
+    def unregister(self, descriptor):
+        if isinstance(descriptor, sqlalchemy.engine.base.Engine):
+            return self.unregister_engine(self, descriptor)
+        elif isinstance(descriptor, Connection):
+            return self.unregister_connection(descriptor)
+        return self.unregister_name(self, descriptor)
+
+    def unregister_engine(self, engine):
+        names = [name for name, conn in self._connections.items()
+                 if conn.engine == engine]
+        for n in names:
+            self._connections.pop(n)
+
+    def unregister_connection(self, conn):
+        names = [name for name, c in self._connections.items()
+                 if c == conn]
+        for n in names:
+            self._connections.pop(n)
+
+    def unregister_name(self, name):
+        conn = self._connections[name]
+        return self.unregister_connection(conn)
+
+
+MANAGER = ConnectionManager()
+
+
+def get_connection(descriptor):
+    return MANAGER.get(descriptor)
+
+
+def register(connection, name=None):
+    return MANAGER.register(connection, name)
+
+
+def unregister(connection):
+    return MANAGER.unregister(connection)

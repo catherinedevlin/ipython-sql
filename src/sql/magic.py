@@ -72,13 +72,12 @@ class SqlMagic(Magics, Configurable):
         user_ns.update(local_ns)
 
         parsed = sql.parse.parse('%s\n%s' % (line, cell), self)
-        conn = sql.connection.Connection.get(parsed['connection'])
+        conn = sql.connection.get_connection(parsed['connection'])
         first_word = parsed['sql'].split(None, 1)[:1]
         if first_word and first_word[0].lower() == 'persist':
             return self._persist_dataframe(parsed['sql'], conn, user_ns)
         try:
-            result = sql.run.run(conn, parsed['sql'], self, user_ns)
-            return result
+            return sql.run.run(conn, parsed['sql'], self, user_ns)
         except (ProgrammingError, OperationalError) as e:
             # Sqlite apparently return all errors as OperationalError :/
             if self.short_errors:
@@ -87,6 +86,7 @@ class SqlMagic(Magics, Configurable):
                 raise
 
     legal_sql_identifier = re.compile(r'^[A-Za-z0-9#_$]+')
+
     def _persist_dataframe(self, raw, conn, user_ns):
         if not DataFrame:
             raise ImportError("Must `pip install pandas` to use DataFrames")
