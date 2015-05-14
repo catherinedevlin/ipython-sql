@@ -1,6 +1,4 @@
-import functools
 import operator
-import types
 import csv
 import six
 import codecs
@@ -23,6 +21,7 @@ def unduplicate_field_names(field_names):
             k += '_' + str(i)
         res.append(k)
     return res
+
 
 class UnicodeWriter(object):
     """
@@ -49,9 +48,9 @@ class UnicodeWriter(object):
         # Fetch UTF-8 output from the queue ...
         data = self.queue.getvalue()
         if six.PY2:
-           data = data.decode("utf-8")
-           # ... and reencode it into the target encoding
-           data = self.encoder.encode(data)
+            data = data.decode("utf-8")
+            # ... and reencode it into the target encoding
+            data = self.encoder.encode(data)
         # write to the target stream
         self.stream.write(data)
         # empty queue
@@ -62,12 +61,15 @@ class UnicodeWriter(object):
         for row in rows:
             self.writerow(row)
 
+
 class CsvResultDescriptor(object):
     """Provides IPython Notebook-friendly output for the feedback after a ``.csv`` called."""
     def __init__(self, file_path):
         self.file_path = file_path
+
     def __repr__(self):
         return 'CSV results at %s' % os.path.join(os.path.abspath('.'), self.file_path)
+
     def _repr_html_(self):
         return '<a href="%s">CSV results</a>' % os.path.join('.', 'files', self.file_path)
 
@@ -112,6 +114,7 @@ class ResultSet(list, ColumnGuesserMixin):
         else:
             list.__init__(self, [])
             self.pretty = None
+
     def _repr_html_(self):
         _cell_with_spaces_pattern = re.compile(r'(<td>)( {2,})')
         if self.pretty:
@@ -123,8 +126,10 @@ class ResultSet(list, ColumnGuesserMixin):
             return result
         else:
             return None
+
     def __str__(self, *arg, **kwarg):
         return str(self.pretty or '')
+
     def __getitem__(self, key):
         """
         Access by integer (row position within result set)
@@ -139,11 +144,13 @@ class ResultSet(list, ColumnGuesserMixin):
             if len(result) > 1:
                 raise KeyError('%d results for "%s"' % (len(result), key))
             return result[0]
+
     def DataFrame(self):
         "Returns a Pandas DataFrame instance built from the result set."
         import pandas as pd
         frame = pd.DataFrame(self, columns=(self and self.keys) or [])
         return frame
+
     def pie(self, key_word_sep=" ", title=None, **kwargs):
         """Generates a pylab pie chart from the result set.
 
@@ -201,7 +208,7 @@ class ResultSet(list, ColumnGuesserMixin):
         plt.ylabel(ylabel)
         return plot
 
-    def bar(self, key_word_sep = " ", title=None, **kwargs):
+    def bar(self, key_word_sep=" ", title=None, **kwargs):
         """Generates a pylab bar plot from the result set.
 
         ``matplotlib`` must be installed, and in an
@@ -270,7 +277,8 @@ def run(conn, sql, config, user_namespace):
                 raise Exception("ipython_sql does not support transactions")
             txt = sqlalchemy.sql.text(statement)
             result = conn.session.execute(txt, user_namespace)
-            conn.session.execute('commit')
+            # Actual change here
+#             conn.session.execute('commit')
             if result and config.feedback:
                 print(interpret_rowcount(result.rowcount))
         resultset = ResultSet(result, statement, config)
