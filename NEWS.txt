@@ -119,3 +119,8 @@ result sets
 * Indentations visible in HTML cells
 * COMMIT each SQL statement immediately - prevent locks
 
+0.3.6
+-----
+
+* Fixed issue #30, commit failures for sqlite (thanks stonebig, jandot)
+
