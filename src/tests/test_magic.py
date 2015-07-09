@@ -1,5 +1,6 @@
 from nose import with_setup
 from sql.magic import SqlMagic
+from textwrap import dedent
 import re
 
 ip = get_ipython()
@@ -101,6 +102,15 @@ def test_displaylimit():
     ip.run_line_magic('config',  "SqlMagic.displaylimit = 1")
     result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM writer;")
     assert result._repr_html_().count("<tr>") == 2
+
+@with_setup(_setup, _teardown)
+def test_userns_not_changed():
+    ip.run_cell(dedent("""
+    def function():
+        local_var = 'local_val'
+        %sql sqlite:// INSERT INTO test VALUES (2, 'bar');
+    function()"""))
+    assert 'local_var' not in ip.user_ns
 
 """
 def test_control_feedback():
