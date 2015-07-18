@@ -139,6 +139,10 @@ class ResultSet(list, ColumnGuesserMixin):
             if len(result) > 1:
                 raise KeyError('%d results for "%s"' % (len(result), key))
             return result[0]
+    def dict(self):
+        "Returns a dict built from the result set, with column names as keys"
+        return dict(zip(self.keys, zip(*self)))
+
     def DataFrame(self):
         "Returns a Pandas DataFrame instance built from the result set."
         import pandas as pd
