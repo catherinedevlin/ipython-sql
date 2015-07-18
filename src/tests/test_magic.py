@@ -102,6 +102,15 @@ def test_displaylimit():
     result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM writer;")
     assert result._repr_html_().count("<tr>") == 2
 
+@with_setup(_setup_writer, _teardown_writer)
+def test_column_local_vars():
+    ip.run_line_magic('config',  "SqlMagic.column_local_vars = True")
+    result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM writer;")
+    assert result is None
+    assert 'William' in ip.user_global_ns['first_name']
+    assert 'Shakespeare' in ip.user_global_ns['last_name']
+    assert len(ip.user_global_ns['first_name']) == 2
+
 """
 def test_control_feedback():
     ip.run_line_magic('config',  "SqlMagic.feedback = False")
