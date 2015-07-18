@@ -1,5 +1,6 @@
 from nose import with_setup
 from sql.magic import SqlMagic
+from textwrap import dedent
 import re
 
 ip = get_ipython()
@@ -110,6 +111,15 @@ def test_column_local_vars():
     assert 'William' in ip.user_global_ns['first_name']
     assert 'Shakespeare' in ip.user_global_ns['last_name']
     assert len(ip.user_global_ns['first_name']) == 2
+
+@with_setup(_setup, _teardown)
+def test_userns_not_changed():
+    ip.run_cell(dedent("""
+    def function():
+        local_var = 'local_val'
+        %sql sqlite:// INSERT INTO test VALUES (2, 'bar');
+    function()"""))
+    assert 'local_var' not in ip.user_ns
 
 """
 def test_control_feedback():
