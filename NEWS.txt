@@ -124,3 +124,7 @@ result sets
 
 * Fixed issue #30, commit failures for sqlite (thanks stonebig, jandot)
 
+0.3.7
+-----
+
+* New `column_local_vars` config option submitted by darikg
