@@ -70,7 +70,7 @@ class SqlMagic(Magics, Configurable):
 
         """
         # save globals and locals so they can be referenced in bind vars
-        user_ns = self.shell.user_ns
+        user_ns = self.shell.user_ns.copy()
         user_ns.update(local_ns)
 
         parsed = sql.parse.parse('%s\n%s' % (line, cell), self)

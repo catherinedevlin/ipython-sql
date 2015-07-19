@@ -128,3 +128,4 @@ result sets
 -----
 
 * New `column_local_vars` config option submitted by darikg
+* Avoid contaminating user namespace from locals (thanks alope107)

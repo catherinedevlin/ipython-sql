@@ -1,5 +1,6 @@
 from nose import with_setup
 from sql.magic import SqlMagic
+from textwrap import dedent
 import re
 
 ip = get_ipython()
@@ -53,7 +54,6 @@ def test_multi_sql():
         SELECT last_name FROM writer;
         """)
     assert 'Shakespeare' in str(result) and 'Brecht' in str(result)
-
 
 @with_setup(_setup_writer, _teardown_writer)
 def test_access_results_by_keys():
@@ -110,13 +110,18 @@ def test_column_local_vars():
     assert 'William' in ip.user_global_ns['first_name']
     assert 'Shakespeare' in ip.user_global_ns['last_name']
     assert len(ip.user_global_ns['first_name']) == 2
+    ip.run_line_magic('config',  "SqlMagic.column_local_vars = False")
 
-"""
-def test_control_feedback():
-    ip.run_line_magic('config',  "SqlMagic.feedback = False")
+@with_setup(_setup, _teardown)
+def test_userns_not_changed():
+    ip.run_cell(dedent("""
+    def function():
+        local_var = 'local_val'
+        %sql sqlite:// INSERT INTO test VALUES (2, 'bar');
+    function()"""))
+    assert 'local_var' not in ip.user_ns
 
-def test_local_over_global():
-    ip.run_line_magic('', "x = 22")
+def test_bind_vars():
+    ip.user_global_ns['x'] = 22
     result = ip.run_line_magic('sql', "sqlite:// SELECT :x")
     assert result[0][0] == 22
-"""
