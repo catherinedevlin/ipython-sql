@@ -13,6 +13,7 @@ class Connection(object):
         except: # TODO: bare except; but what's an ArgumentError?
             print(self.tell_format())
             raise 
+        self.dialect = engine.url.get_dialect()
         self.metadata = sqlalchemy.MetaData(bind=engine)
         self.name = self.assign_name(engine)
         self.session = engine.connect() 
