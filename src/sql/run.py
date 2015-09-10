@@ -275,7 +275,9 @@ def run(conn, sql, config, user_namespace):
             txt = sqlalchemy.sql.text(statement)
             result = conn.session.execute(txt, user_namespace)
             try:
-                conn.session.execute('commit')
+                # mssql has autocommit
+                if 'mssql' not in str(conn.dialect):
+                    conn.session.execute('commit')
             except sqlalchemy.exc.OperationalError: 
                 pass # not all engines can commit
             if result and config.feedback:
