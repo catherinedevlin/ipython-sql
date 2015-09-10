@@ -233,6 +233,7 @@ Credits
 - Mike Wilson for bind variable code
 - Thomas Kluyver and Steve Holden for debugging help
 - Berton Earnshaw for DSN connection syntax
+- Andrés Celis for SQL Server bugfix
 
 .. _Distribute: http://pypi.python.org/pypi/distribute
 .. _Buildout: http://www.buildout.org/
