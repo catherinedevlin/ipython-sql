@@ -16,7 +16,7 @@ install_requires = [
 setup(name='ipython-sql',
     version=version,
     description="RDBMS access via IPython",
-    long_description=README + '\n\n' + NEWS,
+    long_description=README + '\n\n',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
