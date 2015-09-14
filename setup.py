@@ -2,12 +2,8 @@ from setuptools import setup, find_packages
 import sys, os
 
 here = os.path.abspath(os.path.dirname(__file__))
-README = open(os.path.join(here, 'README.rst')).read()
-NEWS = open(os.path.join(here, 'NEWS.txt')).read()
-
-
-version = '0.3.7.1'
-
+README = 'Slightly modified version for Jupyter 4 based on ipython-sql from Catherine Devlin at https://github.com/catherinedevlin/ipython-sql'
+version = '0.3.7.2'
 install_requires = [
     'prettytable',
     'ipython>=1.0',
