@@ -1,5 +1,6 @@
 import re
-from IPython.core.magic import Magics, magics_class, cell_magic, line_magic, needs_local_scope
+from IPython.core.magic import Magics, magics_class, line_cell_magic, needs_local_scope
+from IPython.core.magic_arguments import argument, magic_arguments, parse_argstring
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Bool, Int, Unicode
 try:
@@ -41,10 +42,15 @@ class SqlMagic(Magics, Configurable):
         # Add ourself to the list of module configurable via %config
         self.shell.configurables.append(self)
 
-    @needs_local_scope
-    @line_magic('sql')
-    @cell_magic('sql')
-    def execute(self, line, cell='', local_ns={}):
+    @line_cell_magic('sql')
+    @magic_arguments()
+    @argument('line', default='', nargs='*', type=str, help='sql')
+    @argument('-connections', action='store_true', help="list active connections")
+    @argument('-close', type=str, help="close a session by name")
+    @argument('-creator', type=str, help="specify creator function for new connection")
+    @argument('-section', type=str, help="section of dsn_file to be used for generating a connection string")
+    @argument('-persist', action='store_true', help="create a table name in the database from the named DataFrame")
+    def execute(self, line='', cell='', local_ns={}):
         """Runs SQL statement against a database, specified by SQLAlchemy connect string.
 
         If no database connection has been established, first word
@@ -72,15 +78,34 @@ class SqlMagic(Magics, Configurable):
         # save globals and locals so they can be referenced in bind vars
         user_ns = self.shell.user_ns.copy()
         user_ns.update(local_ns)
+        args = parse_argstring(self.execute, line)
+        line = ' '.join(args.line)
+        if '@' in line or '://' in line:
+            connection = line
+            query = cell
+        else:
+            connection = ''
+            query = '\n'.join((line, cell))
 
-        parsed = sql.parse.parse('%s\n%s' % (line, cell), self)
-        conn = sql.connection.Connection.get(parsed['connection'])
-        first_word = parsed['sql'].split(None, 1)[:1]
-        if first_word and first_word[0].lower() == 'persist':
-            return self._persist_dataframe(parsed['sql'], conn, user_ns)
+        if args.connections:
+            return sql.connection.Connection.connections
+        elif args.close:
+            return sql.connection.Connection._close(args.close)
 
+        if args.section:
+            connection = connection_from_dsn_section(args.section, self)
+        elif args.creator:
+            args.creator = user_ns[args.creator]
+
+        conn = sql.connection.Connection.get(connection, creator=args.creator)
+        if args.persist:
+            return self._persist_dataframe(query, conn, user_ns)
+        if query:
+            return self._execute(conn, query, user_ns)
+
+    def _execute(self, conn, query, user_ns):
         try:
-            result = sql.run.run(conn, parsed['sql'], self, user_ns)
+            result = sql.run.run(conn, query, self, user_ns)
 
             if result and ~isinstance(result, str) and self.column_local_vars:
                 #Instead of returning values, set variables directly in the
