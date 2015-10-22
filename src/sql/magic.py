@@ -1,7 +1,11 @@
 import re
 from IPython.core.magic import Magics, magics_class, cell_magic, line_magic, needs_local_scope
-from IPython.config.configurable import Configurable
-from IPython.utils.traitlets import Bool, Int, Unicode
+try:
+    from traitlets.config.configurable import Configurable
+    from traitlets import Bool, Int, Unicode
+except ImportError:
+    from IPython.config.configurable import Configurable
+    from IPython.utils.traitlets import Bool, Int, Unicode
 try:
     from pandas.core.frame import DataFrame, Series
 except ImportError:
