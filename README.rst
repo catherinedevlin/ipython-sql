@@ -123,11 +123,14 @@ Configuration
 -------------
 
 Query results are loaded as lists, so very large result sets may use up
-your system's memory and/or hang your browser.  There is no autolimit
-by default.  However, `autolimit` (if set) limits the size of the result
-set (usually with a `LIMIT` clause in the SQL).  `displaylimit` is similar,
-but the entire result set is still pulled into memory (for later analysis);
-only the screen display is truncated.
+your system's memory and/or hang your browser.  Autolimit is set to 100000
+by default. The `autolimit` (if set) limits the size of the result
+set (usually with a `LIMIT` clause in the SQL).  The `displaylimit` is 
+similar, but the entire result set is still pulled into memory  
+(for later analysis); only the screen display is truncated. The
+`displaylimit` is set to 1000 by default. These seem to be optimal limits
+to protect students from killing their web browsers or the SQL server
+with ill-formed queries.
 
 .. code-block:: python
 
@@ -135,13 +138,13 @@ only the screen display is truncated.
     SqlMagic options
     --------------
     SqlMagic.autolimit=<Int>
-        Current: 0
+        Current: 100000
         Automatically limit the size of the returned result sets
     SqlMagic.autopandas=<Bool>
         Current: False
         Return Pandas DataFrames instead of regular result sets
     SqlMagic.displaylimit=<Int>
-        Current: 0
+        Current: 1000
         Automatically limit the number of rows displayed (full result set is still
         stored)
     SqlMagic.feedback=<Bool>
