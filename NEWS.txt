@@ -134,3 +134,8 @@ result sets
 -------
 
 * Avoid "connection busy" error for SQL Server (thanks Andrés Celis)
+
+0.3.8
+-----
+
+* Stop warnings for deprecated use of IPython 3 traitlets in IPython 4 (thanks graphaelli; also stonebig, aebrahim, mccahill) 
