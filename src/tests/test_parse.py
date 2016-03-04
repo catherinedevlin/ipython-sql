@@ -1,6 +1,9 @@
 from sql.parse import parse
 from six.moves import configparser
-from IPython.config.configurable import Configurable
+try:
+    from traitlets.config.configurable import Configurable
+except ImportError:
+    from IPython.config.configurable import Configurable
 
 empty_config = Configurable()
 
