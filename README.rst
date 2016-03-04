@@ -64,6 +64,16 @@ an existing connection by username@database
     ======================
     Poet       733
 
+For secure access, you may dynamically access your credentials (e.g. from your system environment or `getpass.getpass`) to avoid storing your password in the notebook itself. Use the `$` before any variable to access it in your `%sql` command.
+
+.. code-block:: python
+
+    In [11]: user = os.getenv('SOME_USER')
+       ....: password = os.getenv('SOME_PASSWORD')
+       ....: connection_string = "postgresql://{user}:{password}@localhost/some_database".format(user=user, password=password)
+       ....: %sql $connection_string
+    Out[11]: u'Connected: some_user@some_database'
+
 You may use multiple SQL statements inside a single cell, but you will
 only see any query results from the last of them, so this really only
 makes sense for statements with no output
