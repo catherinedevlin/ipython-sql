@@ -139,3 +139,5 @@ result sets
 -----
 
 * Stop warnings for deprecated use of IPython 3 traitlets in IPython 4 (thanks graphaelli; also stonebig, aebrahim, mccahill) 
+* README update for keeping connection info private, from eshilts
+
