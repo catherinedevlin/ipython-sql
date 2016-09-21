@@ -167,6 +167,8 @@ only the screen display is truncated.
 
     In[3]: %config SqlMagic.feedback = False
 
+Please note: if you have autopandas set to true, the displaylimit option will not apply. You can set the pandas display limit by using the pandas ``max_rows`` option as described in the `pandas documentation <http://pandas.pydata.org/pandas-docs/version/0.18.1/options.html#frequently-used-options>`_.
+
 Pandas
 ------
 
