@@ -125,3 +125,10 @@ def test_bind_vars():
     ip.user_global_ns['x'] = 22
     result = ip.run_line_magic('sql', "sqlite:// SELECT :x")
     assert result[0][0] == 22
+
+@with_setup(_setup, _teardown)
+def test_autopandas():
+    ip.run_line_magic('config',  "SqlMagic.autopandas = True")
+    dframe = ip.run_cell("%sql SELECT * FROM test;")
+    assert dframe.success
+    assert dframe.result.name[0] == 'foo'
