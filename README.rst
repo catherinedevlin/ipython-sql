@@ -247,6 +247,7 @@ Credits
 - Berton Earnshaw for DSN connection syntax
 - Andrés Celis for SQL Server bugfix
 - Michael Erasmus for DataFrame truth bugfix
+- Noam Finkelstein for README clarification
 
 .. _Distribute: http://pypi.python.org/pypi/distribute
 .. _Buildout: http://www.buildout.org/
