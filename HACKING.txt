@@ -1,10 +1,8 @@
 Development setup
 =================
 
-To create a buildout,
-
-  $ python bootstrap.py
-  $ bin/buildout
+Running nose tests with IPython is tricky, so there's a 
+run_tests.sh script for it.
 
 Release HOWTO
 =============

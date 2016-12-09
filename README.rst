@@ -64,6 +64,16 @@ an existing connection by username@database
     ======================
     Poet       733
 
+For secure access, you may dynamically access your credentials (e.g. from your system environment or `getpass.getpass`) to avoid storing your password in the notebook itself. Use the `$` before any variable to access it in your `%sql` command.
+
+.. code-block:: python
+
+    In [11]: user = os.getenv('SOME_USER')
+       ....: password = os.getenv('SOME_PASSWORD')
+       ....: connection_string = "postgresql://{user}:{password}@localhost/some_database".format(user=user, password=password)
+       ....: %sql $connection_string
+    Out[11]: u'Connected: some_user@some_database'
+
 You may use multiple SQL statements inside a single cell, but you will
 only see any query results from the last of them, so this really only
 makes sense for statements with no output
@@ -123,14 +133,16 @@ Configuration
 -------------
 
 Query results are loaded as lists, so very large result sets may use up
-your system's memory and/or hang your browser.  Autolimit is set to 100000
-by default. The `autolimit` (if set) limits the size of the result
-set (usually with a `LIMIT` clause in the SQL).  The `displaylimit` is 
-similar, but the entire result set is still pulled into memory  
-(for later analysis); only the screen display is truncated. The
-`displaylimit` is set to 1000 by default. These seem to be optimal limits
-to protect students from killing their web browsers or the SQL server
-with ill-formed queries.
+your system's memory and/or hang your browser.  There is no autolimit
+by default.  However, `autolimit` (if set) limits the size of the result
+set (usually with a `LIMIT` clause in the SQL).  `displaylimit` is similar,
+but the entire result set is still pulled into memory (for later analysis);
+only the screen display is truncated.
+
+For student use, default the limits for rows returned (100000) and rows 
+displayed (1000) to sizes that will not crash their web browser or pound 
+the SQL server.  You can still reset the limits if you
+want, but this raises the barrier to shooting yourself in the foot.
 
 .. code-block:: python
 
@@ -159,6 +171,8 @@ with ill-formed queries.
         (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)
 
     In[3]: %config SqlMagic.feedback = False
+
+Please note: if you have autopandas set to true, the displaylimit option will not apply. You can set the pandas display limit by using the pandas ``max_rows`` option as described in the `pandas documentation <http://pandas.pydata.org/pandas-docs/version/0.18.1/options.html#frequently-used-options>`_.
 
 Pandas
 ------
@@ -237,6 +251,8 @@ Credits
 - Thomas Kluyver and Steve Holden for debugging help
 - Berton Earnshaw for DSN connection syntax
 - Andrés Celis for SQL Server bugfix
+- Michael Erasmus for DataFrame truth bugfix
+- Noam Finkelstein for README clarification
 
 .. _Distribute: http://pypi.python.org/pypi/distribute
 .. _Buildout: http://www.buildout.org/
