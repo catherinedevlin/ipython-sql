@@ -139,19 +139,24 @@ set (usually with a `LIMIT` clause in the SQL).  `displaylimit` is similar,
 but the entire result set is still pulled into memory (for later analysis);
 only the screen display is truncated.
 
+For student use, default the limits for rows returned (100000) and rows 
+displayed (1000) to sizes that will not crash their web browser or pound 
+the SQL server.  You can still reset the limits if you
+want, but this raises the barrier to shooting yourself in the foot.
+
 .. code-block:: python
 
     In [2]: %config SqlMagic
     SqlMagic options
     --------------
     SqlMagic.autolimit=<Int>
-        Current: 0
+        Current: 100000
         Automatically limit the size of the returned result sets
     SqlMagic.autopandas=<Bool>
         Current: False
         Return Pandas DataFrames instead of regular result sets
     SqlMagic.displaylimit=<Int>
-        Current: 0
+        Current: 1000
         Automatically limit the number of rows displayed (full result set is still
         stored)
     SqlMagic.feedback=<Bool>
