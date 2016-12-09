@@ -1,7 +1,11 @@
 import re
 from IPython.core.magic import Magics, magics_class, cell_magic, line_magic, needs_local_scope
-from traitlets.config.configurable import Configurable
-from traitlets import Bool, Int, Unicode
+try:
+    from traitlets.config.configurable import Configurable
+    from traitlets import Bool, Int, Unicode
+except ImportError:
+    from IPython.config.configurable import Configurable
+    from IPython.utils.traitlets import Bool, Int, Unicode
 try:
     from pandas.core.frame import DataFrame, Series
 except ImportError:
@@ -82,7 +86,7 @@ class SqlMagic(Magics, Configurable):
         try:
             result = sql.run.run(conn, parsed['sql'], self, user_ns)
 
-            if result and ~isinstance(result, str) and self.column_local_vars:
+            if result is not None and ~isinstance(result, str) and self.column_local_vars:
                 #Instead of returning values, set variables directly in the
                 #users namespace. Variable names given by column names
 
