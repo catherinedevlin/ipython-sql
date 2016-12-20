@@ -231,9 +231,9 @@ specified) or in a file of the given name.
 
 .. code-block:: python
 
-    In[7]: result = %sql SELECT title, totalwords FROM work WHERE genretype = 'c'
+    In[8]: result = %sql SELECT title, totalwords FROM work WHERE genretype = 'c'
 
-    In[8]: result.csv(filename='work.csv')
+    In[9]: result.csv(filename='work.csv')
 
 Development
 -----------
