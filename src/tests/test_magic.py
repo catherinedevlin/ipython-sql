@@ -56,6 +56,16 @@ def test_multi_sql():
     assert 'Shakespeare' in str(result) and 'Brecht' in str(result)
 
 @with_setup(_setup_writer, _teardown_writer)
+def test_result_var():
+    ip.run_cell_magic('sql', '', """
+        sqlite://
+        x <<
+        SELECT last_name FROM writer;
+        """)
+    result = ip.user_global_ns['x']
+    assert 'Shakespeare' in str(result) and 'Brecht' in str(result)
+
+@with_setup(_setup_writer, _teardown_writer)
 def test_access_results_by_keys():
     assert ip.run_line_magic('sql', "sqlite:// SELECT * FROM writer;")['William'] == (u'William', u'Shakespeare', 1616)
 
@@ -75,7 +85,6 @@ def test_autolimit():
     ip.run_line_magic('config',  "SqlMagic.autolimit = 1")
     result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM test;")
     assert len(result) == 1
-
 
 @with_setup(_setup, _teardown)
 def test_persist():

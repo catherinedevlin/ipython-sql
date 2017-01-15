@@ -78,9 +78,10 @@ class SqlMagic(Magics, Configurable):
         user_ns.update(local_ns)
 
         parsed = sql.parse.parse('%s\n%s' % (line, cell), self)
+        flags = parsed['flags']
         conn = sql.connection.Connection.get(parsed['connection'])
-        first_word = parsed['sql'].split(None, 1)[:1]
-        if first_word and first_word[0].lower() == 'persist':
+
+        if flags['persist']:
             return self._persist_dataframe(parsed['sql'], conn, user_ns)
 
         try:
@@ -104,6 +105,13 @@ class SqlMagic(Magics, Configurable):
 
                 return None
             else:
+
+                if flags['result_var']:
+                    result_var = flags['result_var']
+                    print("Returning data to local variable {}".format(result_var))
+                    self.shell.user_ns.update({result_var: result})
+                    return None
+
                 #Return results into the default ipython _ variable
                 return result
 
@@ -118,10 +126,9 @@ class SqlMagic(Magics, Configurable):
     def _persist_dataframe(self, raw, conn, user_ns):
         if not DataFrame:
             raise ImportError("Must `pip install pandas` to use DataFrames")
-        pieces = raw.split()
-        if len(pieces) != 2:
+        if not raw:
             raise SyntaxError("Format: %sql [connection] persist <DataFrameName>")
-        frame_name = pieces[1].strip(';')
+        frame_name = raw.strip(';')
         frame = eval(frame_name, user_ns)
         if not isinstance(frame, DataFrame) and not isinstance(frame, Series):
             raise TypeError('%s is not a Pandas DataFrame or Series' % frame_name)
