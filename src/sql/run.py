@@ -1,6 +1,3 @@
-import functools
-import operator
-import types
 import csv
 import six
 import codecs
@@ -10,6 +7,9 @@ import sqlalchemy
 import sqlparse
 import prettytable
 from .column_guesser import ColumnGuesserMixin
+import psycopg2
+from psycopg2.extensions import POLL_OK, POLL_READ, POLL_WRITE
+from select import select
 
 
 def unduplicate_field_names(field_names):
@@ -24,6 +24,7 @@ def unduplicate_field_names(field_names):
         res.append(k)
     return res
 
+
 class UnicodeWriter(object):
     """
     A CSV writer which will write rows to CSV file "f",
@@ -32,7 +33,7 @@ class UnicodeWriter(object):
 
     def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
         # Redirect output to a queue
-        self.queue = six.StringIO()
+        self.queue = six.StringIO.StringIO()
         self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
         self.stream = f
         self.encoder = codecs.getincrementalencoder(encoding)()
@@ -49,9 +50,9 @@ class UnicodeWriter(object):
         # Fetch UTF-8 output from the queue ...
         data = self.queue.getvalue()
         if six.PY2:
-           data = data.decode("utf-8")
-           # ... and reencode it into the target encoding
-           data = self.encoder.encode(data)
+            data = data.decode("utf-8")
+            # ... and reencode it into the target encoding
+            data = self.encoder.encode(data)
         # write to the target stream
         self.stream.write(data)
         # empty queue
@@ -62,12 +63,16 @@ class UnicodeWriter(object):
         for row in rows:
             self.writerow(row)
 
+
 class CsvResultDescriptor(object):
     """Provides IPython Notebook-friendly output for the feedback after a ``.csv`` called."""
+
     def __init__(self, file_path):
         self.file_path = file_path
+
     def __repr__(self):
         return 'CSV results at %s' % os.path.join(os.path.abspath('.'), self.file_path)
+
     def _repr_html_(self):
         return '<a href="%s">CSV results</a>' % os.path.join('.', 'files', self.file_path)
 
@@ -82,6 +87,7 @@ def _nonbreaking_spaces(match_obj):
     spaces = '&nbsp;' * len(match_obj.group(2))
     return '%s%s' % (match_obj.group(1), spaces)
 
+
 _cell_with_spaces_pattern = re.compile(r'(<td>)( {2,})')
 
 
@@ -91,8 +97,9 @@ class ResultSet(list, ColumnGuesserMixin):
 
     Can access rows listwise, or by string value of leftmost column.
     """
+
     def __init__(self, sqlaproxy, sql, config):
-        self.keys = sqlaproxy.keys()
+        ColumnGuesserMixin.__init__(self, sqlaproxy.keys())
         self.sql = sql
         self.config = config
         self.limit = config.autolimit
@@ -103,6 +110,7 @@ class ResultSet(list, ColumnGuesserMixin):
                 list.__init__(self, sqlaproxy.fetchmany(size=self.limit))
             else:
                 list.__init__(self, sqlaproxy.fetchall())
+                sqlaproxy.close()
             self.field_names = unduplicate_field_names(self.keys)
             self.pretty = prettytable.PrettyTable(self.field_names)
             if not config.autopandas:
@@ -112,19 +120,25 @@ class ResultSet(list, ColumnGuesserMixin):
         else:
             list.__init__(self, [])
             self.pretty = None
+
     def _repr_html_(self):
-        _cell_with_spaces_pattern = re.compile(r'(<td>)( {2,})')
+        cell_with_spaces_pattern = re.compile(r'(<td>)( {2,})')
         if self.pretty:
             result = self.pretty.get_html_string()
-            result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
+            result = cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
             if self.config.displaylimit and len(self) > self.config.displaylimit:
-                result = '%s\n<span style="font-style:italic;text-align:center;">%d rows, truncated to displaylimit of %d</span>' % (
-                    result, len(self), self.config.displaylimit)
+                result = '%s\n' \
+                         '<span style="font-style:italic;text-align:center;">' \
+                         '%d rows, truncated to displaylimitof %d' \
+                         '</span>' % (
+                             result, len(self), self.config.displaylimit)
             return result
         else:
             return None
+
     def __str__(self, *arg, **kwarg):
         return str(self.pretty or '')
+
     def __getitem__(self, key):
         """
         Access by integer (row position within result set)
@@ -139,15 +153,17 @@ class ResultSet(list, ColumnGuesserMixin):
             if len(result) > 1:
                 raise KeyError('%d results for "%s"' % (len(result), key))
             return result[0]
+
     def dict(self):
         "Returns a dict built from the result set, with column names as keys"
         return dict(zip(self.keys, zip(*self)))
 
-    def DataFrame(self):
+    def data_frame(self):
         "Returns a Pandas DataFrame instance built from the result set."
         import pandas as pd
         frame = pd.DataFrame(self, columns=(self and self.keys) or [])
         return frame
+
     def pie(self, key_word_sep=" ", title=None, **kwargs):
         """Generates a pylab pie chart from the result set.
 
@@ -196,7 +212,9 @@ class ResultSet(list, ColumnGuesserMixin):
         import matplotlib.pylab as plt
         self.guess_plot_columns()
         self.x = self.x or range(len(self.ys[0]))
-        coords = reduce(operator.add, [(self.x, y) for y in self.ys])
+        coords = 0
+        for v in [(self.x, y) for y in self.ys]:
+            coords += v
         plot = plt.plot(*coords, **kwargs)
         if hasattr(self.x, 'name'):
             plt.xlabel(self.x.name)
@@ -205,7 +223,7 @@ class ResultSet(list, ColumnGuesserMixin):
         plt.ylabel(ylabel)
         return plot
 
-    def bar(self, key_word_sep = " ", title=None, **kwargs):
+    def bar(self, key_word_sep=" ", title=None, **kwargs):
         """Generates a pylab bar plot from the result set.
 
         ``matplotlib`` must be installed, and in an
@@ -239,7 +257,7 @@ class ResultSet(list, ColumnGuesserMixin):
         """Generate results in comma-separated form.  Write to ``filename`` if given.
            Any other parameters will be passed on to csv.writer."""
         if not self.pretty:
-            return None # no results
+            return None  # no results
         if filename:
             encoding = format_params.get('encoding', 'utf-8')
             if six.PY2:
@@ -247,7 +265,7 @@ class ResultSet(list, ColumnGuesserMixin):
             else:
                 outfile = open(filename, 'w', newline='', encoding=encoding)
         else:
-            outfile = six.StringIO()
+            outfile = six.StringIO.StringIO()
         writer = UnicodeWriter(outfile, **format_params)
         writer.writerow(self.field_names)
         for row in self:
@@ -267,26 +285,44 @@ def interpret_rowcount(rowcount):
     return result
 
 
-def run(conn, sql, config, user_namespace):
+def _wait_select_inter(conn):
+    while 1:
+        try:
+            state = conn.poll()
+            if state == POLL_OK:
+                break
+            elif state == POLL_READ:
+                select([conn.fileno()], [], [])
+            elif state == POLL_WRITE:
+                select([], [conn.fileno()], [])
+            else:
+                raise conn.OperationalError(
+                    "bad state from poll: %s" % state)
+        except KeyboardInterrupt:
+            conn.cancel()
+            # the loop will be broken by a server error
+            continue
+
+
+class OperationNotSupported(Exception):
+    pass
+
+
+def run(conn, sql, config, user_ns_copy):
     if sql.strip():
+        psycopg2.extensions.set_wait_callback(_wait_select_inter)
         for statement in sqlparse.split(sql):
+            if not statement:
+                continue
             if sql.strip().split()[0].lower() == 'begin':
-                raise Exception("ipython_sql does not support transactions")
-            txt = sqlalchemy.sql.text(statement)
-            result = conn.session.execute(txt, user_namespace)
-            try:
-                # mssql has autocommit
-                if 'mssql' not in str(conn.dialect):
-                    conn.session.execute('commit')
-            except sqlalchemy.exc.OperationalError: 
-                pass # not all engines can commit
+                raise OperationNotSupported("ipython_sql does not support transactions")
+            txt = sqlalchemy.sql.text(statement).execution_options(autocommit=True)
+            result = conn.session.execute(txt, user_ns_copy)
+            result_set = ResultSet(result, statement, config)
             if result and config.feedback:
                 print(interpret_rowcount(result.rowcount))
-        resultset = ResultSet(result, statement, config)
-        if config.autopandas:
-            return resultset.DataFrame()
-        else:
-            return resultset
-        #returning only last result, intentionally
-    else:
-        return 'Connected: %s' % conn.name
+            if config.autopandas:
+                return result_set.data_frame()
+            else:
+                return result_set
+    return None
