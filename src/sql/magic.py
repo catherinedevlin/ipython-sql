@@ -1,5 +1,6 @@
 import re
 from IPython.core.magic import Magics, magics_class, cell_magic, line_magic, needs_local_scope
+from IPython.display import display_javascript
 try:
     from traitlets.config.configurable import Configurable
     from traitlets import Bool, Int, Unicode
@@ -133,4 +134,6 @@ class SqlMagic(Magics, Configurable):
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
+    js = "IPython.CodeCell.config_defaults.highlight_modes['magic_sql'] = {'reg':[/^%%sql/]};"
+    display_javascript(js, raw=True)
     ip.register_magics(SqlMagic)
