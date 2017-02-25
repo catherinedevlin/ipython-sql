@@ -41,7 +41,6 @@ def parse_sql_flags(sql):
     num_words = len(words)
     trimmed_sql = sql
     if words[0].lower() == 'persist':
-        print("Persist parsed to True")
         flags['persist'] = True
         trimmed_sql =  " ".join(words[1:])
     elif num_words >= 2 and words[1] == '<<':
