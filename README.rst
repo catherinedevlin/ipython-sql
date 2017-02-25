@@ -229,6 +229,12 @@ Result sets come with a ``.csv(filename=None)`` method.  This generates
 comma-separated text either as a return value (if ``filename`` is not
 specified) or in a file of the given name.
 
+.. code-block:: python
+
+    In[8]: result = %sql SELECT title, totalwords FROM work WHERE genretype = 'c'
+
+    In[9]: result.csv(filename='work.csv')
+
 Development
 -----------
 
