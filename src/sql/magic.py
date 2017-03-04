@@ -116,17 +116,25 @@ class SqlMagic(Magics, Configurable):
 
     legal_sql_identifier = re.compile(r'^[A-Za-z0-9#_$]+')
     def _persist_dataframe(self, raw, conn, user_ns):
+        """Implements PERSIST, which writes a DataFrame to the RDBMS"""
         if not DataFrame:
             raise ImportError("Must `pip install pandas` to use DataFrames")
+
+        # Parse input to get name of DataFrame
         pieces = raw.split()
         if len(pieces) != 2:
             raise SyntaxError("Format: %sql [connection] persist <DataFrameName>")
         frame_name = pieces[1].strip(';')
+
+       # Get the DataFrame from the user namespace
         frame = eval(frame_name, user_ns)
         if not isinstance(frame, DataFrame) and not isinstance(frame, Series):
             raise TypeError('%s is not a Pandas DataFrame or Series' % frame_name)
+
+       # Make a suitable name for the resulting database table
         table_name = frame_name.lower()
         table_name = self.legal_sql_identifier.search(table_name).group(0)
+
         frame.to_sql(table_name, conn.session.engine)
         return 'Persisted %s' % table_name
 

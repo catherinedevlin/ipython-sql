@@ -4,9 +4,12 @@ from sqlalchemy.engine.url import URL
 
 
 def parse(cell, config):
+    """Separate input into (connection info, SQL statement)"""
+
     parts = [part.strip() for part in cell.split(None, 1)]
     if not parts:
         return {'connection': '', 'sql': ''}
+
     if parts[0].startswith('[') and parts[0].endswith(']'):
         section = parts[0].lstrip('[').rstrip(']')
         parser = CP.ConfigParser()

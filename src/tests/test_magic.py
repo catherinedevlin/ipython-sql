@@ -1,7 +1,9 @@
 from nose import with_setup
 from sql.magic import SqlMagic
 from textwrap import dedent
+import os.path
 import re
+import tempfile
 
 ip = get_ipython()
 
@@ -132,3 +134,26 @@ def test_autopandas():
     dframe = ip.run_cell("%sql SELECT * FROM test;")
     assert dframe.success
     assert dframe.result.name[0] == 'foo'
+
+@with_setup(_setup, _teardown)
+def test_csv():
+    ip.run_line_magic('config',  "SqlMagic.autopandas = False")  # uh-oh
+    result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM test;")
+    result = result.csv()
+    for row in result.splitlines():
+        assert row.count(',') == 1
+    assert len(result.splitlines()) == 3
+
+@with_setup(_setup, _teardown)
+def test_csv_to_file():
+    ip.run_line_magic('config',  "SqlMagic.autopandas = False")  # uh-oh
+    result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM test;")
+    with tempfile.TemporaryDirectory() as tempdir:
+        fname = os.path.join(tempdir, 'test.csv')
+        output = result.csv(fname)
+        assert os.path.exists(output.file_path)
+        with open(output.file_path) as csvfile:
+            content = csvfile.read()
+            for row in content.splitlines():
+                assert row.count(',') == 1
+            assert len(content.splitlines()) == 3
