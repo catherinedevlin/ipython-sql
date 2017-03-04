@@ -145,3 +145,6 @@ result sets
 -----
 
 * Fix truth value of DataFrame error (thanks michael-erasmus)
+* `<<` operator (thanks xiaochuanyu)
+* added README example (thanks tanhuil)
+* bugfix in executing column_local_vars (thanks tebeka)

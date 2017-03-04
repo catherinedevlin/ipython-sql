@@ -109,6 +109,27 @@ leftmost column serving as key, for unique values.
     In [15]: result['richard2']
     Out[15]: (u'richard2', u'Richard II', u'History of Richard II', 1595, u'h', None, u'Moby', 22411, 628)
 
+Assignment
+----------
+
+Ordinary IPython assignment works for single-line `%sql` queries::
+
+.. code-block:: python
+
+    In [16]: works = %sql SELECT title, year FROM work
+    43 rows affected.
+
+The `<<` operator captures query results in a local variable, and
+can be used in multi-line ``%%sql``::
+
+.. code-block:: python
+
+    In [17]: %%sql works << SELECT title, year
+        ...: FROM work
+        ...:
+    43 rows affected.
+    Returning data to local variable works
+
 Connecting
 ----------
 
@@ -254,6 +275,7 @@ Credits
 - Andrés Celis for SQL Server bugfix
 - Michael Erasmus for DataFrame truth bugfix
 - Noam Finkelstein for README clarification
+- Xiaochuan Yu for `<<` operator
 
 .. _Distribute: http://pypi.python.org/pypi/distribute
 .. _Buildout: http://www.buildout.org/
