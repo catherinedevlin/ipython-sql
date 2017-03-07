@@ -1,4 +1,5 @@
 from nose import with_setup
+from nose.tools import raises
 from sql.magic import SqlMagic
 from textwrap import dedent
 import os.path
@@ -58,6 +59,16 @@ def test_multi_sql():
     assert 'Shakespeare' in str(result) and 'Brecht' in str(result)
 
 @with_setup(_setup_writer, _teardown_writer)
+def test_result_var():
+    ip.run_cell_magic('sql', '', """
+        sqlite://
+        x <<
+        SELECT last_name FROM writer;
+        """)
+    result = ip.user_global_ns['x']
+    assert 'Shakespeare' in str(result) and 'Brecht' in str(result)
+
+@with_setup(_setup_writer, _teardown_writer)
 def test_access_results_by_keys():
     assert ip.run_line_magic('sql', "sqlite:// SELECT * FROM writer;")['William'] == (u'William', u'Shakespeare', 1616)
 
@@ -78,7 +89,6 @@ def test_autolimit():
     result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM test;")
     assert len(result) == 1
 
-
 @with_setup(_setup, _teardown)
 def test_persist():
     ip.run_cell("results = %sql SELECT * FROM test;")
@@ -87,12 +97,36 @@ def test_persist():
     persisted = ip.run_line_magic('sql', 'SELECT * FROM results_dframe')
     assert 'foo' in str(persisted)
 
+@raises(NameError)
+def test_persist_nonexistent_raises():
+    ip.run_line_magic('sql',  "sqlite://")
+    ip.run_line_magic('sql', 'PERSIST no_such_dataframe')
+
+@raises(TypeError)
+def test_persist_non_frame_raises():
+    ip.run_cell("not_a_dataframe = 22")
+    ip.run_line_magic('sql', "sqlite://")
+    ip.run_line_magic('sql', 'PERSIST not_a_dataframe')
+
+@raises(SyntaxError)
+def test_persist_bare():
+    ip.run_line_magic('sql', "sqlite://")
+    ip.run_line_magic('sql', 'PERSIST')
+
 @with_setup(_setup_writer, _teardown_writer)
-def test_unnamed_persist():
+def test_persist_frame_at_its_creation():
     ip.run_cell("results = %sql SELECT * FROM writer;")
     ip.run_line_magic('sql', 'PERSIST results.DataFrame()')
     persisted = ip.run_line_magic('sql', 'SELECT * FROM results')
     assert 'Shakespeare' in str(persisted)
+
+# TODO: support 
+# @with_setup(_setup_writer, _teardown_writer)
+# def test_persist_with_connection_info():
+#     ip.run_cell("results = %sql SELECT * FROM writer;")
+#     ip.run_line_magic('sql', 'sqlite:// PERSIST results.DataFrame()')
+#     persisted = ip.run_line_magic('sql', 'SELECT * FROM results')
+#     assert 'Shakespeare' in str(persisted)
 
 @with_setup(_setup_writer, _teardown_writer)
 def test_displaylimit():

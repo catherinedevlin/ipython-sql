@@ -3,20 +3,23 @@ import sqlalchemy
 class Connection(object):
     current = None
     connections = {}
+
     @classmethod
     def tell_format(cls):
-        return "Format: (postgresql|mysql)://username:password@hostname/dbname, or one of %s" \
-               % str(cls.connections.keys())
+        return """Connection info needed in SQLAlchemy format, example:
+               postgresql://username:password@hostname/dbname
+               or an existing connection: %s""" % str(cls.connections.keys())
+
     def __init__(self, connect_str=None):
         try:
             engine = sqlalchemy.create_engine(connect_str)
         except: # TODO: bare except; but what's an ArgumentError?
             print(self.tell_format())
-            raise 
+            raise
         self.dialect = engine.url.get_dialect()
         self.metadata = sqlalchemy.MetaData(bind=engine)
         self.name = self.assign_name(engine)
-        self.session = engine.connect() 
+        self.session = engine.connect()
         self.connections[self.name] = self
         self.connections[str(self.metadata.bind.url)] = self
         Connection.current = self
@@ -26,7 +29,7 @@ class Connection(object):
             cls.current = descriptor
         elif descriptor:
             conn = cls.connections.get(descriptor) or \
-                   cls.connections.get(descriptor.lower()) 
+                   cls.connections.get(descriptor.lower())
             if conn:
                 cls.current = conn
             else:
