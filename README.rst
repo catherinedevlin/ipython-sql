@@ -141,6 +141,7 @@ Some example connection strings::
     oracle://scott:tiger@127.0.0.1:1521/sidname
     sqlite://
     sqlite:///foo.db
+    mssql+pyodbc://username:password@host/database?driver=SQL+Server+Native+Client+11.0
 
 .. _SQLAlchemy: http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls
 
