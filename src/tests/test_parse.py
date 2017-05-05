@@ -1,3 +1,4 @@
+import os
 from sql.parse import parse
 from six.moves import configparser
 try:
@@ -12,22 +13,29 @@ def test_parse_no_sql():
            {'connection': "will:longliveliz@localhost/shakes",
             'sql': '',
             'flags': default_flags}
-    
+
 def test_parse_with_sql():
-    assert parse("postgresql://will:longliveliz@localhost/shakes SELECT * FROM work", 
+    assert parse("postgresql://will:longliveliz@localhost/shakes SELECT * FROM work",
                  empty_config) == \
            {'connection': "postgresql://will:longliveliz@localhost/shakes",
             'sql': 'SELECT * FROM work',
-            'flags': default_flags}    
-    
+            'flags': default_flags}
+
 def test_parse_sql_only():
     assert parse("SELECT * FROM work", empty_config) == \
            {'connection': "",
             'sql': 'SELECT * FROM work',
-            'flags': default_flags} 
-    
+            'flags': default_flags}
+
 def test_parse_postgresql_socket_connection():
     assert parse("postgresql:///shakes SELECT * FROM work", empty_config) == \
            {'connection': "postgresql:///shakes",
             'sql': 'SELECT * FROM work',
-            'flags': default_flags}            
+            'flags': default_flags}
+
+def test_expand_environment_variables_in_connection():
+    os.environ['DATABASE_URL'] = 'postgresql:///shakes'
+    assert parse("$DATABASE_URL SELECT * FROM work", empty_config) == \
+            {'connection': "postgresql:///shakes",
+            'sql': 'SELECT * FROM work',
+            'flags': default_flags}
