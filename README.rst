@@ -112,7 +112,7 @@ leftmost column serving as key, for unique values.
 Assignment
 ----------
 
-Ordinary IPython assignment works for single-line `%sql` queries::
+Ordinary IPython assignment works for single-line `%sql` queries:
 
 .. code-block:: python
 
@@ -120,7 +120,7 @@ Ordinary IPython assignment works for single-line `%sql` queries::
     43 rows affected.
 
 The `<<` operator captures query results in a local variable, and
-can be used in multi-line ``%%sql``::
+can be used in multi-line ``%%sql``:
 
 .. code-block:: python
 

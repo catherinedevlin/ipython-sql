@@ -75,7 +75,7 @@ Deleted Plugin import left behind in 0.2.2
   - Proper handling of configuration
 
 * Added .DataFrame(), .pie(), .plot(), and .bar() methods to
-result sets
+  result sets
 
 0.3.0
 -----
