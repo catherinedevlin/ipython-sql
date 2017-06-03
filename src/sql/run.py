@@ -140,14 +140,22 @@ class ResultSet(list, ColumnGuesserMixin):
                 raise KeyError('%d results for "%s"' % (len(result), key))
             return result[0]
     def dict(self):
-        "Returns a dict built from the result set, with column names as keys"
+        """Returns a single dict built from the result set
+ 
+        Keys are column names; values are a tuple"""
         return dict(zip(self.keys, zip(*self)))
+
+    def dicts(self):
+        "Iterator yielding a dict for each row"
+        for row in self:
+            yield dict(zip(self.keys, row))
 
     def DataFrame(self):
         "Returns a Pandas DataFrame instance built from the result set."
         import pandas as pd
         frame = pd.DataFrame(self, columns=(self and self.keys) or [])
         return frame
+
     def pie(self, key_word_sep=" ", title=None, **kwargs):
         """Generates a pylab pie chart from the result set.
 

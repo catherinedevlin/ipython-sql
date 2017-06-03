@@ -109,6 +109,9 @@ leftmost column serving as key, for unique values.
     In [15]: result['richard2']
     Out[15]: (u'richard2', u'Richard II', u'History of Richard II', 1595, u'h', None, u'Moby', 22411, 628)
 
+Results can also be retrieved as an iterator of dictionaries (``result.dicts()``)
+or a single dictionary with a tuple of scalar values per key (``result.dict()``)
+
 Assignment
 ----------
 
@@ -276,7 +279,7 @@ Credits
 - Andrés Celis for SQL Server bugfix
 - Michael Erasmus for DataFrame truth bugfix
 - Noam Finkelstein for README clarification
-- Xiaochuan Yu for `<<` operator
+- Xiaochuan Yu for `<<` operator, syntax colorization
 
 .. _Distribute: http://pypi.python.org/pypi/distribute
 .. _Buildout: http://www.buildout.org/

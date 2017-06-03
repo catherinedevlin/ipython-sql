@@ -191,3 +191,23 @@ def test_csv_to_file():
             for row in content.splitlines():
                 assert row.count(',') == 1
             assert len(content.splitlines()) == 3
+
+@with_setup(_setup_writer, _teardown_writer)
+def test_dict():
+    result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM writer;")
+    result = result.dict()
+    assert isinstance(result, dict)
+    assert 'first_name' in result
+    assert 'last_name' in result
+    assert 'year_of_death' in result
+    assert len(result['last_name']) == 2
+
+@with_setup(_setup_writer, _teardown_writer)
+def test_dicts():
+    result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM writer;")
+    for row in result.dicts():
+        assert isinstance(row, dict)
+        assert 'first_name' in row
+        assert 'last_name' in row
+        assert 'year_of_death' in row
+
