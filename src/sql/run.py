@@ -9,6 +9,7 @@ import re
 import sqlalchemy
 import sqlparse
 import prettytable
+from pgspecial.main import PGSpecial
 from .column_guesser import ColumnGuesserMixin
 
 
@@ -141,7 +142,7 @@ class ResultSet(list, ColumnGuesserMixin):
             return result[0]
     def dict(self):
         """Returns a single dict built from the result set
- 
+
         Keys are column names; values are a tuple"""
         return dict(zip(self.keys, zip(*self)))
 
@@ -274,19 +275,38 @@ def interpret_rowcount(rowcount):
         result = '%d rows affected.' % rowcount
     return result
 
+class FakeResultProxy(object):
+    """A fake class that pretends to behave like the ResultProxy from
+    SqlAlchemy.
+    """
+    def __init__(self, cursor, headers):
+        self.fetchall = cursor.fetchall
+        self.fetchmany = cursor.fetchmany
+        self.rowcount = cursor.rowcount
+        self.keys = lambda: headers
+        self.returns_rows = True
+
 
 def run(conn, sql, config, user_namespace):
     if sql.strip():
         for statement in sqlparse.split(sql):
-            if sql.strip().split()[0].lower() == 'begin':
+            first_word = sql.strip().split()[0].lower()
+            if first_word == 'begin':
                 raise Exception("ipython_sql does not support transactions")
-            txt = sqlalchemy.sql.text(statement)
-            result = conn.session.execute(txt, user_namespace)
+            if first_word.startswith('\\') and 'postgres' in str(conn.dialect):
+                pgspecial = PGSpecial()
+                _, cur, headers, _ = pgspecial.execute(
+                                              conn.session.connection.cursor(),
+                                              statement)[0]
+                result = FakeResultProxy(cur, headers)
+            else:
+                txt = sqlalchemy.sql.text(statement)
+                result = conn.session.execute(txt, user_namespace)
             try:
                 # mssql has autocommit
                 if 'mssql' not in str(conn.dialect):
                     conn.session.execute('commit')
-            except sqlalchemy.exc.OperationalError: 
+            except sqlalchemy.exc.OperationalError:
                 pass # not all engines can commit
             if result and config.feedback:
                 print(interpret_rowcount(result.rowcount))

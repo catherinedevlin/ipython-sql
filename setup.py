@@ -14,6 +14,7 @@ install_requires = [
     'sqlalchemy>=0.6.7',
     'sqlparse',
     'six',
+    'pgspecial',
     'ipython-genutils>=0.1.0',
 ]
 
