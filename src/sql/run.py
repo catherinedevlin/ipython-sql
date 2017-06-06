@@ -1,6 +1,4 @@
-import functools
 import operator
-import types
 import csv
 import six
 import codecs
