@@ -234,19 +234,6 @@ If you have installed ``matplotlib``, you can use a result set's
 .. image:: https://raw.github.com/catherinedevlin/ipython-sql/master/examples/wordcount.png
    :alt: pie chart of word count of Shakespeare's comedies
 
-
-Installing
-----------
-
-Install the lastest release with::
-
-    pip install ipython-sql
-
-or download from https://github.com/catherinedevlin/ipython-sql and::
-
-    cd ipython-sql
-    sudo python setup.py install
-
 Dumping
 -------
 
@@ -259,6 +246,28 @@ specified) or in a file of the given name.
     In[8]: result = %sql SELECT title, totalwords FROM work WHERE genretype = 'c'
 
     In[9]: result.csv(filename='work.csv')
+
+PostgreSQL features
+-------------------
+
+``psql``-style "backslash" `meta-commands`_ commands (``\d``, ``\dt``, etc.) 
+are provided by `PGSpecial`_.
+
+.. _PGSpecial: https://pypi.python.org/pypi/pgspecial 
+
+.. _meta-commands: https://www.postgresql.org/docs/9.6/static/app-psql.html#APP-PSQL-META-COMMANDS
+
+Installing
+----------
+
+Install the lastest release with::
+
+    pip install ipython-sql
+
+or download from https://github.com/catherinedevlin/ipython-sql and::
+
+    cd ipython-sql
+    sudo python setup.py install
 
 Development
 -----------
@@ -280,6 +289,7 @@ Credits
 - Michael Erasmus for DataFrame truth bugfix
 - Noam Finkelstein for README clarification
 - Xiaochuan Yu for `<<` operator, syntax colorization
+- Amjith Ramanujam for PGSpecial and incorporating it here
 
 .. _Distribute: http://pypi.python.org/pypi/distribute
 .. _Buildout: http://www.buildout.org/
