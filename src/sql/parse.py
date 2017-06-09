@@ -9,7 +9,7 @@ def parse(cell, config):
 
     parts = [part.strip() for part in cell.split(None, 1)]
     if not parts:
-        return {'connection': '', 'sql': ''}
+        return {'connection': '', 'sql': '', 'flags': {}}
     parts[0] = expandvars(parts[0])  # for environment variables
 
     if parts[0].startswith('[') and parts[0].endswith(']'):

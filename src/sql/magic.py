@@ -80,9 +80,14 @@ class SqlMagic(Magics, Configurable):
 
         parsed = sql.parse.parse('%s\n%s' % (line, cell), self)
         flags = parsed['flags']
-        conn = sql.connection.Connection.get(parsed['connection'])
+        try:
+            conn = sql.connection.Connection.set(parsed['connection'])
+        except Exception as e:
+            print(e)
+            print(sql.connection.Connection.tell_format())
+            return None
 
-        if flags['persist']:
+        if flags.get('persist'):
             return self._persist_dataframe(parsed['sql'], conn, user_ns)
 
         try:
@@ -107,7 +112,7 @@ class SqlMagic(Magics, Configurable):
                 return None
             else:
 
-                if flags['result_var']:
+                if flags.get('result_var'):
                     result_var = flags['result_var']
                     print("Returning data to local variable {}".format(result_var))
                     self.shell.user_ns.update({result_var: result})

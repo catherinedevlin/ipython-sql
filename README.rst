@@ -64,6 +64,10 @@ an existing connection by username@database
     ======================
     Poet       733
 
+If no connect string is supplied, ``5sql`` will provide a list of existing connections;
+however, if no connections have yet been made and the environment variable ``DATABASE_URL``
+is available, that will be used.
+
 For secure access, you may dynamically access your credentials (e.g. from your system environment or `getpass.getpass`) to avoid storing your password in the notebook itself. Use the `$` before any variable to access it in your `%sql` command.
 
 .. code-block:: python
@@ -250,10 +254,10 @@ specified) or in a file of the given name.
 PostgreSQL features
 -------------------
 
-``psql``-style "backslash" `meta-commands`_ commands (``\d``, ``\dt``, etc.) 
+``psql``-style "backslash" `meta-commands`_ commands (``\d``, ``\dt``, etc.)
 are provided by `PGSpecial`_.
 
-.. _PGSpecial: https://pypi.python.org/pypi/pgspecial 
+.. _PGSpecial: https://pypi.python.org/pypi/pgspecial
 
 .. _meta-commands: https://www.postgresql.org/docs/9.6/static/app-psql.html#APP-PSQL-META-COMMANDS
 
