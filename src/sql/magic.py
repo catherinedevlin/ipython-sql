@@ -37,6 +37,7 @@ class SqlMagic(Magics, Configurable):
                            "When the first argument is of the form [section], "
                            "a sqlalchemy connection string is formed from the "
                            "matching section in the DSN file.")
+    autocommit = Bool(True, config=True, help="Set autocommit mode")
 
 
     def __init__(self, shell):

@@ -154,6 +154,13 @@ to specify it in the connection string::
 
     mysql+pymysql://scott:tiger@localhost/foo?charset=utf8
 
+Note that ``impala`` connecion with `impyla`_  for HiveServer2 requires to disable autocommit::
+
+    %config SqlMagic.autocommit=False
+    %sql impala://hserverhost:port/default?kerberos_service_name=hive&auth_mechanism=GSSAPI
+
+.. _impyla: https://github.com/cloudera/impyla
+
 Configuration
 -------------
 
@@ -169,6 +176,9 @@ only the screen display is truncated.
     In [2]: %config SqlMagic
     SqlMagic options
     --------------
+    SqlMagic.autocommit=<Bool>
+        Current: True
+        Set autocommit mode
     SqlMagic.autolimit=<Int>
         Current: 0
         Automatically limit the size of the returned result sets
