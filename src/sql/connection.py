@@ -64,9 +64,10 @@ class Connection(object):
     def connection_list(cls):
         result = []
         for key in sorted(cls.connections):
+            engine_url = cls.connections[key].metadata.bind.url # type: sqlalchemy.engine.url.URL
             if cls.connections[key] == cls.current:
                 template = ' * {}'
             else:
                 template = '   {}'
-            result.append(template.format(key))
+            result.append(template.format(engine_url.__repr__()))
         return '\n'.join(result)
