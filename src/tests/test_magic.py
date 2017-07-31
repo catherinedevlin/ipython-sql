@@ -39,7 +39,7 @@ def test_print():
 def test_plain_style():
     ip.run_line_magic('config',  "SqlMagic.style = 'PLAIN_COLUMNS'")
     result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM test;")
-    assert re.search(r'1\s+foo', str(result))
+    assert re.search(r'1\s+\|\s+foo', str(result))
 
 
 def _setup_writer():
@@ -120,7 +120,7 @@ def test_persist_frame_at_its_creation():
     persisted = ip.run_line_magic('sql', 'SELECT * FROM results')
     assert 'Shakespeare' in str(persisted)
 
-# TODO: support 
+# TODO: support
 # @with_setup(_setup_writer, _teardown_writer)
 # def test_persist_with_connection_info():
 #     ip.run_cell("results = %sql SELECT * FROM writer;")
@@ -128,15 +128,16 @@ def test_persist_frame_at_its_creation():
 #     persisted = ip.run_line_magic('sql', 'SELECT * FROM results')
 #     assert 'Shakespeare' in str(persisted)
 
-@with_setup(_setup_writer, _teardown_writer)
 def test_displaylimit():
-    ip.run_line_magic('config',  "SqlMagic.autolimit = 0")
-    ip.run_line_magic('config',  "SqlMagic.displaylimit = 0")
-    result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM writer;")
-    assert result._repr_html_().count("<tr>") == 3
+    ip.run_line_magic('config',  "SqlMagic.autolimit = None")
+    ip.run_line_magic('config',  "SqlMagic.displaylimit = None")
+    result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM (VALUES ('apple'), ('banana'), ('cherry')) AS Result ORDER BY 1;")
+    assert 'apple' in result._repr_html_()
+    assert 'banana' in result._repr_html_()
+    assert 'cherry' in result._repr_html_()
     ip.run_line_magic('config',  "SqlMagic.displaylimit = 1")
-    result = ip.run_line_magic('sql',  "sqlite:// SELECT * FROM writer;")
-    assert result._repr_html_().count("<tr>") == 2
+    assert 'apple' in result._repr_html_()
+    assert 'cherry' not in result._repr_html_()
 
 @with_setup(_setup_writer, _teardown_writer)
 def test_column_local_vars():
@@ -210,4 +211,3 @@ def test_dicts():
         assert 'first_name' in row
         assert 'last_name' in row
         assert 'year_of_death' in row
-

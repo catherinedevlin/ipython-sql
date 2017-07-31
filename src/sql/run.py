@@ -103,17 +103,16 @@ class ResultSet(list, ColumnGuesserMixin):
             else:
                 list.__init__(self, sqlaproxy.fetchall())
             self.field_names = unduplicate_field_names(self.keys)
-            self.pretty = prettytable.PrettyTable(self.field_names)
-            if not config.autopandas:
-                for row in self[:config.displaylimit or None]:
-                    self.pretty.add_row(row)
-            self.pretty.set_style(self.style)
+            self.pretty = PrettyTable(self.field_names, style=self.style)
+            # self.pretty.set_style(self.style)
         else:
             list.__init__(self, [])
             self.pretty = None
+
     def _repr_html_(self):
         _cell_with_spaces_pattern = re.compile(r'(<td>)( {2,})')
         if self.pretty:
+            self.pretty.add_rows(self)
             result = self.pretty.get_html_string()
             result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
             if self.config.displaylimit and len(self) > self.config.displaylimit:
@@ -122,8 +121,11 @@ class ResultSet(list, ColumnGuesserMixin):
             return result
         else:
             return None
+
     def __str__(self, *arg, **kwarg):
+        self.pretty.add_rows(self)
         return str(self.pretty or '')
+
     def __getitem__(self, key):
         """
         Access by integer (row position within result set)
@@ -247,6 +249,7 @@ class ResultSet(list, ColumnGuesserMixin):
            Any other parameters will be passed on to csv.writer."""
         if not self.pretty:
             return None # no results
+        self.pretty.add_rows(self)
         if filename:
             encoding = format_params.get('encoding', 'utf-8')
             if six.PY2:
@@ -316,3 +319,25 @@ def run(conn, sql, config, user_namespace):
         #returning only last result, intentionally
     else:
         return 'Connected: %s' % conn.name
+
+
+class PrettyTable(prettytable.PrettyTable):
+
+    def __init__(self, *args, **kwargs):
+        self.row_count = 0
+        self.displaylimit = None
+        return super(PrettyTable, self).__init__(*args,  **kwargs)
+
+    def add_rows(self, data):
+        if self.row_count and (data.config.displaylimit == self.displaylimit):
+            return  # correct number of rows already present
+        self.clear_rows()
+        self.displaylimit = data.config.displaylimit
+        if self.displaylimit == 0:
+            self.displaylimit = None  # TODO: remove this to make 0 really 0
+        if self.displaylimit in (None, 0):
+            self.row_count = len(data)
+        else:
+            self.row_count = min(len(data), self.displaylimit)
+        for row in data[:self.displaylimit]:
+            self.add_row(row)

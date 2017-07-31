@@ -26,10 +26,10 @@ class SqlMagic(Magics, Configurable):
 
     Provides the %%sql magic."""
 
-    autolimit = Int(0, config=True, help="Automatically limit the size of the returned result sets")
+    autolimit = Int(0, config=True, allow_none=True, help="Automatically limit the size of the returned result sets")
     style = Unicode('DEFAULT', config=True, help="Set the table printing style to any of prettytable's defined styles (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)")
     short_errors = Bool(True, config=True, help="Don't display the full traceback on SQL Programming Error")
-    displaylimit = Int(0, config=True, help="Automatically limit the number of rows displayed (full result set is still stored)")
+    displaylimit = Int(None, config=True, allow_none=True, help="Automatically limit the number of rows displayed (full result set is still stored)")
     autopandas = Bool(False, config=True, help="Return Pandas DataFrames instead of regular result sets")
     column_local_vars = Bool(False, config=True, help="Return data into local variables from column names")
     feedback = Bool(True, config=True, help="Print number of rows affected by DML")
@@ -157,7 +157,7 @@ def load_ipython_extension(ip):
 
     # this fails in both Firefox and Chrome for OS X.
     # I get the error: TypeError: IPython.CodeCell.config_defaults is undefined
-    
+
     # js = "IPython.CodeCell.config_defaults.highlight_modes['magic_sql'] = {'reg':[/^%%sql/]};"
     # display_javascript(js, raw=True)
     ip.register_magics(SqlMagic)
