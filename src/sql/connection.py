@@ -26,13 +26,12 @@ class Connection(object):
         self.name = self.assign_name(engine)
         self.session = engine.connect()
         self.connections[self.name] = self
-        self.connections[str(self.metadata.bind.url)] = self
+        self.connections[repr(self.metadata.bind.url)] = self
         Connection.current = self
 
     @classmethod
     def set(cls, descriptor):
         "Sets the current database connection"
-
         if descriptor:
             if isinstance(descriptor, Connection):
                 cls.current = descriptor
@@ -69,5 +68,5 @@ class Connection(object):
                 template = ' * {}'
             else:
                 template = '   {}'
-            result.append(template.format(engine_url.__repr__()))
+            result.append(template.format(key))
         return '\n'.join(result)
