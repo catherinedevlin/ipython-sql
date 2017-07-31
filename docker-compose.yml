@@ -1,0 +1,13 @@
+version: '3'
+services:
+  db:
+    image: postgres
+  web:
+    build: .
+    command: jupyter notebook --port 8888 --ip='0.0.0.0' --no-browser --allow-root --NotebookApp.token=
+    volumes:
+      - .:/myapp
+    ports:
+      - "80:8888"
+    depends_on:
+      - db

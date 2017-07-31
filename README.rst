@@ -13,6 +13,37 @@ commands within IPython or IPython Notebook.
    :width: 600px
    :alt: screenshot of ipython-sql in the Notebook
 
+Quick Start with Docker
+-----------------------
+Getting started with docker and postgres
+*Changes are saved inside the container
+
+.. code-block:: docker
+
+    git clone https://github.com/catherinedevlin/ipython-sql.git
+    cd ipython-sql
+
+    # Build the docker image
+    docker-compose build
+
+    # Start Docker in background
+    docker-compose up -d
+
+    # Get the IP address of docker
+    docker ip
+    #> Example output 192.168.99.100
+
+    # Navigate to 192.168.99.100
+    # Checkout examples/writers.docker.ipynb
+	
+	# Stopping the container without removing your work
+	#> docker-compose stop
+	
+	# Or stop and delete
+	#> docker-compose down
+	
+This is for testing! The jupyter connect token is removed to make setup quicker. See http://jupyter-notebook.readthedocs.io/en/latest/security.html
+
 Examples
 --------
 
