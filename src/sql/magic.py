@@ -32,7 +32,7 @@ class SqlMagic(Magics, Configurable):
     displaylimit = Int(None, config=True, allow_none=True, help="Automatically limit the number of rows displayed (full result set is still stored)")
     autopandas = Bool(False, config=True, help="Return Pandas DataFrames instead of regular result sets")
     column_local_vars = Bool(False, config=True, help="Return data into local variables from column names")
-    feedback = Bool(True, config=True, help="Print number of rows affected by DML")
+    feedback = Bool(True, config=True, help="Print number of rows affected by DML and connection information")
     dsn_filename = Unicode('odbc.ini', config=True, help="Path to DSN file. "
                            "When the first argument is of the form [section], "
                            "a sqlalchemy connection string is formed from the "
@@ -82,7 +82,8 @@ class SqlMagic(Magics, Configurable):
         parsed = sql.parse.parse('%s\n%s' % (line, cell), self)
         flags = parsed['flags']
         try:
-            conn = sql.connection.Connection.set(parsed['connection'])
+            conn = sql.connection.Connection.set(parsed['connection'],
+                                                 self.feedback)
         except Exception as e:
             print(e)
             print(sql.connection.Connection.tell_format())

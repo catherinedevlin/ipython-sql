@@ -30,7 +30,7 @@ class Connection(object):
         Connection.current = self
 
     @classmethod
-    def set(cls, descriptor):
+    def set(cls, descriptor, verbose):
         "Sets the current database connection"
 
         if descriptor:
@@ -41,7 +41,7 @@ class Connection(object):
                            cls.connections.get(descriptor.lower())
             cls.current = existing or Connection(descriptor)
         else:
-            if cls.connections:
+            if cls.connections and verbose:
                 print(cls.connection_list())
             else:
                 if os.getenv('DATABASE_URL'):
