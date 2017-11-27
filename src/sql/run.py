@@ -1,13 +1,15 @@
-import operator
-import csv
-import six
 import codecs
+import csv
+import operator
 import os.path
 import re
+
+import prettytable
+import six
 import sqlalchemy
 import sqlparse
-import prettytable
 from pgspecial.main import PGSpecial
+
 from .column_guesser import ColumnGuesserMixin
 
 
@@ -22,6 +24,7 @@ def unduplicate_field_names(field_names):
             k += '_' + str(i)
         res.append(k)
     return res
+
 
 class UnicodeWriter(object):
     """
@@ -48,9 +51,9 @@ class UnicodeWriter(object):
         # Fetch UTF-8 output from the queue ...
         data = self.queue.getvalue()
         if six.PY2:
-           data = data.decode("utf-8")
-           # ... and reencode it into the target encoding
-           data = self.encoder.encode(data)
+            data = data.decode("utf-8")
+            # ... and reencode it into the target encoding
+            data = self.encoder.encode(data)
         # write to the target stream
         self.stream.write(data)
         # empty queue
@@ -61,14 +64,20 @@ class UnicodeWriter(object):
         for row in rows:
             self.writerow(row)
 
+
 class CsvResultDescriptor(object):
     """Provides IPython Notebook-friendly output for the feedback after a ``.csv`` called."""
+
     def __init__(self, file_path):
         self.file_path = file_path
+
     def __repr__(self):
-        return 'CSV results at %s' % os.path.join(os.path.abspath('.'), self.file_path)
+        return 'CSV results at %s' % os.path.join(os.path.abspath('.'),
+                                                  self.file_path)
+
     def _repr_html_(self):
-        return '<a href="%s">CSV results</a>' % os.path.join('.', 'files', self.file_path)
+        return '<a href="%s">CSV results</a>' % os.path.join('.', 'files',
+                                                             self.file_path)
 
 
 def _nonbreaking_spaces(match_obj):
@@ -81,6 +90,7 @@ def _nonbreaking_spaces(match_obj):
     spaces = '&nbsp;' * len(match_obj.group(2))
     return '%s%s' % (match_obj.group(1), spaces)
 
+
 _cell_with_spaces_pattern = re.compile(r'(<td>)( {2,})')
 
 
@@ -90,6 +100,7 @@ class ResultSet(list, ColumnGuesserMixin):
 
     Can access rows listwise, or by string value of leftmost column.
     """
+
     def __init__(self, sqlaproxy, sql, config):
         self.keys = sqlaproxy.keys()
         self.sql = sql
@@ -140,6 +151,7 @@ class ResultSet(list, ColumnGuesserMixin):
             if len(result) > 1:
                 raise KeyError('%d results for "%s"' % (len(result), key))
             return result[0]
+
     def dict(self):
         """Returns a single dict built from the result set
 
@@ -214,7 +226,7 @@ class ResultSet(list, ColumnGuesserMixin):
         plt.ylabel(ylabel)
         return plot
 
-    def bar(self, key_word_sep = " ", title=None, **kwargs):
+    def bar(self, key_word_sep=" ", title=None, **kwargs):
         """Generates a pylab bar plot from the result set.
 
         ``matplotlib`` must be installed, and in an
@@ -248,7 +260,7 @@ class ResultSet(list, ColumnGuesserMixin):
         """Generate results in comma-separated form.  Write to ``filename`` if given.
            Any other parameters will be passed on to csv.writer."""
         if not self.pretty:
-            return None # no results
+            return None  # no results
         self.pretty.add_rows(self)
         if filename:
             encoding = format_params.get('encoding', 'utf-8')
@@ -276,10 +288,12 @@ def interpret_rowcount(rowcount):
         result = '%d rows affected.' % rowcount
     return result
 
+
 class FakeResultProxy(object):
     """A fake class that pretends to behave like the ResultProxy from
     SqlAlchemy.
     """
+
     def __init__(self, cursor, headers):
         self.fetchall = cursor.fetchall
         self.fetchmany = cursor.fetchmany
@@ -297,8 +311,8 @@ def run(conn, sql, config, user_namespace):
             if first_word.startswith('\\') and 'postgres' in str(conn.dialect):
                 pgspecial = PGSpecial()
                 _, cur, headers, _ = pgspecial.execute(
-                                              conn.session.connection.cursor(),
-                                              statement)[0]
+                    conn.session.connection.cursor(),
+                    statement)[0]
                 result = FakeResultProxy(cur, headers)
             else:
                 txt = sqlalchemy.sql.text(statement)
@@ -308,7 +322,7 @@ def run(conn, sql, config, user_namespace):
                 if config.autocommit and ('mssql' not in str(conn.dialect)):
                     conn.session.execute('commit')
             except sqlalchemy.exc.OperationalError:
-                pass # not all engines can commit
+                pass  # not all engines can commit
             if result and config.feedback:
                 print(interpret_rowcount(result.rowcount))
         resultset = ResultSet(result, statement, config)
@@ -316,17 +330,16 @@ def run(conn, sql, config, user_namespace):
             return resultset.DataFrame()
         else:
             return resultset
-        #returning only last result, intentionally
+        # returning only last result, intentionally
     else:
         return 'Connected: %s' % conn.name
 
 
 class PrettyTable(prettytable.PrettyTable):
-
     def __init__(self, *args, **kwargs):
         self.row_count = 0
         self.displaylimit = None
-        return super(PrettyTable, self).__init__(*args,  **kwargs)
+        return super(PrettyTable, self).__init__(*args, **kwargs)
 
     def add_rows(self, data):
         if self.row_count and (data.config.displaylimit == self.displaylimit):

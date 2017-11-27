@@ -1,6 +1,9 @@
 import re
-from IPython.core.magic import Magics, magics_class, cell_magic, line_magic, needs_local_scope
+
+from IPython.core.magic import (Magics, cell_magic, line_magic, magics_class,
+                                needs_local_scope)
 from IPython.display import display_javascript
+
 try:
     from traitlets.config.configurable import Configurable
     from traitlets import Bool, Int, Unicode
@@ -34,11 +37,10 @@ class SqlMagic(Magics, Configurable):
     column_local_vars = Bool(False, config=True, help="Return data into local variables from column names")
     feedback = Bool(True, config=True, help="Print number of rows affected by DML and connection information")
     dsn_filename = Unicode('odbc.ini', config=True, help="Path to DSN file. "
-                           "When the first argument is of the form [section], "
-                           "a sqlalchemy connection string is formed from the "
-                           "matching section in the DSN file.")
+                                                         "When the first argument is of the form [section], "
+                                                         "a sqlalchemy connection string is formed from the "
+                                                         "matching section in the DSN file.")
     autocommit = Bool(True, config=True, help="Set autocommit mode")
-
 
     def __init__(self, shell):
         Configurable.__init__(self, config=shell.config)
@@ -95,9 +97,10 @@ class SqlMagic(Magics, Configurable):
         try:
             result = sql.run.run(conn, parsed['sql'], self, user_ns)
 
-            if result is not None and not isinstance(result, str) and self.column_local_vars:
-                #Instead of returning values, set variables directly in the
-                #users namespace. Variable names given by column names
+            if result is not None and not isinstance(result,
+                                                     str) and self.column_local_vars:
+                # Instead of returning values, set variables directly in the
+                # users namespace. Variable names given by column names
 
                 if self.autopandas:
                     keys = result.keys()
@@ -106,8 +109,8 @@ class SqlMagic(Magics, Configurable):
                     result = result.dict()
 
                 if self.feedback:
-                    print('Returning data to local variables [{}]'.format(
-                        ', '.join(keys)))
+                    print('Returning data to local variables [{}]'
+                          ''.format(', '.join(keys)))
 
                 self.shell.user_ns.update(result)
 
@@ -116,11 +119,12 @@ class SqlMagic(Magics, Configurable):
 
                 if flags.get('result_var'):
                     result_var = flags['result_var']
-                    print("Returning data to local variable {}".format(result_var))
+                    print("Returning data to local variable {}"
+                          "".format(result_var))
                     self.shell.user_ns.update({result_var: result})
                     return None
 
-                #Return results into the default ipython _ variable
+                # Return results into the default ipython _ variable
                 return result
 
         except (ProgrammingError, OperationalError) as e:
@@ -131,6 +135,7 @@ class SqlMagic(Magics, Configurable):
                 raise
 
     legal_sql_identifier = re.compile(r'^[A-Za-z0-9#_$]+')
+
     def _persist_dataframe(self, raw, conn, user_ns):
         """Implements PERSIST, which writes a DataFrame to the RDBMS"""
         if not DataFrame:
@@ -145,7 +150,7 @@ class SqlMagic(Magics, Configurable):
         if not isinstance(frame, DataFrame) and not isinstance(frame, Series):
             raise TypeError('%s is not a Pandas DataFrame or Series' % frame_name)
 
-       # Make a suitable name for the resulting database table
+        # Make a suitable name for the resulting database table
         table_name = frame_name.lower()
         table_name = self.legal_sql_identifier.search(table_name).group(0)
 

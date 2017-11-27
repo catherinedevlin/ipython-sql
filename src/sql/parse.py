@@ -1,5 +1,5 @@
 from os.path import expandvars
-import six
+
 from six.moves import configparser as CP
 from sqlalchemy.engine.url import URL
 
@@ -47,7 +47,7 @@ def parse_sql_flags(sql):
     trimmed_sql = sql
     if words[0].lower() == 'persist':
         flags['persist'] = True
-        trimmed_sql =  " ".join(words[1:])
+        trimmed_sql = " ".join(words[1:])
     elif num_words >= 2 and words[1] == '<<':
         flags['result_var'] = words[0]
         trimmed_sql = " ".join(words[2:])

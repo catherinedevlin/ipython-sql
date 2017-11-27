@@ -1,5 +1,7 @@
-import sqlalchemy
 import os
+
+import sqlalchemy
+
 
 class ConnectionError(Exception):
     pass
@@ -18,7 +20,7 @@ class Connection(object):
     def __init__(self, connect_str=None):
         try:
             engine = sqlalchemy.create_engine(connect_str)
-        except: # TODO: bare except; but what's an ArgumentError?
+        except:  # TODO: bare except; but what's an ArgumentError?
             print(self.tell_format())
             raise
         self.dialect = engine.url.get_dialect()
@@ -47,7 +49,9 @@ class Connection(object):
                 if os.getenv('DATABASE_URL'):
                     cls.current = Connection(os.getenv('DATABASE_URL'))
                 else:
-                    raise ConnectionError('Environment variable $DATABASE_URL not set, and no connect string given.')
+                    raise ConnectionError('Environment variable $DATABASE_URL '
+                                          'not set, and no connect string '
+                                          'given.')
         return cls.current
 
     @classmethod
