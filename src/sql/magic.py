@@ -46,7 +46,7 @@ class SqlMagic(Magics, Configurable):
         Configurable.__init__(self, config=shell.config)
         Magics.__init__(self, shell=shell)
 
-        # Add ourself to the list of module configurable via %config
+        # Add ourselves to the list of module configurable via %config
         self.shell.configurables.append(self)
 
     @needs_local_scope

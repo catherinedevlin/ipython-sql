@@ -64,7 +64,7 @@ an existing connection by username@database
     ======================
     Poet       733
 
-If no connect string is supplied, ``5sql`` will provide a list of existing connections;
+If no connect string is supplied, ``%sql`` will provide a list of existing connections;
 however, if no connections have yet been made and the environment variable ``DATABASE_URL``
 is available, that will be used.
 
@@ -158,7 +158,7 @@ to specify it in the connection string::
 
     mysql+pymysql://scott:tiger@localhost/foo?charset=utf8
 
-Note that ``impala`` connecion with `impyla`_  for HiveServer2 requires to disable autocommit::
+Note that ``impala`` connection with `impyla`_  for HiveServer2 requires to disable autocommit::
 
     %config SqlMagic.autocommit=False
     %sql impala://hserverhost:port/default?kerberos_service_name=hive&auth_mechanism=GSSAPI
