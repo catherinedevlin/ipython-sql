@@ -265,7 +265,11 @@ PostgreSQL features
 -------------------
 
 ``psql``-style "backslash" `meta-commands`_ commands (``\d``, ``\dt``, etc.)
-are provided by `PGSpecial`_.
+are provided by `PGSpecial`_.  Example:
+
+.. code-block:: python
+
+    In[9]: %sql \d
 
 .. _PGSpecial: https://pypi.python.org/pypi/pgspecial
 
