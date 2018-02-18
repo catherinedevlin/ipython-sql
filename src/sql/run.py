@@ -7,7 +7,10 @@ import re
 import sqlalchemy
 import sqlparse
 import prettytable
-from pgspecial.main import PGSpecial
+try:
+    from pgspecial.main import PGSpecial
+except ImportError:
+    PGSpecial = None
 from .column_guesser import ColumnGuesserMixin
 
 
@@ -295,6 +298,8 @@ def run(conn, sql, config, user_namespace):
             if first_word == 'begin':
                 raise Exception("ipython_sql does not support transactions")
             if first_word.startswith('\\') and 'postgres' in str(conn.dialect):
+                if not PGSpecial:
+                    raise ImportError('pgspecial not installed')
                 pgspecial = PGSpecial()
                 _, cur, headers, _ = pgspecial.execute(
                                               conn.session.connection.cursor(),
