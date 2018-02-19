@@ -309,8 +309,11 @@ def run(conn, sql, config, user_namespace):
                 txt = sqlalchemy.sql.text(statement)
                 result = conn.session.execute(txt, user_namespace)
             try:
-                # mssql has autocommit
-                if config.autocommit and ('mssql' not in str(conn.dialect)):
+                # some dialects have autocommit
+                # specific dialects break when commit is used:
+                dialects_blacklist = ('mssql', 'clickhouse')
+                if config.autocommit \
+                and all(dialect not in str(conn.dialect) for dialect in dialects_blacklist):
                     conn.session.execute('commit')
             except sqlalchemy.exc.OperationalError:
                 pass # not all engines can commit
