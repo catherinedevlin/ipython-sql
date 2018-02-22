@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
 import os
 
 here = os.path.abspath(os.path.dirname(__file__))
-README = open(os.path.join(here, 'README.rst')).read()
-NEWS = open(os.path.join(here, 'NEWS.txt')).read()
+README = open(os.path.join(here, 'README.rst'), encoding='utf-8').read()
+NEWS = open(os.path.join(here, 'NEWS.txt'), encoding='utf-8').read()
 
 
 version = '0.3.9'
