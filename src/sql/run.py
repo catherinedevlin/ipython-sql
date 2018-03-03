@@ -305,7 +305,7 @@ class FakeResultProxy(object):
 
 # some dialects have autocommit
 # specific dialects break when commit is used:
-_COMMIT_BLACKLIST_DIALECTS = ('mssql', 'clickhouse')
+_COMMIT_BLACKLIST_DIALECTS = ('mssql', 'clickhouse', 'teradata')
 
 
 def _commit(conn, config):
