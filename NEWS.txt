@@ -149,3 +149,4 @@ Deleted Plugin import left behind in 0.2.2
 * added README example (thanks tanhuil)
 * bugfix in executing column_local_vars (thanks tebeka)
 * pgspecial installation optional (thanks jstoebel and arjoe)
+* conceal passwords in connection strings (thanks jstoebel)

@@ -1,3 +1,3 @@
 #!/bin/bash
-python -c "import pytest; pytest.main(['.', '-x', '--pdb'])"
+ipython -c "import pytest; pytest.main(['.', '-x', '--pdb'])"
 # Insert breakpoints with `import pytest; pytest.set_trace()`
