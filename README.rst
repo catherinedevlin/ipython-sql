@@ -64,7 +64,7 @@ an existing connection by username@database
     ======================
     Poet       733
 
-If no connect string is supplied, ``5sql`` will provide a list of existing connections;
+If no connect string is supplied, ``%sql`` will provide a list of existing connections;
 however, if no connections have yet been made and the environment variable ``DATABASE_URL``
 is available, that will be used.
 
@@ -265,7 +265,11 @@ PostgreSQL features
 -------------------
 
 ``psql``-style "backslash" `meta-commands`_ commands (``\d``, ``\dt``, etc.)
-are provided by `PGSpecial`_.
+are provided by `PGSpecial`_.  Example:
+
+.. code-block:: python
+
+    In[9]: %sql \d
 
 .. _PGSpecial: https://pypi.python.org/pypi/pgspecial
 

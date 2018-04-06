@@ -1,8 +1,24 @@
 import sqlalchemy
 import os
+import re
 
 class ConnectionError(Exception):
     pass
+
+
+def rough_dict_get(dct, sought, default=None):
+    '''
+    Like dct.get(sought), but any key containing sought will do.
+
+    If there is a `@` in sought, seek each piece separately.
+    This lets `me@server` match `me:***@myserver/db`
+    '''
+  
+    sought = sought.split('@') 
+    for (key, val) in dct.items():
+        if not any(s.lower() not in key.lower() for s in sought):
+            return val
+    return default
 
 
 class Connection(object):
@@ -25,7 +41,6 @@ class Connection(object):
         self.metadata = sqlalchemy.MetaData(bind=engine)
         self.name = self.assign_name(engine)
         self.session = engine.connect()
-        self.connections[self.name] = self
         self.connections[repr(self.metadata.bind.url)] = self
         Connection.current = self
 
@@ -36,8 +51,7 @@ class Connection(object):
             if isinstance(descriptor, Connection):
                 cls.current = descriptor
             else:
-                existing = cls.connections.get(descriptor) or \
-                           cls.connections.get(descriptor.lower())
+                existing = rough_dict_get(cls.connections, descriptor)
             cls.current = existing or Connection(descriptor)
         else:
             if cls.connections:
@@ -51,12 +65,7 @@ class Connection(object):
 
     @classmethod
     def assign_name(cls, engine):
-        core_name = '%s@%s' % (engine.url.username or '', engine.url.database)
-        incrementer = 1
-        name = core_name
-        while name in cls.connections:
-            name = '%s_%d' % (core_name, incrementer)
-            incrementer += 1
+        name = '%s@%s' % (engine.url.username or '', engine.url.database)
         return name
 
     @classmethod

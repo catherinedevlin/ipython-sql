@@ -1,17 +1,23 @@
 Development setup
 =================
 
-Running nose tests with IPython is tricky, so there's a 
+Running nose tests with IPython is tricky, so there's a
 run_tests.sh script for it.
+
+To temporarily insert breakpoints for debugging: `from nose.tools import set_trace; set_trace()`
+
+Tests have requirements not installed by setup.py:
+
+- nose
+- pandas
 
 Release HOWTO
 =============
 
-To make a release, 
+To make a release,
 
   1) Update release date/version in NEWS.txt and setup.py
   2) Run 'python setup.py sdist'
   3) Test the generated source distribution in dist/
   4) Upload to PyPI: 'python setup.py sdist register upload'
   5) Increase version in setup.py (for next release)
-
