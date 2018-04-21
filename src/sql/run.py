@@ -105,6 +105,7 @@ class ResultSet(list, ColumnGuesserMixin):
 
     def __init__(self, sqlaproxy, sql, config):
         self.keys = sqlaproxy.keys()
+        self.status = getattr(sqlaproxy, 'statusmessage', None)
         self.sql = sql
         self.config = config
         self.limit = config.autolimit
@@ -128,6 +129,20 @@ class ResultSet(list, ColumnGuesserMixin):
             self.pretty.add_rows(self)
             result = self.pretty.get_html_string()
             result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
+            if self.status:
+                status_tables = []
+                status_table = None
+                for line in self.status.splitlines():
+                    if not line.startswith(' '):
+                        if status_table:
+                            status_tables.append(status_table)
+                        status_table = PrettyTable([line])
+                    else:
+                        status_table.add_row([line.strip()])
+                status_tables.append(status_table)
+                result = '\n'.join(
+                    [result] +
+                    [st.get_html_string() for st in status_tables])
             if self.config.displaylimit and len(
                     self) > self.config.displaylimit:
                 result = '%s\n<span style="font-style:italic;text-align:center;">%d rows, truncated to displaylimit of %d</span>' % (
@@ -296,12 +311,40 @@ class FakeResultProxy(object):
     SqlAlchemy.
     """
 
-    def __init__(self, cursor, headers):
-        self.fetchall = cursor.fetchall
-        self.fetchmany = cursor.fetchmany
-        self.rowcount = cursor.rowcount
+    def __init__(self, cur, headers, status):
+        self._cursor = cur
+        self._cursor_index = 0
+        self._status = status
         self.keys = lambda: headers
         self.returns_rows = True
+
+    def fetchall(self):
+        if isinstance(self._cursor, list):
+            self._cursor_index = self.rowcount
+            return self._cursor
+        return self._cursor.fetchall()
+
+
+    def fetchmany(self, size):
+        if isinstance(self._cursor, list):
+            prev = self._cursor_index
+            next = prev + size
+            self._cursor_index = next
+            return self._cursor[prev:next]
+        return self._cursor.fetchmany(size)
+
+    @property
+    def rowcount(self):
+        if isinstance(self._cursor, list):
+            return len(self._cursor)
+        return self._cursor.rowcount
+
+    @property
+    def statusmessage(self):
+        if isinstance(self._cursor, list):
+            return self._status
+        return self._cursor.statusmessage
+
 
 # some dialects have autocommit
 # specific dialects break when commit is used:
@@ -332,9 +375,9 @@ def run(conn, sql, config, user_namespace):
                 if not PGSpecial:
                     raise ImportError('pgspecial not installed')
                 pgspecial = PGSpecial()
-                _, cur, headers, _ = pgspecial.execute(
+                _, cur, headers, status = pgspecial.execute(
                     conn.session.connection.cursor(), statement)[0]
-                result = FakeResultProxy(cur, headers)
+                result = FakeResultProxy(cur, headers, status)
             else:
                 txt = sqlalchemy.sql.text(statement)
                 result = conn.session.execute(txt, user_namespace)

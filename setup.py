@@ -6,7 +6,7 @@ README = open(os.path.join(here, 'README.rst'), encoding='utf-8').read()
 NEWS = open(os.path.join(here, 'NEWS.txt'), encoding='utf-8').read()
 
 
-version = '0.3.9'
+version = '0.3.9-r1'
 
 install_requires = [
     'prettytable',
