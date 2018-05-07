@@ -1,0 +1,30 @@
+image: $ARTIFACTORY_DOCKER_REGISTRY/infrastructure/docker-libpy-test:0.10
+
+stages:
+  - build
+  - publish
+
+build-package:
+  stage: build
+  script:
+    - pip3.6 install wheel
+    - python3.6 setup.py sdist bdist_wheel
+  artifacts:
+    paths:
+      - dist
+  tags:
+    - docker
+  only:
+    - branches
+    - tags
+
+publish-package:
+  stage: publish
+  script: twine upload --repository-url=$ARTIFACTORY_PYPI_REPOSITORY --username=$ARTIFACTORY_USERNAME --password=$ARTIFACTORY_PASSWORD dist/*
+  dependencies:
+    - build-package
+  tags:
+    - docker
+  only:
+    - master
+    - tags
