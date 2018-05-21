@@ -297,11 +297,30 @@ class FakeResultProxy(object):
     """
 
     def __init__(self, cursor, headers):
-        self.fetchall = cursor.fetchall
-        self.fetchmany = cursor.fetchmany
-        self.rowcount = cursor.rowcount
+        if isinstance(cursor, list):
+            self.from_list(source_list=cursor)
+        else:
+            self.fetchall = cursor.fetchall
+            self.fetchmany = cursor.fetchmany
+            self.rowcount = cursor.rowcount
         self.keys = lambda: headers
         self.returns_rows = True
+
+    def from_list(self, source_list):
+        "Simulates SQLA ResultProxy from a list."
+
+        self.fetchall = lambda: source_list 
+        self.rowcount = len(source_list)
+
+        def fetchmany(size):
+            pos = 0 
+            while pos < len(source_list):
+                yield source_list[pos:pos+size]
+                pos += size 
+
+        self.fetchmany = fetchmany
+
+
 
 # some dialects have autocommit
 # specific dialects break when commit is used:
