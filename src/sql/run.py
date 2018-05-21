@@ -297,6 +297,9 @@ class FakeResultProxy(object):
     """
 
     def __init__(self, cursor, headers):
+        if cursor is None:
+            cursor = []
+            headers = []
         if isinstance(cursor, list):
             self.from_list(source_list=cursor)
         else:
