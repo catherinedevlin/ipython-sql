@@ -150,3 +150,8 @@ Deleted Plugin import left behind in 0.2.2
 * bugfix in executing column_local_vars (thanks tebeka)
 * pgspecial installation optional (thanks jstoebel and arjoe)
 * conceal passwords in connection strings (thanks jstoebel)
+
+0.3.9
+-----
+
+* Restored Python 2 compatibility (thanks tokenmathguy)

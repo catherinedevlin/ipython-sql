@@ -1,0 +1,6 @@
+prettytable
+ipython>=1.0
+sqlalchemy>=0.6.7
+sqlparse
+six
+ipython-genutils>=0.1.0
