@@ -20,6 +20,9 @@ def rough_dict_get(dct, sought, default=None):
             return val
     return default
 
+def censor_passwords(s):
+    s = re.sub(r'(PWD=|password:|password=)([A-Z0-9a-z]*)', r'\1***', s)
+    return s
 
 class Connection(object):
     current = None
@@ -78,5 +81,5 @@ class Connection(object):
                 template = ' * {}'
             else:
                 template = '   {}'
-            result.append(template.format(engine_url.__repr__()))
+            result.append(template.format(censor_passwords(engine_url.__repr__())))
         return '\n'.join(result)
