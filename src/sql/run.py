@@ -3,6 +3,7 @@ import csv
 import operator
 import os.path
 import re
+from functools import reduce
 
 import prettytable
 import six
