@@ -1,4 +1,4 @@
-prettytable
+prettytable=0.7.2
 ipython>=1.0
 sqlalchemy>=0.6.7
 sqlparse
