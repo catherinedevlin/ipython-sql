@@ -45,7 +45,7 @@ class Connection(object):
         Connection.current = self
 
     @classmethod
-    def set(cls, descriptor):
+    def set(cls, descriptor, displaycon):
         "Sets the current database connection"
 
         if descriptor:
@@ -55,8 +55,10 @@ class Connection(object):
                 existing = rough_dict_get(cls.connections, descriptor)
             cls.current = existing or Connection(descriptor)
         else:
+
             if cls.connections:
-                print(cls.connection_list())
+                if displaycon:
+                    print(cls.connection_list())
             else:
                 if os.getenv('DATABASE_URL'):
                     cls.current = Connection(os.getenv('DATABASE_URL'))

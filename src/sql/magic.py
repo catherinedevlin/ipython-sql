@@ -26,6 +26,7 @@ class SqlMagic(Magics, Configurable):
 
     Provides the %%sql magic."""
 
+    displaycon = Bool(True, config=True, help="Show connection string after execute")
     autolimit = Int(0, config=True, allow_none=True, help="Automatically limit the size of the returned result sets")
     style = Unicode('DEFAULT', config=True, help="Set the table printing style to any of prettytable's defined styles (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)")
     short_errors = Bool(True, config=True, help="Don't display the full traceback on SQL Programming Error")
@@ -82,7 +83,7 @@ class SqlMagic(Magics, Configurable):
         parsed = sql.parse.parse('%s\n%s' % (line, cell), self)
         flags = parsed['flags']
         try:
-            conn = sql.connection.Connection.set(parsed['connection'])
+            conn = sql.connection.Connection.set(parsed['connection'], displaycon=self.displaycon)
         except Exception as e:
             print(e)
             print(sql.connection.Connection.tell_format())
