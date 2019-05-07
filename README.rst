@@ -158,7 +158,7 @@ to specify it in the connection string::
 
     mysql+pymysql://scott:tiger@localhost/foo?charset=utf8
 
-Note that ``impala`` connecion with `impyla`_  for HiveServer2 requires to disable autocommit::
+Note that an ``impala`` connection with `impyla`_  for HiveServer2 requires disabling autocommit::
 
     %config SqlMagic.autocommit=False
     %sql impala://hserverhost:port/default?kerberos_service_name=hive&auth_mechanism=GSSAPI
