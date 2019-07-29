@@ -101,7 +101,8 @@ def test_autolimit(ip):
 def test_persist(ip):
     runsql(ip, "")
     ip.run_cell("results = %sql SELECT * FROM test;")
-    ip.runcode("results_dframe = results.DataFrame()")
+    # ip.runcode("results_dframe = results.DataFrame()")
+    ip.run_cell("results_dframe = results.DataFrame()")
     runsql(ip, 'PERSIST results_dframe')
     persisted = runsql(ip, 'SELECT * FROM results_dframe')
     assert 'foo' in str(persisted)
