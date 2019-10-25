@@ -10,7 +10,7 @@ NEWS = open(os.path.join(here, 'NEWS.txt'), encoding='utf-8').read()
 version = '0.3.9'
 
 install_requires = [
-    'prettytable',
+    'prettytable<1',
     'ipython>=1.0',
     'sqlalchemy>=0.6.7',
     'sqlparse',
