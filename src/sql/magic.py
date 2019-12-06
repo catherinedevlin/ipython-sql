@@ -18,7 +18,7 @@ from sqlalchemy.exc import ProgrammingError, OperationalError
 import sql.connection
 import sql.parse
 import sql.run
-
+import pytest
 
 @magics_class
 class SqlMagic(Magics, Configurable):
@@ -79,10 +79,10 @@ class SqlMagic(Magics, Configurable):
         user_ns = self.shell.user_ns.copy()
         user_ns.update(local_ns)
 
-        parsed = sql.parse.parse('%s\n%s' % (line, cell), self)
+        parsed = sql.parse.parse('%s\n%s' % (line, cell), self, user_ns)
         flags = parsed['flags']
         try:
-            conn = sql.connection.Connection.set(parsed['connection'])
+            conn = sql.connection.Connection.set(parsed['connection'], parsed['connect_args'])
         except Exception as e:
             print(e)
             print(sql.connection.Connection.tell_format())
