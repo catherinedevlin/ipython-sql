@@ -165,7 +165,7 @@ Note that an ``impala`` connection with `impyla`_  for HiveServer2 requires disa
 
 .. _impyla: https://github.com/cloudera/impyla
 
-connect_args can be provided after the connection string either as a local bindvar (prefixed with :) or as a json string::
+connect_args can be provided after the connection string either as a local bindvar (prefixed with ':') or as a json string::
 
   In [1]: %sql sqlite:// :my_connect_args SELECT * FROM work;
   In [2]: %sql sqlite:// {"options": "-cmyarg=value"} SELECT * from work;

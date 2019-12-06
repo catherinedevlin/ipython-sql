@@ -31,9 +31,9 @@ class Connection(object):
                postgresql://username:password@hostname/dbname
                or an existing connection: %s""" % str(cls.connections.keys())
 
-    def __init__(self, connect_str=None, cargs={}):
+    def __init__(self, connect_str=None, connect_args={}):
         try:
-            engine = sqlalchemy.create_engine(connect_str, connect_args=cargs)
+            engine = sqlalchemy.create_engine(connect_str, connect_args=connect_args)
         except: # TODO: bare except; but what's an ArgumentError?
             print(self.tell_format())
             raise
