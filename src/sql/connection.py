@@ -31,9 +31,9 @@ class Connection(object):
                postgresql://username:password@hostname/dbname
                or an existing connection: %s""" % str(cls.connections.keys())
 
-    def __init__(self, connect_str=None):
+    def __init__(self, connect_str=None, cargs={}):
         try:
-            engine = sqlalchemy.create_engine(connect_str)
+            engine = sqlalchemy.create_engine(connect_str, connect_args=cargs)
         except: # TODO: bare except; but what's an ArgumentError?
             print(self.tell_format())
             raise
@@ -45,7 +45,7 @@ class Connection(object):
         Connection.current = self
 
     @classmethod
-    def set(cls, descriptor):
+    def set(cls, descriptor, connect_args={}):
         "Sets the current database connection"
 
         if descriptor:
@@ -53,7 +53,7 @@ class Connection(object):
                 cls.current = descriptor
             else:
                 existing = rough_dict_get(cls.connections, descriptor)
-            cls.current = existing or Connection(descriptor)
+            cls.current = existing or Connection(descriptor, connect_args)
         else:
             if cls.connections:
                 print(cls.connection_list())
