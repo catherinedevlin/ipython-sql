@@ -18,7 +18,6 @@ from sqlalchemy.exc import ProgrammingError, OperationalError
 import sql.connection
 import sql.parse
 import sql.run
-import pytest
 
 @magics_class
 class SqlMagic(Magics, Configurable):
