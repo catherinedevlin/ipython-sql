@@ -165,6 +165,28 @@ Note that an ``impala`` connection with `impyla`_  for HiveServer2 requires disa
 
 .. _impyla: https://github.com/cloudera/impyla
 
+DSN connections
+~~~~~~~~~~~~~~~
+
+Alternately, you can store connection info in a 
+configuration file, under a section name chosen to 
+refer to your database.
+
+For example, if dsn.ini contains 
+
+    [DB_CONFIG_1]
+    drivername=postgres
+    host=my.remote.host
+    port=5433
+    database=mydatabase
+    username=myuser
+    password=1234
+
+then you can  
+
+    %config SqlMagic.dsn_filename='./dsn.ini'
+    %sql --section DB_CONFIG_1 
+
 Configuration
 -------------
 
@@ -220,12 +242,15 @@ If you have installed ``pandas``, you can use a result set's
 
     In [4]: dataframe = result.DataFrame()
 
-The bogus non-standard pseudo-SQL command ``PERSIST`` will create a table name
+
+The `--persist` argument, with the name of a 
+DataFrame object in memory, 
+will create a table name
 in the database from the named DataFrame.
 
 .. code-block:: python
 
-    In [5]: %sql PERSIST dataframe
+    In [5]: %sql --persist dataframe
 
     In [6]: %sql SELECT * FROM dataframe;
 
@@ -303,11 +328,13 @@ Credits
 - Mike Wilson for bind variable code
 - Thomas Kluyver and Steve Holden for debugging help
 - Berton Earnshaw for DSN connection syntax
+- Bruno Harbulot for DSN example 
 - Andrés Celis for SQL Server bugfix
 - Michael Erasmus for DataFrame truth bugfix
 - Noam Finkelstein for README clarification
 - Xiaochuan Yu for `<<` operator, syntax colorization
 - Amjith Ramanujam for PGSpecial and incorporating it here
+- Alexander Maznev for better arg parsing, connections accepting specified creator
 
 .. _Distribute: http://pypi.python.org/pypi/distribute
 .. _Buildout: http://www.buildout.org/

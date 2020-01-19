@@ -155,3 +155,10 @@ Deleted Plugin import left behind in 0.2.2
 -----
 
 * Restored Python 2 compatibility (thanks tokenmathguy)
+
+0.4.0
+-----
+
+* Changed most non-SQL commands to argparse arguments (thanks pik)
+* User can specify a creator for connections (thanks pik)
+* Bogus pseudo-SQL command `PERSIST` removed, replaced with `--persist` arg
