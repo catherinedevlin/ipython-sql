@@ -31,9 +31,12 @@ class Connection(object):
                postgresql://username:password@hostname/dbname
                or an existing connection: %s""" % str(cls.connections.keys())
 
-    def __init__(self, connect_str=None):
+    def __init__(self, connect_str=None, creator=None):
         try:
-            engine = sqlalchemy.create_engine(connect_str)
+            if creator:
+                engine = sqlalchemy.create_engine(connect_str, creator=creator)
+            else:
+                engine = sqlalchemy.create_engine(connect_str)
         except: # TODO: bare except; but what's an ArgumentError?
             print(self.tell_format())
             raise
@@ -45,7 +48,7 @@ class Connection(object):
         Connection.current = self
 
     @classmethod
-    def set(cls, descriptor):
+    def set(cls, descriptor, displaycon, creator=None):
         "Sets the current database connection"
 
         if descriptor:
@@ -53,13 +56,16 @@ class Connection(object):
                 cls.current = descriptor
             else:
                 existing = rough_dict_get(cls.connections, descriptor)
-            cls.current = existing or Connection(descriptor)
+            # http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#custom-dbapi-connect-arguments
+            cls.current = existing or Connection(descriptor, creator)
         else:
+
             if cls.connections:
-                print(cls.connection_list())
+                if displaycon:
+                    print(cls.connection_list())
             else:
                 if os.getenv('DATABASE_URL'):
-                    cls.current = Connection(os.getenv('DATABASE_URL'))
+                    cls.current = Connection(os.getenv('DATABASE_URL'), creator)
                 else:
                     raise ConnectionError('Environment variable $DATABASE_URL not set, and no connect string given.')
         return cls.current
@@ -80,3 +86,20 @@ class Connection(object):
                 template = '   {}'
             result.append(template.format(engine_url.__repr__()))
         return '\n'.join(result)
+    def _close(cls, descriptor):
+        if isinstance(descriptor, Connection):
+            conn = descriptor
+        else:
+            conn = cls.connections.get(descriptor) or \
+                   cls.connections.get(descriptor.lower())
+        if not conn:
+            raise Exception("Could not close connection because it was not found amongst these: %s" \
+                %str(cls.connections.keys()))
+        cls.connections.pop(conn.name)
+        cls.connections.pop(str(conn.metadata.bind.url))
+        conn.session.close()
+
+    def close(self):
+        self.__class__._close(self)
+
+

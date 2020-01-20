@@ -165,6 +165,28 @@ Note that an ``impala`` connection with `impyla`_  for HiveServer2 requires disa
 
 .. _impyla: https://github.com/cloudera/impyla
 
+DSN connections
+~~~~~~~~~~~~~~~
+
+Alternately, you can store connection info in a 
+configuration file, under a section name chosen to 
+refer to your database.
+
+For example, if dsn.ini contains 
+
+    [DB_CONFIG_1]
+    drivername=postgres
+    host=my.remote.host
+    port=5433
+    database=mydatabase
+    username=myuser
+    password=1234
+
+then you can  
+
+    %config SqlMagic.dsn_filename='./dsn.ini'
+    %sql --section DB_CONFIG_1 
+
 Configuration
 -------------
 
@@ -177,34 +199,45 @@ only the screen display is truncated.
 
 .. code-block:: python
 
-    In [2]: %config SqlMagic
-    SqlMagic options
-    --------------
-    SqlMagic.autocommit=<Bool>
-        Current: True
-        Set autocommit mode
-    SqlMagic.autolimit=<Int>
-        Current: 0
-        Automatically limit the size of the returned result sets
-    SqlMagic.autopandas=<Bool>
-        Current: False
-        Return Pandas DataFrames instead of regular result sets
-    SqlMagic.displaylimit=<Int>
-        Current: 0
-        Automatically limit the number of rows displayed (full result set is still
-        stored)
-    SqlMagic.feedback=<Bool>
-        Current: True
-        Print number of rows affected by DML
-    SqlMagic.short_errors=<Bool>
-        Current: True
-        Don't display the full traceback on SQL Programming Error
-    SqlMagic.style=<Unicode>
-        Current: 'DEFAULT'
-        Set the table printing style to any of prettytable's defined styles
-        (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)
+   In [2]: %config SqlMagic
+   SqlMagic options
+   --------------
+   SqlMagic.autocommit=<Bool>
+       Current: True
+       Set autocommit mode
+   SqlMagic.autolimit=<Int>
+       Current: 0
+       Automatically limit the size of the returned result sets
+   SqlMagic.autopandas=<Bool>
+       Current: False
+       Return Pandas DataFrames instead of regular result sets
+   SqlMagic.column_local_vars=<Bool>
+       Current: False
+       Return data into local variables from column names
+   SqlMagic.displaycon=<Bool>
+       Current: False
+       Show connection string after execute
+   SqlMagic.displaylimit=<Int>
+       Current: None
+       Automatically limit the number of rows displayed (full result set is still
+       stored)
+   SqlMagic.dsn_filename=<Unicode>
+       Current: 'odbc.ini'
+       Path to DSN file. When the first argument is of the form [section], a
+       sqlalchemy connection string is formed from the matching section in the DSN
+       file.
+   SqlMagic.feedback=<Bool>
+       Current: False
+       Print number of rows affected by DML
+   SqlMagic.short_errors=<Bool>
+       Current: True
+       Don't display the full traceback on SQL Programming Error
+   SqlMagic.style=<Unicode>
+       Current: 'DEFAULT'
+       Set the table printing style to any of prettytable's defined styles
+       (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)
 
-    In[3]: %config SqlMagic.feedback = False
+   In[3]: %config SqlMagic.feedback = False
 
 Please note: if you have autopandas set to true, the displaylimit option will not apply. You can set the pandas display limit by using the pandas ``max_rows`` option as described in the `pandas documentation <http://pandas.pydata.org/pandas-docs/version/0.18.1/options.html#frequently-used-options>`_.
 
@@ -220,12 +253,15 @@ If you have installed ``pandas``, you can use a result set's
 
     In [4]: dataframe = result.DataFrame()
 
-The bogus non-standard pseudo-SQL command ``PERSIST`` will create a table name
+
+The `--persist` argument, with the name of a 
+DataFrame object in memory, 
+will create a table name
 in the database from the named DataFrame.
 
 .. code-block:: python
 
-    In [5]: %sql PERSIST dataframe
+    In [5]: %sql --persist dataframe
 
     In [6]: %sql SELECT * FROM dataframe;
 
@@ -303,11 +339,14 @@ Credits
 - Mike Wilson for bind variable code
 - Thomas Kluyver and Steve Holden for debugging help
 - Berton Earnshaw for DSN connection syntax
+- Bruno Harbulot for DSN example 
 - Andrés Celis for SQL Server bugfix
 - Michael Erasmus for DataFrame truth bugfix
 - Noam Finkelstein for README clarification
 - Xiaochuan Yu for `<<` operator, syntax colorization
 - Amjith Ramanujam for PGSpecial and incorporating it here
+- Alexander Maznev for better arg parsing, connections accepting specified creator
+- Jonathan Larkin for configurable displaycon 
 
 .. _Distribute: http://pypi.python.org/pypi/distribute
 .. _Buildout: http://www.buildout.org/
