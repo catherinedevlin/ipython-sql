@@ -1,4 +1,5 @@
 import re
+from string import Formatter
 from IPython.core.magic import Magics, magics_class, cell_magic, line_magic, needs_local_scope
 from IPython.display import display_javascript
 try:
@@ -75,6 +76,13 @@ class SqlMagic(Magics, Configurable):
           mysql+pymysql://me:mypw@localhost/mydb
 
         """
+        # Parse variables (words wrapped in {}) for %%sql magic (for %sql this is done automatically)
+        cell_variables = [fn for _, fn, _, _ in Formatter().parse(cell) if fn is not None]
+        cell_params = {}
+        for variable in cell_variables:
+            cell_params[variable] = local_ns[variable]
+        cell = cell.format(**cell_params)
+
         # save globals and locals so they can be referenced in bind vars
         user_ns = self.shell.user_ns.copy()
         user_ns.update(local_ns)
