@@ -117,7 +117,6 @@ class SqlMagic(Magics, Configurable):
                 raise e
         else:
             args.connection_arguments = {}
-
         if args.creator:
             args.creator = user_ns[args.creator]
 

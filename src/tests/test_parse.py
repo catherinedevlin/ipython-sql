@@ -52,6 +52,18 @@ def test_parse_connect_plus_shovel():
     assert parse("sqlite:// dest << SELECT * FROM work", empty_config) == \
            {'connection': "sqlite://",
             'sql': 'SELECT * FROM work',
+            'result_var': None}
+
+def test_parse_shovel_operator():
+    assert parse("dest << SELECT * FROM work", empty_config) == \
+           {'connection': "",
+            'sql': 'SELECT * FROM work',
+            'result_var': "dest"}
+
+def test_parse_connect_plus_shovel():
+    assert parse("sqlite:// dest << SELECT * FROM work", empty_config) == \
+           {'connection': "sqlite://",
+            'sql': 'SELECT * FROM work',
             'result_var': "dest"}
 
 class DummyConfig:
@@ -65,5 +77,3 @@ def test_connection_from_dsn_section():
     result = connection_from_dsn_section(section='DB_CONFIG_2',
         config = DummyConfig())
     assert result == 'mysql://thefin:fishputsfishonthetable@127.0.0.1/dolfin'
-
-
