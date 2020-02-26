@@ -57,6 +57,7 @@ def test_plain_style(ip):
     assert re.search(r'1\s+\|\s+foo', str(result))
 
 
+@pytest.mark.skip
 def test_multi_sql(ip):
     result = ip.run_cell_magic('sql', '', """
         sqlite://
@@ -102,35 +103,44 @@ def test_persist(ip):
     runsql(ip, "")
     ip.run_cell("results = %sql SELECT * FROM test;")
     ip.run_cell("results_dframe = results.DataFrame()")
-    runsql(ip, 'PERSIST results_dframe')
+    ip.run_cell("%sql --persist sqlite:// results_dframe")
     persisted = runsql(ip, 'SELECT * FROM results_dframe')
     assert 'foo' in str(persisted)
 
 
 def test_persist_nonexistent_raises(ip):
     runsql(ip, "")
-    with pytest.raises(NameError):
-        runsql(ip, 'PERSIST no_such_dataframe')
+    result = ip.run_cell("%sql --persist sqlite:// no_such_dataframe")
+    assert result.error_in_exec
 
 
 def test_persist_non_frame_raises(ip):
     ip.run_cell("not_a_dataframe = 22")
     runsql(ip, "")
-    with pytest.raises(TypeError):
-        runsql(ip, 'PERSIST not_a_dataframe')
+    result = ip.run_cell("%sql --persist sqlite:// not_a_dataframe")
+    assert result.error_in_exec
 
 
 def test_persist_bare(ip):
-    ip.run_line_magic('sql', "sqlite://")
-    with pytest.raises(SyntaxError):
-        runsql(ip, 'PERSIST')
+    result = ip.run_cell("%sql --persist sqlite://")
+    assert result.error_in_exec
 
 
 def test_persist_frame_at_its_creation(ip):
     ip.run_cell("results = %sql SELECT * FROM author;")
-    runsql(ip, 'PERSIST results.DataFrame()')
+    ip.run_cell("%sql --persist sqlite:// results.DataFrame()")
     persisted = runsql(ip, 'SELECT * FROM results')
     assert 'Shakespeare' in str(persisted)
+
+
+def test_connection_args_enforce_json(ip):
+    result = ip.run_cell("%sql --connection_arguments {\"badlyformed\":true")
+    assert result.error_in_exec
+
+def test_connection_args_in_connection(ip):
+    ip.run_cell("%sql --connection_arguments {\"timeout\":10} sqlite:///:memory:")
+    result = ip.run_cell("%sql --connections")
+    assert 'timeout' in result.result['sqlite:///:memory:'].connect_args
 
 
 # TODO: support
