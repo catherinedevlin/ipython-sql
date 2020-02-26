@@ -1,3 +1,4 @@
+import json
 import re
 from IPython.core.magic import Magics, magics_class, cell_magic, line_magic, needs_local_scope
 from IPython.display import display_javascript
@@ -7,6 +8,7 @@ try:
 except ImportError:
     from IPython.config.configurable import Configurable
     from IPython.utils.traitlets import Bool, Int, Unicode
+from IPython.core.magic_arguments import argument, magic_arguments, parse_argstring
 try:
     from pandas.core.frame import DataFrame, Series
 except ImportError:
@@ -25,6 +27,7 @@ class SqlMagic(Magics, Configurable):
 
     Provides the %%sql magic."""
 
+    displaycon = Bool(True, config=True, help="Show connection string after execute")
     autolimit = Int(0, config=True, allow_none=True, help="Automatically limit the size of the returned result sets")
     style = Unicode('DEFAULT', config=True, help="Set the table printing style to any of prettytable's defined styles (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)")
     short_errors = Bool(True, config=True, help="Don't display the full traceback on SQL Programming Error")
@@ -49,7 +52,15 @@ class SqlMagic(Magics, Configurable):
     @needs_local_scope
     @line_magic('sql')
     @cell_magic('sql')
-    def execute(self, line, cell='', local_ns={}):
+    @magic_arguments()
+    @argument('line', default='', nargs='*', type=str, help='sql')
+    @argument('-l', '--connections', action='store_true', help="list active connections")
+    @argument('-x', '--close', type=str, help="close a session by name")
+    @argument('-c', '--creator', type=str, help="specify creator function for new connection")
+    @argument('-s', '--section', type=str, help="section of dsn_file to be used for generating a connection string")
+    @argument('-p', '--persist', action='store_true', help="create a table name in the database from the named DataFrame")
+    @argument('-a', '--connection_arguments', type=str, help="specify dictionary of connection arguments to pass to SQL driver")
+    def execute(self, line='', cell='', local_ns={}):
         """Runs SQL statement against a database, specified by SQLAlchemy connect string.
 
         If no database connection has been established, first word
@@ -74,21 +85,45 @@ class SqlMagic(Magics, Configurable):
           mysql+pymysql://me:mypw@localhost/mydb
 
         """
+        args = parse_argstring(self.execute, line)
+        if args.connections:
+            return sql.connection.Connection.connections
+        elif args.close:
+            return sql.connection.Connection._close(args.close)
+
         # save globals and locals so they can be referenced in bind vars
         user_ns = self.shell.user_ns.copy()
         user_ns.update(local_ns)
 
-        parsed = sql.parse.parse('%s\n%s' % (line, cell), self, user_ns)
-        flags = parsed['flags']
+        parsed = sql.parse.parse(' '.join(args.line) + cell, self)
+
+        connect_str = parsed['connection']
+        if args.section:
+            connect_str = sql.parse.connection_from_dsn_section(args.section, self)
+
+        connect_args = {}
+        if args.connection_arguments:
+            try:
+                connect_args = json.loads(args.connection_arguments)
+            except Exception as e:
+                print(e)
+                raise e
+
+        if args.creator:
+            args.creator = user_ns[args.creator]
+
         try:
-            conn = sql.connection.Connection.set(parsed['connection'], parsed['connect_args'])
+            conn = sql.connection.Connection.set(parsed['connection'], displaycon=self.displaycon, connect_args=connect_args, creator=args.creator)
         except Exception as e:
             print(e)
             print(sql.connection.Connection.tell_format())
             return None
 
-        if flags.get('persist'):
+        if args.persist:
             return self._persist_dataframe(parsed['sql'], conn, user_ns)
+
+        if not parsed['sql']:
+            return
 
         try:
             result = sql.run.run(conn, parsed['sql'], self, user_ns)
@@ -112,8 +147,8 @@ class SqlMagic(Magics, Configurable):
                 return None
             else:
 
-                if flags.get('result_var'):
-                    result_var = flags['result_var']
+                if parsed['result_var']:
+                    result_var = parsed['result_var']
                     print("Returning data to local variable {}".format(result_var))
                     self.shell.user_ns.update({result_var: result})
                     return None
