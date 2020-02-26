@@ -142,6 +142,15 @@ def test_connection_args_in_connection(ip):
     result = ip.run_cell("%sql --connections")
     assert 'timeout' in result.result['sqlite:///:memory:'].connect_args
 
+def test_connection_args_single_quotes(ip):
+    ip.run_cell("%sql --connection_arguments '{\"timeout\": 10}' sqlite:///:memory:")
+    result = ip.run_cell("%sql --connections")
+    assert 'timeout' in result.result['sqlite:///:memory:'].connect_args
+
+def test_connection_args_double_quotes(ip):
+    ip.run_cell('%sql --connection_arguments \"{\\\"timeout\\\": 10}\" sqlite:///:memory:')
+    result = ip.run_cell("%sql --connections")
+    assert 'timeout' in result.result['sqlite:///:memory:'].connect_args
 
 # TODO: support
 # @with_setup(_setup_author, _teardown_author)

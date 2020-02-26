@@ -101,18 +101,27 @@ class SqlMagic(Magics, Configurable):
         if args.section:
             connect_str = sql.parse.connection_from_dsn_section(args.section, self)
 
-        connect_args = {}
         if args.connection_arguments:
             try:
-                connect_args = json.loads(args.connection_arguments)
+                # check for string deliniators, we need to strip them for json parse
+                raw_args = args.connection_arguments
+                if len(raw_args) > 1:
+                    targets = ['"', "'"]
+                    head = raw_args[0]
+                    tail = raw_args[-1]
+                    if head in targets and head == tail:
+                        raw_args = raw_args[1:-1]
+                args.connection_arguments = json.loads(raw_args)
             except Exception as e:
                 print(e)
                 raise e
+        else:
+            args.connection_arguments = {}
         if args.creator:
             args.creator = user_ns[args.creator]
 
         try:
-            conn = sql.connection.Connection.set(parsed['connection'], displaycon=self.displaycon, connect_args=connect_args, creator=args.creator)
+            conn = sql.connection.Connection.set(parsed['connection'], displaycon=self.displaycon, connect_args=args.connection_arguments, creator=args.creator)
         except Exception as e:
             print(e)
             print(sql.connection.Connection.tell_format())
