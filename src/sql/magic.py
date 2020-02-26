@@ -108,7 +108,6 @@ class SqlMagic(Magics, Configurable):
             except Exception as e:
                 print(e)
                 raise e
-
         if args.creator:
             args.creator = user_ns[args.creator]
 
