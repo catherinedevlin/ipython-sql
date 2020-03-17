@@ -31,12 +31,12 @@ class Connection(object):
                postgresql://username:password@hostname/dbname
                or an existing connection: %s""" % str(cls.connections.keys())
 
-    def __init__(self, connect_str=None, creator=None):
+    def __init__(self, connect_str=None, connect_args={}, creator=None):
         try:
             if creator:
-                engine = sqlalchemy.create_engine(connect_str, creator=creator)
+                engine = sqlalchemy.create_engine(connect_str, connect_args=connect_args, creator=creator)
             else:
-                engine = sqlalchemy.create_engine(connect_str)
+                engine = sqlalchemy.create_engine(connect_str, connect_args=connect_args)
         except: # TODO: bare except; but what's an ArgumentError?
             print(self.tell_format())
             raise
@@ -45,10 +45,11 @@ class Connection(object):
         self.name = self.assign_name(engine)
         self.session = engine.connect()
         self.connections[repr(self.metadata.bind.url)] = self
+        self.connect_args = connect_args
         Connection.current = self
 
     @classmethod
-    def set(cls, descriptor, displaycon, creator=None):
+    def set(cls, descriptor, displaycon, connect_args={}, creator=None):
         "Sets the current database connection"
 
         if descriptor:
@@ -57,7 +58,7 @@ class Connection(object):
             else:
                 existing = rough_dict_get(cls.connections, descriptor)
             # http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#custom-dbapi-connect-arguments
-            cls.current = existing or Connection(descriptor, creator)
+            cls.current = existing or Connection(descriptor, connect_args, creator)
         else:
 
             if cls.connections:
@@ -65,7 +66,7 @@ class Connection(object):
                     print(cls.connection_list())
             else:
                 if os.getenv('DATABASE_URL'):
-                    cls.current = Connection(os.getenv('DATABASE_URL'), creator)
+                    cls.current = Connection(os.getenv('DATABASE_URL'), connect_args, creator)
                 else:
                     raise ConnectionError('Environment variable $DATABASE_URL not set, and no connect string given.')
         return cls.current

@@ -6,8 +6,10 @@ try:
     from traitlets.config.configurable import Configurable
 except ImportError:
     from IPython.config.configurable import Configurable
+import json
 
 empty_config = Configurable()
+default_connect_args = {'options': '-csearch_path=test'}
 def test_parse_no_sql():
     assert parse("will:longliveliz@localhost/shakes", empty_config) == \
            {'connection': "will:longliveliz@localhost/shakes",
@@ -36,7 +38,19 @@ def test_parse_postgresql_socket_connection():
 def test_expand_environment_variables_in_connection():
     os.environ['DATABASE_URL'] = 'postgresql:///shakes'
     assert parse("$DATABASE_URL SELECT * FROM work", empty_config) == \
-            {'connection': "postgresql:///shakes",
+           {'connection': "postgresql:///shakes",
+            'sql': 'SELECT * FROM work',
+            'result_var': None}
+
+def test_parse_shovel_operator():
+    assert parse("dest << SELECT * FROM work", empty_config) == \
+           {'connection': "",
+            'sql': 'SELECT * FROM work',
+            'result_var': "dest"}
+
+def test_parse_connect_plus_shovel():
+    assert parse("sqlite:// dest << SELECT * FROM work", empty_config) == \
+           {'connection': "sqlite://",
             'sql': 'SELECT * FROM work',
             'result_var': None}
 
@@ -63,10 +77,3 @@ def test_connection_from_dsn_section():
     result = connection_from_dsn_section(section='DB_CONFIG_2',
         config = DummyConfig())
     assert result == 'mysql://thefin:fishputsfishonthetable@127.0.0.1/dolfin'
-
-
- 
-
-
-
-

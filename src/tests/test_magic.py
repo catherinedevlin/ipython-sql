@@ -133,6 +133,25 @@ def test_persist_frame_at_its_creation(ip):
     assert 'Shakespeare' in str(persisted)
 
 
+def test_connection_args_enforce_json(ip):
+    result = ip.run_cell("%sql --connection_arguments {\"badlyformed\":true")
+    assert result.error_in_exec
+
+def test_connection_args_in_connection(ip):
+    ip.run_cell("%sql --connection_arguments {\"timeout\":10} sqlite:///:memory:")
+    result = ip.run_cell("%sql --connections")
+    assert 'timeout' in result.result['sqlite:///:memory:'].connect_args
+
+def test_connection_args_single_quotes(ip):
+    ip.run_cell("%sql --connection_arguments '{\"timeout\": 10}' sqlite:///:memory:")
+    result = ip.run_cell("%sql --connections")
+    assert 'timeout' in result.result['sqlite:///:memory:'].connect_args
+
+def test_connection_args_double_quotes(ip):
+    ip.run_cell('%sql --connection_arguments \"{\\\"timeout\\\": 10}\" sqlite:///:memory:')
+    result = ip.run_cell("%sql --connections")
+    assert 'timeout' in result.result['sqlite:///:memory:'].connect_args
+
 # TODO: support
 # @with_setup(_setup_author, _teardown_author)
 # def test_persist_with_connection_info():

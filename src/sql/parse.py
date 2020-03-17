@@ -2,6 +2,7 @@ from os.path import expandvars
 import six
 from six.moves import configparser as CP
 from sqlalchemy.engine.url import URL
+import json
 import re
 
 def connection_from_dsn_section(section, config):

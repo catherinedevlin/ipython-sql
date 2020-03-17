@@ -165,6 +165,14 @@ Note that an ``impala`` connection with `impyla`_  for HiveServer2 requires disa
 
 .. _impyla: https://github.com/cloudera/impyla
 
+Connection arguments not whitelisted by SQLALchemy can be provided as
+a flag with (-a|--connection_arguments)the connection string as a JSON string.
+
+    %sql --connection_arguments {"timeout":10,"mode":"ro"} sqlite:// SELECT * FROM work;
+    %sql -a '{"timeout":10, "mode":"ro"}' sqlite:// SELECT * from work;
+
+.. _SQLAlchemy: https://docs.sqlalchemy.org/en/13/core/engines.html#custom-dbapi-args
+
 DSN connections
 ~~~~~~~~~~~~~~~
 
@@ -347,6 +355,7 @@ Credits
 - Amjith Ramanujam for PGSpecial and incorporating it here
 - Alexander Maznev for better arg parsing, connections accepting specified creator
 - Jonathan Larkin for configurable displaycon 
+- Jared Moore for ``connection-arguments`` support
 
 .. _Distribute: http://pypi.python.org/pypi/distribute
 .. _Buildout: http://www.buildout.org/

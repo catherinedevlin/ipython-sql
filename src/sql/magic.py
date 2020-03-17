@@ -1,3 +1,4 @@
+import json
 import re
 from IPython.core.magic import Magics, magics_class, cell_magic, line_magic, needs_local_scope
 from IPython.display import display_javascript
@@ -58,6 +59,7 @@ class SqlMagic(Magics, Configurable):
     @argument('-c', '--creator', type=str, help="specify creator function for new connection")
     @argument('-s', '--section', type=str, help="section of dsn_file to be used for generating a connection string")
     @argument('-p', '--persist', action='store_true', help="create a table name in the database from the named DataFrame")
+    @argument('-a', '--connection_arguments', type=str, help="specify dictionary of connection arguments to pass to SQL driver")
     def execute(self, line='', cell='', local_ns={}):
         """Runs SQL statement against a database, specified by SQLAlchemy connect string.
 
@@ -99,11 +101,27 @@ class SqlMagic(Magics, Configurable):
         if args.section:
             connect_str = sql.parse.connection_from_dsn_section(args.section, self)
 
+        if args.connection_arguments:
+            try:
+                # check for string deliniators, we need to strip them for json parse
+                raw_args = args.connection_arguments
+                if len(raw_args) > 1:
+                    targets = ['"', "'"]
+                    head = raw_args[0]
+                    tail = raw_args[-1]
+                    if head in targets and head == tail:
+                        raw_args = raw_args[1:-1]
+                args.connection_arguments = json.loads(raw_args)
+            except Exception as e:
+                print(e)
+                raise e
+        else:
+            args.connection_arguments = {}
         if args.creator:
             args.creator = user_ns[args.creator]
 
         try:
-            conn = sql.connection.Connection.set(parsed['connection'], displaycon=self.displaycon, creator=args.creator)
+            conn = sql.connection.Connection.set(parsed['connection'], displaycon=self.displaycon, connect_args=args.connection_arguments, creator=args.creator)
         except Exception as e:
             print(e)
             print(sql.connection.Connection.tell_format())
