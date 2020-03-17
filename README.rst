@@ -355,6 +355,7 @@ Credits
 - Amjith Ramanujam for PGSpecial and incorporating it here
 - Alexander Maznev for better arg parsing, connections accepting specified creator
 - Jonathan Larkin for configurable displaycon 
+- Jared Moore for ``connection-arguments`` support
 
 .. _Distribute: http://pypi.python.org/pypi/distribute
 .. _Buildout: http://www.buildout.org/
