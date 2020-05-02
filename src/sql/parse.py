@@ -1,9 +1,11 @@
+import json
+import re
 from os.path import expandvars
+
 import six
 from six.moves import configparser as CP
 from sqlalchemy.engine.url import URL
-import json
-import re
+
 
 def connection_from_dsn_section(section, config):
     parser = CP.ConfigParser()
@@ -11,19 +13,19 @@ def connection_from_dsn_section(section, config):
     cfg_dict = dict(parser.items(section))
     return str(URL(**cfg_dict))
 
+
 def _connection_string(s):
 
     s = expandvars(s)  # for environment variables
-    if '@' in s or '://' in s:
+    if "@" in s or "://" in s:
         return s
-    if s.startswith('[') and s.endswith(']'):
-        section = s.lstrip('[').rstrip(']')
+    if s.startswith("[") and s.endswith("]"):
+        section = s.lstrip("[").rstrip("]")
         parser = CP.ConfigParser()
         parser.read(config.dsn_filename)
         cfg_dict = dict(parser.items(section))
         return str(URL(**cfg_dict))
-    return ''
-
+    return ""
 
 
 def parse(cell, config):
@@ -37,18 +39,18 @@ def parse(cell, config):
     connection string and `<<` operator in.
     """
 
-    result = {'connection': '', 'sql': '', 'result_var': None}
+    result = {"connection": "", "sql": "", "result_var": None}
 
     pieces = cell.split(None, 3)
     if not pieces:
         return result
-    result['connection'] = _connection_string(pieces[0])
-    if result['connection']:
+    result["connection"] = _connection_string(pieces[0])
+    if result["connection"]:
         pieces.pop(0)
-    if len(pieces) > 1 and pieces[1] == '<<':
-        result['result_var'] = pieces.pop(0)
+    if len(pieces) > 1 and pieces[1] == "<<":
+        result["result_var"] = pieces.pop(0)
         pieces.pop(0)  # discard << operator
-    result['sql'] = (' '.join(pieces)).strip()
+    result["sql"] = (" ".join(pieces)).strip()
     return result
 
 

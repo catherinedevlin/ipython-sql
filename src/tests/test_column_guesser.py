@@ -13,10 +13,10 @@ class SqlEnv(object):
         self.connectstr = connectstr
 
     def query(self, txt):
-        return ip.run_line_magic('sql', "%s %s" % (self.connectstr, txt))
+        return ip.run_line_magic("sql", "%s %s" % (self.connectstr, txt))
 
 
-sql_env = SqlEnv('sqlite://')
+sql_env = SqlEnv("sqlite://")
 
 
 @pytest.fixture
@@ -54,14 +54,14 @@ class TestOneNum(Harness):
         assert results.ys == [[1.01, 2.01, 3.01]]
         assert results.x == []
         assert results.xlabels == []
-        assert results.xlabel == ''
+        assert results.xlabel == ""
 
     def test_plot(self, tbl):
         results = self.run_query()
         results.guess_plot_columns()
         assert results.ys == [[1.01, 2.01, 3.01]]
         assert results.x == []
-        assert results.x.name == ''
+        assert results.x.name == ""
 
 
 class TestOneStrOneNum(Harness):
@@ -72,8 +72,8 @@ class TestOneStrOneNum(Harness):
         results.guess_pie_columns(xlabel_sep="//")
         assert results.ys[0].is_quantity
         assert results.ys == [[1.01, 2.01, 3.01]]
-        assert results.xlabels == ['r1-txt1', 'r2-txt1', 'r3-txt1']
-        assert results.xlabel == 'name'
+        assert results.xlabels == ["r1-txt1", "r2-txt1", "r3-txt1"]
+        assert results.xlabel == "name"
 
     def test_plot(self, tbl):
         results = self.run_query()
@@ -91,10 +91,11 @@ class TestTwoStrTwoNum(Harness):
         assert results.ys[0].is_quantity
         assert results.ys == [[1.01, 2.01, 3.01]]
         assert results.xlabels == [
-            'r1-txt2//1.04//r1-txt1', 'r2-txt2//2.04//r2-txt1',
-            'r3-txt2//3.04//r3-txt1'
+            "r1-txt2//1.04//r1-txt1",
+            "r2-txt2//2.04//r2-txt1",
+            "r3-txt2//3.04//r3-txt1",
         ]
-        assert results.xlabel == 'name2, y3, name'
+        assert results.xlabel == "name2, y3, name"
 
     def test_plot(self, tbl):
         results = self.run_query()
@@ -112,8 +113,9 @@ class TestTwoStrThreeNum(Harness):
         assert results.ys[0].is_quantity
         assert results.ys == [[1.04, 2.04, 3.04]]
         assert results.xlabels == [
-            'r1-txt1//1.01//r1-txt2//1.02', 'r2-txt1//2.01//r2-txt2//2.02',
-            'r3-txt1//3.01//r3-txt2//3.02'
+            "r1-txt1//1.01//r1-txt2//1.02",
+            "r2-txt1//2.01//r2-txt2//2.02",
+            "r3-txt1//3.01//r3-txt2//3.02",
         ]
 
     def test_plot(self, tbl):

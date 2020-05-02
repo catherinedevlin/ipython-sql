@@ -24,9 +24,9 @@ def unduplicate_field_names(field_names):
     for k in field_names:
         if k in res:
             i = 1
-            while k + '_' + str(i) in res:
+            while k + "_" + str(i) in res:
                 i += 1
-            k += '_' + str(i)
+            k += "_" + str(i)
         res.append(k)
     return res
 
@@ -46,8 +46,7 @@ class UnicodeWriter(object):
 
     def writerow(self, row):
         if six.PY2:
-            _row = [s.encode("utf-8") if hasattr(s, "encode") else s
-                    for s in row]
+            _row = [s.encode("utf-8") if hasattr(s, "encode") else s for s in row]
         else:
             _row = row
         self.writer.writerow(_row)
@@ -75,12 +74,12 @@ class CsvResultDescriptor(object):
         self.file_path = file_path
 
     def __repr__(self):
-        return 'CSV results at %s' % os.path.join(
-            os.path.abspath('.'), self.file_path)
+        return "CSV results at %s" % os.path.join(os.path.abspath("."), self.file_path)
 
     def _repr_html_(self):
-        return '<a href="%s">CSV results</a>' % os.path.join('.', 'files',
-                                                             self.file_path)
+        return '<a href="%s">CSV results</a>' % os.path.join(
+            ".", "files", self.file_path
+        )
 
 
 def _nonbreaking_spaces(match_obj):
@@ -90,11 +89,11 @@ def _nonbreaking_spaces(match_obj):
     Call with a ``re`` match object.  Retain group 1, replace group 2
     with nonbreaking speaces.
     """
-    spaces = '&nbsp;' * len(match_obj.group(2))
-    return '%s%s' % (match_obj.group(1), spaces)
+    spaces = "&nbsp;" * len(match_obj.group(2))
+    return "%s%s" % (match_obj.group(1), spaces)
 
 
-_cell_with_spaces_pattern = re.compile(r'(<td>)( {2,})')
+_cell_with_spaces_pattern = re.compile(r"(<td>)( {2,})")
 
 
 class ResultSet(list, ColumnGuesserMixin):
@@ -124,22 +123,23 @@ class ResultSet(list, ColumnGuesserMixin):
             self.pretty = None
 
     def _repr_html_(self):
-        _cell_with_spaces_pattern = re.compile(r'(<td>)( {2,})')
+        _cell_with_spaces_pattern = re.compile(r"(<td>)( {2,})")
         if self.pretty:
             self.pretty.add_rows(self)
             result = self.pretty.get_html_string()
             result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
-            if self.config.displaylimit and len(
-                    self) > self.config.displaylimit:
-                result = '%s\n<span style="font-style:italic;text-align:center;">%d rows, truncated to displaylimit of %d</span>' % (
-                    result, len(self), self.config.displaylimit)
+            if self.config.displaylimit and len(self) > self.config.displaylimit:
+                result = (
+                    '%s\n<span style="font-style:italic;text-align:center;">%d rows, truncated to displaylimit of %d</span>'
+                    % (result, len(self), self.config.displaylimit)
+                )
             return result
         else:
             return None
 
     def __str__(self, *arg, **kwarg):
         self.pretty.add_rows(self)
-        return str(self.pretty or '')
+        return str(self.pretty or "")
 
     def __getitem__(self, key):
         """
@@ -170,6 +170,7 @@ class ResultSet(list, ColumnGuesserMixin):
     def DataFrame(self):
         "Returns a Pandas DataFrame instance built from the result set."
         import pandas as pd
+
         frame = pd.DataFrame(self, columns=(self and self.keys) or [])
         return frame
 
@@ -196,6 +197,7 @@ class ResultSet(list, ColumnGuesserMixin):
         """
         self.guess_pie_columns(xlabel_sep=key_word_sep)
         import matplotlib.pylab as plt
+
         pie = plt.pie(self.ys[0], labels=self.xlabels, **kwargs)
         plt.title(title or self.ys[0].name)
         return pie
@@ -219,11 +221,12 @@ class ResultSet(list, ColumnGuesserMixin):
         through to ``matplotlib.pylab.plot``.
         """
         import matplotlib.pylab as plt
+
         self.guess_plot_columns()
         self.x = self.x or range(len(self.ys[0]))
         coords = reduce(operator.add, [(self.x, y) for y in self.ys])
         plot = plt.plot(*coords, **kwargs)
-        if hasattr(self.x, 'name'):
+        if hasattr(self.x, "name"):
             plt.xlabel(self.x.name)
         ylabel = ", ".join(y.name for y in self.ys)
         plt.title(title or ylabel)
@@ -251,6 +254,7 @@ class ResultSet(list, ColumnGuesserMixin):
         through to ``matplotlib.pylab.bar``.
         """
         import matplotlib.pylab as plt
+
         self.guess_pie_columns(xlabel_sep=key_word_sep)
         plot = plt.bar(range(len(self.ys[0])), self.ys[0], **kwargs)
         if self.xlabels:
@@ -266,11 +270,11 @@ class ResultSet(list, ColumnGuesserMixin):
             return None  # no results
         self.pretty.add_rows(self)
         if filename:
-            encoding = format_params.get('encoding', 'utf-8')
+            encoding = format_params.get("encoding", "utf-8")
             if six.PY2:
-                outfile = open(filename, 'wb')
+                outfile = open(filename, "wb")
             else:
-                outfile = open(filename, 'w', newline='', encoding=encoding)
+                outfile = open(filename, "w", newline="", encoding=encoding)
         else:
             outfile = six.StringIO()
         writer = UnicodeWriter(outfile, **format_params)
@@ -286,9 +290,9 @@ class ResultSet(list, ColumnGuesserMixin):
 
 def interpret_rowcount(rowcount):
     if rowcount < 0:
-        result = 'Done.'
+        result = "Done."
     else:
-        result = '%d rows affected.' % rowcount
+        result = "%d rows affected." % rowcount
     return result
 
 
@@ -313,34 +317,33 @@ class FakeResultProxy(object):
     def from_list(self, source_list):
         "Simulates SQLA ResultProxy from a list."
 
-        self.fetchall = lambda: source_list 
+        self.fetchall = lambda: source_list
         self.rowcount = len(source_list)
 
         def fetchmany(size):
-            pos = 0 
+            pos = 0
             while pos < len(source_list):
-                yield source_list[pos:pos+size]
-                pos += size 
+                yield source_list[pos : pos + size]
+                pos += size
 
         self.fetchmany = fetchmany
 
 
-
 # some dialects have autocommit
 # specific dialects break when commit is used:
-_COMMIT_BLACKLIST_DIALECTS = ('mssql', 'clickhouse', 'teradata', 'athena')
+_COMMIT_BLACKLIST_DIALECTS = ("mssql", "clickhouse", "teradata", "athena")
 
 
 def _commit(conn, config):
     """Issues a commit, if appropriate for current config and dialect"""
 
     _should_commit = config.autocommit and all(
-        dialect not in str(conn.dialect)
-        for dialect in _COMMIT_BLACKLIST_DIALECTS)
+        dialect not in str(conn.dialect) for dialect in _COMMIT_BLACKLIST_DIALECTS
+    )
 
     if _should_commit:
         try:
-            conn.session.execute('commit')
+            conn.session.execute("commit")
         except sqlalchemy.exc.OperationalError:
             pass  # not all engines can commit
 
@@ -349,14 +352,15 @@ def run(conn, sql, config, user_namespace):
     if sql.strip():
         for statement in sqlparse.split(sql):
             first_word = sql.strip().split()[0].lower()
-            if first_word == 'begin':
+            if first_word == "begin":
                 raise Exception("ipython_sql does not support transactions")
-            if first_word.startswith('\\') and 'postgres' in str(conn.dialect):
+            if first_word.startswith("\\") and "postgres" in str(conn.dialect):
                 if not PGSpecial:
-                    raise ImportError('pgspecial not installed')
+                    raise ImportError("pgspecial not installed")
                 pgspecial = PGSpecial()
                 _, cur, headers, _ = pgspecial.execute(
-                    conn.session.connection.cursor(), statement)[0]
+                    conn.session.connection.cursor(), statement
+                )[0]
                 result = FakeResultProxy(cur, headers)
             else:
                 txt = sqlalchemy.sql.text(statement)
@@ -369,9 +373,9 @@ def run(conn, sql, config, user_namespace):
             return resultset.DataFrame()
         else:
             return resultset
-        #returning only last result, intentionally
+        # returning only last result, intentionally
     else:
-        return 'Connected: %s' % conn.name
+        return "Connected: %s" % conn.name
 
 
 class PrettyTable(prettytable.PrettyTable):
@@ -391,5 +395,5 @@ class PrettyTable(prettytable.PrettyTable):
             self.row_count = len(data)
         else:
             self.row_count = min(len(data), self.displaylimit)
-        for row in data[:self.displaylimit]:
+        for row in data[: self.displaylimit]:
             self.add_row(row)
