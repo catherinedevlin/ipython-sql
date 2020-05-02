@@ -6,7 +6,7 @@ ipython-sql
 
 Introduces a %sql (or %%sql) magic.
 
-Connect to a database, using SQLAlchemy connect strings, then issue SQL
+Connect to a database, using `SQLAlchemy URL`_ connect strings, then issue SQL
 commands within IPython or IPython Notebook.
 
 .. image:: https://raw.github.com/catherinedevlin/ipython-sql/master/examples/writers.png
@@ -157,7 +157,7 @@ can be used in multi-line ``%%sql``:
 Connecting
 ----------
 
-Connection strings are `SQLAlchemy`_ standard.
+Connection strings are `SQLAlchemy URL`_ standard.
 
 Some example connection strings::
 
@@ -167,7 +167,7 @@ Some example connection strings::
     sqlite:///foo.db
     mssql+pyodbc://username:password@host/database?driver=SQL+Server+Native+Client+11.0
 
-.. _SQLAlchemy: http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls
+.. _`SQLAlchemy URL`: http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls
 
 Note that ``mysql`` and ``mysql+pymysql`` connections (and perhaps others)
 don't read your client character set information from .my.cnf.  You need
@@ -184,11 +184,12 @@ Note that an ``impala`` connection with `impyla`_  for HiveServer2 requires disa
 
 Connection arguments not whitelisted by SQLALchemy can be provided as
 a flag with (-a|--connection_arguments)the connection string as a JSON string.
+See `SQLAlchemy Args`_.
 
     %sql --connection_arguments {"timeout":10,"mode":"ro"} sqlite:// SELECT * FROM work;
     %sql -a '{"timeout":10, "mode":"ro"}' sqlite:// SELECT * from work;
 
-.. _SQLAlchemy: https://docs.sqlalchemy.org/en/13/core/engines.html#custom-dbapi-args
+.. _`SQLAlchemy Args`: https://docs.sqlalchemy.org/en/13/core/engines.html#custom-dbapi-args
 
 DSN connections
 ~~~~~~~~~~~~~~~

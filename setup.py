@@ -4,7 +4,7 @@ import os
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst'), encoding='utf-8').read()
-NEWS = open(os.path.join(here, 'NEWS.txt'), encoding='utf-8').read()
+NEWS = open(os.path.join(here, 'NEWS.rst'), encoding='utf-8').read()
 
 
 version = '0.4.0'
@@ -23,6 +23,7 @@ setup(name='ipython-sql',
     version=version,
     description="RDBMS access via IPython",
     long_description=README + '\n\n' + NEWS,
+    long_description_content_type='text/x-rst',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',

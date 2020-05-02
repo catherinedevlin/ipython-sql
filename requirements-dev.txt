@@ -1,4 +1,7 @@
 psycopg2
 pandas
 pytest
+wheel
+twine
+readme-renderer
 
