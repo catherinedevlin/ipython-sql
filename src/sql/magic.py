@@ -59,6 +59,7 @@ class SqlMagic(Magics, Configurable):
     @argument('-c', '--creator', type=str, help="specify creator function for new connection")
     @argument('-s', '--section', type=str, help="section of dsn_file to be used for generating a connection string")
     @argument('-p', '--persist', action='store_true', help="create a table name in the database from the named DataFrame")
+    @argument('--append', action='store_true', help="create, or append to, a table name in the database from the named DataFrame")
     @argument('-a', '--connection_arguments', type=str, help="specify dictionary of connection arguments to pass to SQL driver")
     def execute(self, line='', cell='', local_ns={}):
         """Runs SQL statement against a database, specified by SQLAlchemy connect string.
@@ -128,7 +129,10 @@ class SqlMagic(Magics, Configurable):
             return None
 
         if args.persist:
-            return self._persist_dataframe(parsed['sql'], conn, user_ns)
+            return self._persist_dataframe(parsed['sql'], conn, user_ns, append=False)
+
+        if args.append:
+            return self._persist_dataframe(parsed['sql'], conn, user_ns, append=True)
 
         if not parsed['sql']:
             return
@@ -172,7 +176,7 @@ class SqlMagic(Magics, Configurable):
                 raise
 
     legal_sql_identifier = re.compile(r'^[A-Za-z0-9#_$]+')
-    def _persist_dataframe(self, raw, conn, user_ns):
+    def _persist_dataframe(self, raw, conn, user_ns, append=False):
         """Implements PERSIST, which writes a DataFrame to the RDBMS"""
         if not DataFrame:
             raise ImportError("Must `pip install pandas` to use DataFrames")
@@ -186,7 +190,7 @@ class SqlMagic(Magics, Configurable):
         if not isinstance(frame, DataFrame) and not isinstance(frame, Series):
             raise TypeError('%s is not a Pandas DataFrame or Series' % frame_name)
 
-       # Make a suitable name for the resulting database table
+        # Make a suitable name for the resulting database table
         table_name = frame_name.lower()
         table_name = self.legal_sql_identifier.search(table_name).group(0)
 
