@@ -359,6 +359,7 @@ Credits
 - Jonathan Larkin for configurable displaycon 
 - Jared Moore for ``connection-arguments`` support
 - Gilbert Brault for ``--append`` 
+- Lucas Zeer for multi-line ``<<`` bugfix
 
 .. _Distribute: http://pypi.python.org/pypi/distribute
 .. _Buildout: http://www.buildout.org/

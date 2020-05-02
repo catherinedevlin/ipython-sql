@@ -76,6 +76,15 @@ def test_result_var(ip):
     assert 'Shakespeare' in str(result) and 'Brecht' in str(result)
 
 
+def test_result_var_multiline_shovel(ip):
+    ip.run_cell_magic('sql', '', """
+        sqlite:// x << SELECT last_name 
+        FROM author;
+        """)
+    result = ip.user_global_ns['x']
+    assert 'Shakespeare' in str(result) and 'Brecht' in str(result)
+
+
 def test_access_results_by_keys(ip):
     assert runsql(ip,
                   "SELECT * FROM author;")['William'] == (u'William',
