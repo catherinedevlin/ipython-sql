@@ -62,6 +62,7 @@ class SqlMagic(Magics, Configurable):
     @argument('-p', '--persist', action='store_true', help="create a table name in the database from the named DataFrame")
     @argument('--append', action='store_true', help="create, or append to, a table name in the database from the named DataFrame")
     @argument('-a', '--connection_arguments', type=str, help="specify dictionary of connection arguments to pass to SQL driver")
+    @argument('-f', '--file', type=str, help="Run SQL from file at this path") 
     def execute(self, line='', cell='', local_ns={}):
         """Runs SQL statement against a database, specified by SQLAlchemy connect string.
 
@@ -104,7 +105,13 @@ class SqlMagic(Magics, Configurable):
         user_ns = self.shell.user_ns.copy()
         user_ns.update(local_ns)
 
-        parsed = sql.parse.parse(' '.join(args.line) + '\n' + cell, self)
+        command_text = ' '.join(args.line) + '\n' + cell 
+
+        if args.file:
+            with open(args.file, 'r') as infile:
+                command_text = infile.read() + "\n" + command_text 
+
+        parsed = sql.parse.parse(command_text, self) 
 
         connect_str = parsed['connection']
         if args.section:

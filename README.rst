@@ -378,6 +378,7 @@ Credits
 - Jared Moore for ``connection-arguments`` support
 - Gilbert Brault for ``--append`` 
 - Lucas Zeer for multi-line bugfixes for var substitution, ``<<`` 
+- vkk800 for ``--file``
 
 .. _Distribute: http://pypi.python.org/pypi/distribute
 .. _Buildout: http://www.buildout.org/

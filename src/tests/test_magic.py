@@ -261,10 +261,10 @@ def test_sql_from_file(ip):
     ip.run_line_magic('config', "SqlMagic.autopandas = False")
     with tempfile.TemporaryDirectory() as tempdir:
         fname = os.path.join(tempdir, 'test.sql')
-        with open(fname, 'rw') as tempf:
+        with open(fname, 'w') as tempf:
             tempf.write("SELECT * FROM test;")
-        result = runsql(ip, fname)
-        assert result.dict()['n'] == (1, 2)
+        result = ip.run_cell("%sql --file " + fname) 
+        assert result.result == [(1, 'foo'), (2, 'bar')] 
         
 
             

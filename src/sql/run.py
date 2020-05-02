@@ -347,8 +347,6 @@ def _commit(conn, config):
 
 def run(conn, sql, config, user_namespace):
     if sql.strip():
-        if os.path.isfile(sql):
-            sql = open(sql, 'r').read().strip()
         for statement in sqlparse.split(sql):
             first_word = sql.strip().split()[0].lower()
             if first_word == 'begin':
