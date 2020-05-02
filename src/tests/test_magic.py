@@ -108,6 +108,17 @@ def test_persist(ip):
     assert 'foo' in str(persisted)
 
 
+def test_append(ip):
+    runsql(ip, "")
+    ip.run_cell("results = %sql SELECT * FROM test;")
+    ip.run_cell("results_dframe = results.DataFrame()")
+    ip.run_cell("%sql --persist sqlite:// results_dframe")
+    persisted = runsql(ip, 'SELECT COUNT(*) FROM results_dframe')
+    ip.run_cell("%sql --append sqlite:// results_dframe")
+    appended = runsql(ip, 'SELECT COUNT(*) FROM results_dframe')
+    assert appended[0][0] == persisted[0][0] * 2
+
+
 def test_persist_nonexistent_raises(ip):
     runsql(ip, "")
     result = ip.run_cell("%sql --persist sqlite:// no_such_dataframe")

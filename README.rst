@@ -262,10 +262,12 @@ If you have installed ``pandas``, you can use a result set's
     In [4]: dataframe = result.DataFrame()
 
 
-The `--persist` argument, with the name of a 
+The ``--persist`` argument, with the name of a 
 DataFrame object in memory, 
 will create a table name
-in the database from the named DataFrame.
+in the database from the named DataFrame.  
+Or use ``--append`` to add rows to an existing 
+table by that name.
 
 .. code-block:: python
 
@@ -356,6 +358,7 @@ Credits
 - Alexander Maznev for better arg parsing, connections accepting specified creator
 - Jonathan Larkin for configurable displaycon 
 - Jared Moore for ``connection-arguments`` support
+- Gilbert Brault for ``--append`` 
 
 .. _Distribute: http://pypi.python.org/pypi/distribute
 .. _Buildout: http://www.buildout.org/

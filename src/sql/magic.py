@@ -194,7 +194,8 @@ class SqlMagic(Magics, Configurable):
         table_name = frame_name.lower()
         table_name = self.legal_sql_identifier.search(table_name).group(0)
 
-        frame.to_sql(table_name, conn.session.engine, if_exists='append')
+        if_exists = 'append' if append else 'fail'
+        frame.to_sql(table_name, conn.session.engine, if_exists=if_exists)
         return 'Persisted %s' % table_name
 
 
