@@ -266,7 +266,12 @@ def test_sql_from_file(ip):
         result = ip.run_cell("%sql --file " + fname) 
         assert result.result == [(1, 'foo'), (2, 'bar')] 
         
-
+def test_sql_from_nonexistent_file(ip):
+    ip.run_line_magic('config', "SqlMagic.autopandas = False")
+    with tempfile.TemporaryDirectory() as tempdir:
+        fname = os.path.join(tempdir, 'nonexistent.sql')
+        result = ip.run_cell("%sql --file " + fname) 
+        assert isinstance(result.error_in_exec, FileNotFoundError)
             
 def test_dict(ip):
     result = runsql(ip, "SELECT * FROM author;")
