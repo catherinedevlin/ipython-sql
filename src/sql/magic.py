@@ -96,7 +96,7 @@ class SqlMagic(Magics, Configurable):
         user_ns = self.shell.user_ns.copy()
         user_ns.update(local_ns)
 
-        parsed = sql.parse.parse(' '.join(args.line) + cell, self)
+        parsed = sql.parse.parse(' '.join(args.line) + '\n' + cell, self)
 
         connect_str = parsed['connection']
         if args.section:
