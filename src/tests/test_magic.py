@@ -257,6 +257,17 @@ def test_csv_to_file(ip):
             assert len(content.splitlines()) == 3
 
 
+def test_sql_from_file(ip):
+    ip.run_line_magic('config', "SqlMagic.autopandas = False")
+    with tempfile.TemporaryDirectory() as tempdir:
+        fname = os.path.join(tempdir, 'test.sql')
+        with open(fname, 'rw') as tempf:
+            tempf.write("SELECT * FROM test;")
+        result = runsql(ip, fname)
+        assert result.dict()['n'] == (1, 2)
+        
+
+            
 def test_dict(ip):
     result = runsql(ip, "SELECT * FROM author;")
     result = result.dict()
