@@ -92,29 +92,46 @@ makes sense for statements with no output
     Out[11]: []
 
 
-Bind variables (bind parameters) can be used in the "named" (:x) style.
-The variable names used should be defined in the local namespace
-
-.. code-block:: python
-
-    In [12]: name = 'Countess'
-
-    In [13]: %sql select description from character where charname = :name
-    Out[13]: [(u'mother to Bertram',)]
-
 As a convenience, dict-style access for result sets is supported, with the
 leftmost column serving as key, for unique values.
 
 .. code-block:: python
 
-    In [14]: result = %sql select * from work
+    In [12]: result = %sql select * from work
     43 rows affected.
 
-    In [15]: result['richard2']
-    Out[15]: (u'richard2', u'Richard II', u'History of Richard II', 1595, u'h', None, u'Moby', 22411, 628)
+    In [13]: result['richard2']
+    Out[14]: (u'richard2', u'Richard II', u'History of Richard II', 1595, u'h', None, u'Moby', 22411, 628)
 
 Results can also be retrieved as an iterator of dictionaries (``result.dicts()``)
 or a single dictionary with a tuple of scalar values per key (``result.dict()``)
+
+Variable substitution 
+---------------------
+
+Bind variables (bind parameters) can be used in the "named" (:x) style.
+The variable names used should be defined in the local namespace.
+
+.. code-block:: python
+
+    In [15]: name = 'Countess'
+
+    In [16]: %sql select description from character where charname = :name
+    Out[16]: [(u'mother to Bertram',)]
+
+    In [17]: %sql select description from character where charname = '{name}' 
+    Out[17]: [(u'mother to Bertram',)]
+
+Alternately, ``$variable_name`` or ``{variable_name}`` can be 
+used to inject variables from the local namespace into the SQL 
+statement before it is formed and passed to the SQL engine.
+(Using ``$`` and ``{}`` together, as in ``${variable_name}``, 
+is not supported.)
+
+Bind variables are passed through to the SQL engine and can only 
+be used to replace strings passed to SQL.  ``$`` and ``{}`` are 
+substituted before passing to SQL and can be used to form SQL 
+statements dynamically.
 
 Assignment
 ----------
@@ -123,7 +140,7 @@ Ordinary IPython assignment works for single-line `%sql` queries:
 
 .. code-block:: python
 
-    In [16]: works = %sql SELECT title, year FROM work
+    In [18]: works = %sql SELECT title, year FROM work
     43 rows affected.
 
 The `<<` operator captures query results in a local variable, and
@@ -131,7 +148,7 @@ can be used in multi-line ``%%sql``:
 
 .. code-block:: python
 
-    In [17]: %%sql works << SELECT title, year
+    In [19]: %%sql works << SELECT title, year
         ...: FROM work
         ...:
     43 rows affected.
@@ -359,7 +376,7 @@ Credits
 - Jonathan Larkin for configurable displaycon 
 - Jared Moore for ``connection-arguments`` support
 - Gilbert Brault for ``--append`` 
-- Lucas Zeer for multi-line ``<<`` bugfix
+- Lucas Zeer for multi-line bugfixes for var substitution, ``<<`` 
 
 .. _Distribute: http://pypi.python.org/pypi/distribute
 .. _Buildout: http://www.buildout.org/
