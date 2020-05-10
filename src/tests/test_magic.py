@@ -10,9 +10,7 @@ from sql.magic import SqlMagic
 
 def runsql(ip_session, statements):
     if isinstance(statements, str):
-        statements = [
-            statements,
-        ]
+        statements = [statements]
     for statement in statements:
         result = ip_session.run_line_magic("sql", "sqlite:// %s" % statement)
     return result  # returns only last result

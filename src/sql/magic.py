@@ -2,10 +2,14 @@ import json
 import re
 from string import Formatter
 
-from IPython.core.magic import (Magics, cell_magic, line_magic, magics_class,
-                                needs_local_scope)
-from IPython.core.magic_arguments import (argument, magic_arguments,
-                                          parse_argstring)
+from IPython.core.magic import (
+    Magics,
+    cell_magic,
+    line_magic,
+    magics_class,
+    needs_local_scope,
+)
+from IPython.core.magic_arguments import argument, magic_arguments, parse_argstring
 from IPython.display import display_javascript
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
@@ -148,9 +152,13 @@ class SqlMagic(Magics, Configurable):
         ]
         cell_params = {}
         for variable in cell_variables:
-            cell_params[variable] = local_ns[variable]
+            if variable in local_ns:
+                cell_params[variable] = local_ns[variable]
+            else:
+                raise NameError(variable)
         cell = cell.format(**cell_params)
 
+        line = sql.parse.without_sql_comment(parser=self.execute.parser, line=line)
         args = parse_argstring(self.execute, line)
         if args.connections:
             return sql.connection.Connection.connections
@@ -267,8 +275,11 @@ class SqlMagic(Magics, Configurable):
 
         # Get the DataFrame from the user namespace
         if not frame_name:
-            raise SyntaxError("Syntax: %sql PERSIST <name_of_data_frame>")
-        frame = eval(frame_name, user_ns)
+            raise SyntaxError("Syntax: %sql --persist <name_of_data_frame>")
+        try:
+            frame = eval(frame_name, user_ns)
+        except SyntaxError:
+            raise SyntaxError("Syntax: %sql --persist <name_of_data_frame>")
         if not isinstance(frame, DataFrame) and not isinstance(frame, Series):
             raise TypeError("%s is not a Pandas DataFrame or Series" % frame_name)
 

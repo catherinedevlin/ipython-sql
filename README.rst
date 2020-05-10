@@ -339,6 +339,51 @@ are provided by `PGSpecial`_.  Example:
 
 .. _meta-commands: https://www.postgresql.org/docs/9.6/static/app-psql.html#APP-PSQL-META-COMMANDS
 
+
+Options
+-------
+
+``-l`` / ``--connections``
+    List all active connections
+
+``-x`` / ``--close <session-name>`` 
+    Close named connection 
+
+``-c`` / ``--creator <creator-function>``
+    Specify creator function for new connection
+
+``-s`` / ``--section <section-name>``
+    Section of dsn_file to be used for generating a connection string
+
+``-p`` / ``--persist``
+    Create a table name in the database from the named DataFrame
+
+``--append``
+    Like ``--persist``, but appends to the table if it already exists 
+
+``-a`` / ``--connection_arguments <"{connection arguments}">``
+    Specify dictionary of connection arguments to pass to SQL driver
+
+``-f`` / ``--file <path>``
+    Run SQL from file at this path
+
+Caution 
+-------
+
+Comments
+~~~~~~~~
+
+Because ipyton-sql accepts ``--``-delimited options like ``--persist``, but ``--`` 
+is also the syntax to denote a SQL comment, the parser needs to make some assumptions.
+
+- If you try to pass an unsupported argument, like ``--lutefisk``, it will 
+  be interpreted as a SQL comment and will not throw an unsupported argument 
+  exception.
+- If the SQL statement begins with a first-line comment that looks like one 
+  of the accepted arguments - like ``%sql --persist is great!`` - it will be 
+  parsed like an argument, not a comment.  Moving the comment to the second 
+  line or later will avoid this.
+
 Installing
 ----------
 

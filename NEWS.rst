@@ -164,3 +164,9 @@ Deleted Plugin import left behind in 0.2.2
 * Bogus pseudo-SQL command `PERSIST` removed, replaced with `--persist` arg
 * Turn off echo of connection information with `displaycon` in config
 * Consistent support for {} variables (thanks Lucas)
+
+0.4.1
+~~~~~
+
+* Fixed .rst file location in MANIFEST.in 
+* Parse SQL comments in first line

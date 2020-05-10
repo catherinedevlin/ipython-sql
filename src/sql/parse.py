@@ -1,5 +1,7 @@
+import itertools
 import json
 import re
+import shlex
 from os.path import expandvars
 
 import six
@@ -54,20 +56,33 @@ def parse(cell, config):
     return result
 
 
-# def parse_sql_flags(sql):
-#     words = sql.split()
-#     flags = {
-#         'persist': False,
-#         'result_var': None
-#     }
-#     if not words:
-#         return (flags, "")
-#     num_words = len(words)
-#     trimmed_sql = sql
-#     if words[0].lower() == 'persist':
-#         flags['persist'] = True
-#         trimmed_sql =  " ".join(words[1:])
-#     elif num_words >= 2 and words[1] == '<<':
-#         flags['result_var'] = words[0]
-#         trimmed_sql = " ".join(words[2:])
-#     return (flags, trimmed_sql.strip())
+def _option_strings_from_parser(parser):
+    """Extracts the expected option strings (-a, --append, etc) from argparse parser 
+
+    Thanks Martijn Pieters
+    https://stackoverflow.com/questions/28881456/how-can-i-list-all-registered-arguments-from-an-argumentparser-instance
+
+    :param parser: [description]
+    :type parser: IPython.core.magic_arguments.MagicArgumentParser 
+    """
+    opts = [a.option_strings for a in parser._actions]
+    return list(itertools.chain.from_iterable(opts))
+
+
+def without_sql_comment(parser, line):
+    """Strips -- comment from a line 
+
+    The argparser unfortunately expects -- to precede an option, 
+    but in SQL that delineates a comment.  So this removes comments 
+    so a line can safely be fed to the argparser.
+
+    :param line: A line of SQL, possibly mixed with option strings 
+    :type line: str 
+    """
+
+    args = _option_strings_from_parser(parser)
+    result = itertools.takewhile(
+        lambda word: (not word.startswith("--")) or (word in args),
+        shlex.split(line, posix=False),
+    )
+    return " ".join(result)
