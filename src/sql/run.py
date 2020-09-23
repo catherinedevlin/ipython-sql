@@ -354,7 +354,9 @@ def run(conn, sql, config, user_namespace):
             first_word = sql.strip().split()[0].lower()
             if first_word == "begin":
                 raise Exception("ipython_sql does not support transactions")
-            if first_word.startswith("\\") and "postgres" in str(conn.dialect):
+            if first_word.startswith("\\") and \
+                    ("postgres" in str(conn.dialect) or \
+                    "redshift" in str(conn.dialect)):
                 if not PGSpecial:
                     raise ImportError("pgspecial not installed")
                 pgspecial = PGSpecial()
