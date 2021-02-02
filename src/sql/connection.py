@@ -101,7 +101,7 @@ class Connection(object):
                 template = "   {}"
             result.append(template.format(engine_url.__repr__()))
         return "\n".join(result)
-
+    @classmethod
     def _close(cls, descriptor):
         if isinstance(descriptor, Connection):
             conn = descriptor
