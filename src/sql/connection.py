@@ -104,11 +104,12 @@ class Connection(object):
     
     @classmethod
     def _close(cls, descriptor):
+        descriptor = descriptor.rsplit('//')[0]+'//'+descriptor.rsplit('//')[1].replace('+',' ')
         if isinstance(descriptor, Connection):
             conn = descriptor
         else:
             conn = cls.connections.get(descriptor) or cls.connections.get(
-                descriptor.lower() or cls.connections.get(descriptor.rsplit('//')[0]+'//'+descriptor.rsplit('//')[1].replace('+',' '))
+                descriptor.lower()
             )
         if not conn:
             raise Exception(
