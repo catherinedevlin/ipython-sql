@@ -116,8 +116,7 @@ class Connection(object):
                 "Could not close connection because it was not found amongst these: %s"
                 % str(cls.connections.keys())
             )
-        cls.connections.pop(conn.name)
-        cls.connections.pop(str(conn.metadata.bind.url))
+        cls.connections.pop(descriptor)
         conn.session.close()
 
     def close(self):
