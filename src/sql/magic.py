@@ -11,7 +11,8 @@ from IPython.core.magic import (
 )
 from IPython.core.magic_arguments import argument, magic_arguments, parse_argstring
 from IPython.display import display_javascript
-from sqlalchemy.exc import OperationalError, ProgrammingError
+# JA: added DatabaseError
+from sqlalchemy.exc import OperationalError, ProgrammingError, DatabaseError
 
 import sql.connection
 import sql.parse
@@ -257,7 +258,8 @@ class SqlMagic(Magics, Configurable):
                 # Return results into the default ipython _ variable
                 return result
 
-        except (ProgrammingError, OperationalError) as e:
+        # JA: added DatabaseError
+        except (ProgrammingError, OperationalError, DatabaseError) as e:
             # Sqlite apparently return all errors as OperationalError :/
             if self.short_errors:
                 print(e)
