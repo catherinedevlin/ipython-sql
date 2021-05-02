@@ -148,9 +148,11 @@ class SqlMagic(Magics, Configurable):
 
         """
         # Parse variables (words wrapped in {}) for %%sql magic (for %sql this is done automatically)
-        cell_variables = [
-            fn for _, fn, _, _ in Formatter().parse(cell) if fn is not None
-        ]
+        # possible fix to issue #194 https://github.com/catherinedevlin/ipython-sql/issues/194
+        cell_variables = re.findall(r"{(\w+)}", cell)
+        # cell_variables = [
+        #     fn for _, fn, _, _ in Formatter().parse(cell) if fn is not None
+        # ]
         cell_params = {}
         for variable in cell_variables:
             if variable in local_ns:
