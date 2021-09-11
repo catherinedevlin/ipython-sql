@@ -170,3 +170,7 @@ Deleted Plugin import left behind in 0.2.2
 
 * Fixed .rst file location in MANIFEST.in 
 * Parse SQL comments in first line
+
+0.4.2
+
+* Fixed '%sql --section DB_CONFIG' fail to connect
