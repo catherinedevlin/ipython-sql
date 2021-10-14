@@ -104,7 +104,6 @@ class Connection(object):
     
     @classmethod
     def _close(cls, descriptor):
-        descriptor = descriptor.rsplit('//')[0]+'//'+descriptor.rsplit('//')[1].replace('+',' ')
         if isinstance(descriptor, Connection):
             conn = descriptor
         else:
@@ -116,7 +115,7 @@ class Connection(object):
                 "Could not close connection because it was not found amongst these: %s"
                 % str(cls.connections.keys())
             )
-        cls.connections.pop(descriptor)
+        cls.connections.pop(str(conn.metadata.bind.url))
         conn.session.close()
 
     def close(self):
