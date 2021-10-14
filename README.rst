@@ -186,8 +186,8 @@ Connection arguments not whitelisted by SQLALchemy can be provided as
 a flag with (-a|--connection_arguments)the connection string as a JSON string.
 See `SQLAlchemy Args`_.
 
-    %sql --connection_arguments {"timeout":10,"mode":"ro"} sqlite:// SELECT * FROM work;
-    %sql -a '{"timeout":10, "mode":"ro"}' sqlite:// SELECT * from work;
+    | %sql --connection_arguments {"timeout":10,"mode":"ro"} sqlite:// SELECT * FROM work;
+    | %sql -a '{"timeout":10, "mode":"ro"}' sqlite:// SELECT * from work;
 
 .. _`SQLAlchemy Args`: https://docs.sqlalchemy.org/en/13/core/engines.html#custom-dbapi-args
 
@@ -200,18 +200,18 @@ refer to your database.
 
 For example, if dsn.ini contains 
 
-    [DB_CONFIG_1]
-    drivername=postgres
-    host=my.remote.host
-    port=5433
-    database=mydatabase
-    username=myuser
-    password=1234
+    | [DB_CONFIG_1] 
+    | drivername=postgres 
+    | host=my.remote.host 
+    | port=5433 
+    | database=mydatabase 
+    | username=myuser 
+    | password=1234
 
 then you can  
 
-    %config SqlMagic.dsn_filename='./dsn.ini'
-    %sql --section DB_CONFIG_1 
+    | %config SqlMagic.dsn_filename='./dsn.ini'
+    | %sql --section DB_CONFIG_1 
 
 Configuration
 -------------
