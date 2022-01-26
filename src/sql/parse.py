@@ -43,16 +43,23 @@ def parse(cell, config):
 
     result = {"connection": "", "sql": "", "result_var": None}
 
-    pieces = cell.split(None, 3)
+    pieces = cell.split(None, 1)
     if not pieces:
         return result
     result["connection"] = _connection_string(pieces[0], config)
     if result["connection"]:
-        pieces.pop(0)
+        if len(pieces) == 1:
+            return result
+        cell = pieces[1]
+
+    pieces = cell.split(None, 2)
     if len(pieces) > 1 and pieces[1] == "<<":
-        result["result_var"] = pieces.pop(0)
-        pieces.pop(0)  # discard << operator
-    result["sql"] = (" ".join(pieces)).strip()
+        result["result_var"] = pieces[0]
+        if len(pieces) == 2:
+            return result
+        cell = pieces[2]
+
+    result["sql"] = cell
     return result
 
 

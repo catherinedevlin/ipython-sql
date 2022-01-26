@@ -91,6 +91,22 @@ def test_parse_connect_plus_shovel():
     }
 
 
+def test_parse_early_newlines():
+    assert parse("--comment\nSELECT *\n--comment\nFROM work", empty_config) == {
+        "connection": "",
+        "sql": "--comment\nSELECT *\n--comment\nFROM work",
+        "result_var": None
+    }
+
+
+def test_parse_connect_shovel_over_newlines():
+    assert parse("\nsqlite://\ndest\n<<\nSELECT *\nFROM work", empty_config) == {
+        "connection": "sqlite://",
+        "sql": "SELECT *\nFROM work",
+        "result_var": "dest"
+    }
+
+
 class DummyConfig:
     dsn_filename = Path("src/tests/test_dsn_config.ini")
 
