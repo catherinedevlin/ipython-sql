@@ -25,5 +25,7 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
+      - name: Install tox
+        run: pip install -U pip tox
       - name: Run tests
         run: tox -e py38
