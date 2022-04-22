@@ -36,3 +36,4 @@ nosetests.xml
 
 # Pycharm
 /.idea
+.python-version

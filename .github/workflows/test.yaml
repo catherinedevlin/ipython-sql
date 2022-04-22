@@ -1,0 +1,29 @@
+name: Test ipython-sql
+# Can be developed using: `act --workflows .github/workflows/test.yaml`
+
+# Trigger the workflow on all pull requests and only pushes to the main branch
+# yamllint disable-line rule:truthy
+on:
+  push:
+    branches:
+      - main
+      - master
+
+  pull_request:
+    branches:
+      - main
+      - master
+      - feature/*
+
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Run tests
+        run: tox -e py38
