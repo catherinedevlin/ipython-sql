@@ -21,7 +21,7 @@ install_requires = [
 
 
 setup(
-    name="ipython-sql",
+    name="ipython-sql-noteable",
     version=version,
     description="RDBMS access via IPython",
     long_description=README + "\n\n" + NEWS,
