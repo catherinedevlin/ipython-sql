@@ -331,7 +331,13 @@ class FakeResultProxy(object):
 
 # some dialects have autocommit
 # specific dialects break when commit is used:
-_COMMIT_BLACKLIST_DIALECTS = ("athena", "clickhouse", "ingres", "mssql", "teradata", "vertica")
+_COMMIT_BLACKLIST_DIALECTS = {"athena", "clickhouse", "ingres", "mssql", "teradata", "vertica"}
+
+
+def add_commit_blacklist_dialect(dialect: str):
+    """Add a dialect to the blacklist of dialects that do not support commit."""
+
+    _COMMIT_BLACKLIST_DIALECTS.add(dialect)
 
 
 def _commit(conn, config):

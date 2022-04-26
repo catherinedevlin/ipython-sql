@@ -35,7 +35,10 @@ class Connection(object):
             cls.connections.keys()
         )
 
-    def __init__(self, connect_str=None, connect_args={}, creator=None):
+    def __init__(self, connect_str=None, connect_args={}, creator=None, name=None):
+        if name and not name.startswith("@"):
+            raise ValueError("name must start with @")
+
         try:
             if creator:
                 engine = sqlalchemy.create_engine(
@@ -50,14 +53,14 @@ class Connection(object):
             raise
         self.dialect = engine.url.get_dialect()
         self.metadata = sqlalchemy.MetaData(bind=engine)
-        self.name = self.assign_name(engine)
+        self.name = name or self.assign_name(engine)
         self.session = engine.connect()
-        self.connections[repr(self.metadata.bind.url)] = self
+        self.connections[name or repr(self.metadata.bind.url)] = self
         self.connect_args = connect_args
         Connection.current = self
 
     @classmethod
-    def set(cls, descriptor, displaycon, connect_args={}, creator=None):
+    def set(cls, descriptor, displaycon, connect_args={}, creator=None, name=None):
         "Sets the current database connection"
 
         if descriptor:
@@ -65,10 +68,9 @@ class Connection(object):
                 cls.current = descriptor
             else:
                 existing = rough_dict_get(cls.connections, descriptor)
-            # http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#custom-dbapi-connect-arguments
-            cls.current = existing or Connection(descriptor, connect_args, creator)
+                # http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#custom-dbapi-connect-arguments
+                cls.current = existing or Connection(descriptor, connect_args, creator, name)
         else:
-
             if cls.connections:
                 if displaycon:
                     print(cls.connection_list())
@@ -114,8 +116,8 @@ class Connection(object):
                 "Could not close connection because it was not found amongst these: %s"
                 % str(cls.connections.keys())
             )
-        cls.connections.pop(conn.name)
-        cls.connections.pop(str(conn.metadata.bind.url))
+        cls.connections.pop(conn.name, None)
+        cls.connections.pop(str(conn.metadata.bind.url), None)
         conn.session.close()
 
     def close(self):
