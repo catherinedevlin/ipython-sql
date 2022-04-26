@@ -36,6 +36,9 @@ class Connection(object):
         )
 
     def __init__(self, connect_str=None, connect_args={}, creator=None, name=None):
+        if name and not name.startswith("@"):
+            raise ValueError("name must start with @")
+
         try:
             if creator:
                 engine = sqlalchemy.create_engine(

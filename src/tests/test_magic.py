@@ -380,3 +380,8 @@ def test_connection_set(ip):
 
     result = ip.run_cell_magic("sql", "@test", "SELECT 1")
     assert result == [(1,)]
+
+
+def test_connection_name_must_start_with_at_if_specified():
+    with pytest.raises(ValueError, match="name must start with @"):
+        Connection.set("sqlite:////tmp/test.db", displaycon=False, name="test")
