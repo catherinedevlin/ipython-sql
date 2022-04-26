@@ -65,10 +65,9 @@ class Connection(object):
                 cls.current = descriptor
             else:
                 existing = rough_dict_get(cls.connections, descriptor)
-            # http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#custom-dbapi-connect-arguments
-            cls.current = existing or Connection(descriptor, connect_args, creator)
+                # http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#custom-dbapi-connect-arguments
+                cls.current = existing or Connection(descriptor, connect_args, creator)
         else:
-
             if cls.connections:
                 if displaycon:
                     print(cls.connection_list())
