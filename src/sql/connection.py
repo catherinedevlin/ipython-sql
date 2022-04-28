@@ -41,23 +41,31 @@ class Connection(object):
 
         try:
             if creator:
-                engine = sqlalchemy.create_engine(
+                self._engine = sqlalchemy.create_engine(
                     connect_str, connect_args=connect_args, creator=creator
                 )
             else:
-                engine = sqlalchemy.create_engine(
+                self._engine = sqlalchemy.create_engine(
                     connect_str, connect_args=connect_args
                 )
         except:  # TODO: bare except; but what's an ArgumentError?
             print(self.tell_format())
             raise
-        self.dialect = engine.url.get_dialect()
-        self.metadata = sqlalchemy.MetaData(bind=engine)
-        self.name = name or self.assign_name(engine)
-        self.session = engine.connect()
+        self.dialect = self._engine.url.get_dialect()
+        self.metadata = sqlalchemy.MetaData(bind=self._engine)
+        self.name = name or self.assign_name(self._engine)
+        self._session = None
         self.connections[name or repr(self.metadata.bind.url)] = self
         self.connect_args = connect_args
         Connection.current = self
+
+    @property
+    def session(self):
+        """Lazily connect to the database."""
+
+        if not self._session:
+            self._session = self._engine.connect()
+        return self._session
 
     @classmethod
     def set(cls, descriptor, displaycon, connect_args={}, creator=None, name=None):
