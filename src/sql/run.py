@@ -19,7 +19,7 @@ except ImportError:
 
 
 def unduplicate_field_names(field_names):
-    """Append a number to duplicate field names to make them unique. """
+    """Append a number to duplicate field names to make them unique."""
     res = []
     for k in field_names:
         if k in res:
@@ -265,7 +265,7 @@ class ResultSet(list, ColumnGuesserMixin):
 
     def csv(self, filename=None, **format_params):
         """Generate results in comma-separated form.  Write to ``filename`` if given.
-           Any other parameters will be passed on to csv.writer."""
+        Any other parameters will be passed on to csv.writer."""
         if not self.pretty:
             return None  # no results
         self.pretty.add_rows(self)
@@ -331,11 +331,23 @@ class FakeResultProxy(object):
 
 # some dialects have autocommit
 # specific dialects break when commit is used:
-_COMMIT_BLACKLIST_DIALECTS = {"athena", "clickhouse", "ingres", "mssql", "teradata", "vertica"}
+_COMMIT_BLACKLIST_DIALECTS = {
+    "athena",
+    "clickhouse",
+    "ingres",
+    "mssql",
+    "teradata",
+    "vertica",
+}
 
 
 def add_commit_blacklist_dialect(dialect: str):
     """Add a dialect to the blacklist of dialects that do not support commit."""
+
+    if "+" in dialect:
+        raise ValueError(
+            "Dialects do not have '+' inside (thats a dialect+driver combo)"
+        )
 
     _COMMIT_BLACKLIST_DIALECTS.add(dialect)
 
@@ -360,9 +372,9 @@ def run(conn, sql, config, user_namespace):
             first_word = sql.strip().split()[0].lower()
             if first_word == "begin":
                 raise Exception("ipython_sql does not support transactions")
-            if first_word.startswith("\\") and \
-                    ("postgres" in str(conn.dialect) or \
-                    "redshift" in str(conn.dialect)):
+            if first_word.startswith("\\") and (
+                "postgres" in str(conn.dialect) or "redshift" in str(conn.dialect)
+            ):
                 if not PGSpecial:
                     raise ImportError("pgspecial not installed")
                 pgspecial = PGSpecial()
