@@ -1,5 +1,7 @@
 from unittest.mock import Mock
 
+from pytest import raises
+
 from sql.run import _commit, add_commit_blacklist_dialect
 
 
@@ -17,3 +19,7 @@ class TestAddCommitBlacklistDialect:
         add_commit_blacklist_dialect("bigquery")
         _commit(mock_connection, mock_config)
         mock_connection.session.execute.assert_not_called()
+
+    def test_hatred_towards_drivernames(self):
+        with raises(ValueError, match=r"Dialects do not have '\+' inside"):
+            add_commit_blacklist_dialect("databricks+connector")
