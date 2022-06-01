@@ -35,19 +35,34 @@ class Connection(object):
             cls.connections.keys()
         )
 
-    def __init__(self, connect_str=None, connect_args={}, creator=None, name=None):
+    def __init__(
+        self,
+        connect_str=None,
+        connect_args={},
+        creator=None,
+        name=None,
+        connect_args_are_create_engine_kwargs=False,
+    ):
         if name and not name.startswith("@"):
             raise ValueError("name must start with @")
 
         try:
             if creator:
-                self._engine = sqlalchemy.create_engine(
-                    connect_str, connect_args=connect_args, creator=creator
-                )
+                if connect_args_are_create_engine_kwargs:
+                    self._engine = sqlalchemy.create_engine(
+                        connect_str, creator=creator, **connect_args
+                    )
+                else:
+                    self._engine = sqlalchemy.create_engine(
+                        connect_str, connect_args=connect_args, creator=creator
+                    )
             else:
-                self._engine = sqlalchemy.create_engine(
-                    connect_str, connect_args=connect_args
-                )
+                if connect_args_are_create_engine_kwargs:
+                    self._engine = sqlalchemy.create_engine(connect_str, **connect_args)
+                else:
+                    self._engine = sqlalchemy.create_engine(
+                        connect_str, connect_args=connect_args
+                    )
         except:  # TODO: bare except; but what's an ArgumentError?
             print(self.tell_format())
             raise
@@ -68,7 +83,15 @@ class Connection(object):
         return self._session
 
     @classmethod
-    def set(cls, descriptor, displaycon, connect_args={}, creator=None, name=None):
+    def set(
+        cls,
+        descriptor,
+        displaycon,
+        connect_args={},
+        creator=None,
+        name=None,
+        connect_args_are_create_engine_kwargs=False,
+    ):
         "Sets the current database connection"
 
         if descriptor:
@@ -77,7 +100,13 @@ class Connection(object):
             else:
                 existing = rough_dict_get(cls.connections, descriptor)
                 # http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#custom-dbapi-connect-arguments
-                cls.current = existing or Connection(descriptor, connect_args, creator, name)
+                cls.current = existing or Connection(
+                    descriptor,
+                    connect_args,
+                    creator,
+                    name,
+                    connect_args_are_create_engine_kwargs,
+                )
         else:
             if cls.connections:
                 if displaycon:
