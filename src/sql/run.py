@@ -54,7 +54,7 @@ class UnicodeWriter(object):
         data = self.queue.getvalue()
         if six.PY2:
             data = data.decode("utf-8")
-            # ... and reencode it into the target encoding
+            # ... and re-encode it into the target encoding
             data = self.encoder.encode(data)
         # write to the target stream
         self.stream.write(data)
