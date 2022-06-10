@@ -39,6 +39,9 @@ setup(
     author="Catherine Devlin",
     author_email="catherine.devlin@gmail.com",
     url="https://pypi.python.org/pypi/ipython-sql",
+    project_urls={
+        "Source": "https://github.com/catherinedevlin/ipython-sql",
+    },
     license="MIT",
     packages=find_packages("src"),
     package_dir={"": "src"},
