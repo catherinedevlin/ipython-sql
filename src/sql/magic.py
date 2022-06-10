@@ -11,7 +11,7 @@ from IPython.core.magic import (
 )
 from IPython.core.magic_arguments import argument, magic_arguments, parse_argstring
 from IPython.display import display_javascript
-from sqlalchemy.exc import OperationalError, ProgrammingError
+from sqlalchemy.exc import OperationalError, ProgrammingError, DatabaseError
 
 import sql.connection
 import sql.parse
@@ -148,18 +148,6 @@ class SqlMagic(Magics, Configurable):
         """
         # Parse variables (words wrapped in {}) for %%sql magic (for %sql this is done automatically)
         cell = self.shell.var_expand(cell)
-
-        # cell_variables = [
-        #     fn for _, fn, _, _ in Formatter().parse(cell) if fn is not None
-        # ]
-        # cell_params = {}
-        # for variable in cell_variables:
-        #     if variable in local_ns:
-        #         cell_params[variable] = local_ns[variable]
-        #     else:
-        #         raise NameError(variable)
-        # cell = cell.format(**cell_params)
-
         line = sql.parse.without_sql_comment(parser=self.execute.parser, line=line)
         args = parse_argstring(self.execute, line)
         if args.connections:
@@ -259,7 +247,8 @@ class SqlMagic(Magics, Configurable):
                 # Return results into the default ipython _ variable
                 return result
 
-        except (ProgrammingError, OperationalError) as e:
+        # JA: added DatabaseError for MySQL
+        except (ProgrammingError, OperationalError, DatabaseError) as e:
             # Sqlite apparently return all errors as OperationalError :/
             if self.short_errors:
                 print(e)
