@@ -4,6 +4,9 @@ Development setup
 Running nose tests with IPython is tricky, so there's a
 run_tests.sh script for it.
 
+    pip install -e .
+    ./run_tests.sh
+
 To temporarily insert breakpoints for debugging: `from nose.tools import set_trace; set_trace()`
 
 Tests have requirements not installed by setup.py:

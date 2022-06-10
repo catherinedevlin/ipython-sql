@@ -147,16 +147,18 @@ class SqlMagic(Magics, Configurable):
 
         """
         # Parse variables (words wrapped in {}) for %%sql magic (for %sql this is done automatically)
-        cell_variables = [
-            fn for _, fn, _, _ in Formatter().parse(cell) if fn is not None
-        ]
-        cell_params = {}
-        for variable in cell_variables:
-            if variable in local_ns:
-                cell_params[variable] = local_ns[variable]
-            else:
-                raise NameError(variable)
-        cell = cell.format(**cell_params)
+        cell = self.shell.var_expand(cell)
+
+        # cell_variables = [
+        #     fn for _, fn, _, _ in Formatter().parse(cell) if fn is not None
+        # ]
+        # cell_params = {}
+        # for variable in cell_variables:
+        #     if variable in local_ns:
+        #         cell_params[variable] = local_ns[variable]
+        #     else:
+        #         raise NameError(variable)
+        # cell = cell.format(**cell_params)
 
         line = sql.parse.without_sql_comment(parser=self.execute.parser, line=line)
         args = parse_argstring(self.execute, line)

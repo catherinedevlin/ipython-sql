@@ -370,3 +370,20 @@ def test_multiline_bracket_var_substitution(ip):
         """,
     )
     assert not result
+
+def test_json_in_select(ip):
+    # Variable expansion does not work within json, but 
+    # at least the two usages of curly braces do not collide
+    ip.user_global_ns["person"] = "prince"
+    result = ip.run_cell_magic(
+        "sql",
+        "",
+        """
+        sqlite:// 
+        SELECT
+          '{"greeting": "Farewell sweet {person}"}' 
+        AS json
+        """,
+    )
+    assert ('{"greeting": "Farewell sweet {person}"}',)
+
