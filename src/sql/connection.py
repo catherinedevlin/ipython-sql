@@ -101,7 +101,8 @@ class Connection(object):
                 template = "   {}"
             result.append(template.format(engine_url.__repr__()))
         return "\n".join(result)
-
+    
+    @classmethod
     def _close(cls, descriptor):
         if isinstance(descriptor, Connection):
             conn = descriptor
@@ -114,7 +115,6 @@ class Connection(object):
                 "Could not close connection because it was not found amongst these: %s"
                 % str(cls.connections.keys())
             )
-        cls.connections.pop(conn.name)
         cls.connections.pop(str(conn.metadata.bind.url))
         conn.session.close()
 

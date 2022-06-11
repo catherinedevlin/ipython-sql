@@ -370,6 +370,7 @@ def test_multiline_bracket_var_substitution(ip):
         """,
     )
     assert not result
+ 
 
 def test_json_in_select(ip):
     # Variable expansion does not work within json, but 
@@ -387,3 +388,10 @@ def test_json_in_select(ip):
     )
     assert ('{"greeting": "Farewell sweet {person}"}',)
 
+
+def test_close_connection(ip):
+    connections = runsql(ip, "%sql -l")
+    connection_name = list(connections)[0]
+    runsql(ip, f"%sql -x {connection_name}")
+    connections_afterward = runsql(ip, "%sql -l")
+    assert connection_name not in connections_afterward
