@@ -387,7 +387,7 @@ is also the syntax to denote a SQL comment, the parser needs to make some assump
 Installing
 ----------
 
-Install the lastest release with::
+Install the latest release with::
 
     pip install ipython-sql
 
