@@ -425,6 +425,7 @@ Credits
 - Lucas Zeer for multi-line bugfixes for var substitution, ``<<`` 
 - vkk800 for ``--file``
 - Jens Albrecht for MySQL DatabaseError bugfix
+- meihkv for connection-closing bugfix
 
 .. _Distribute: http://pypi.python.org/pypi/distribute
 .. _Buildout: http://www.buildout.org/
