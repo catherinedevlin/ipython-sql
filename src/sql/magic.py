@@ -192,7 +192,7 @@ class SqlMagic(Magics, Configurable):
 
         try:
             conn = sql.connection.Connection.set(
-                parsed["connection"],
+                connect_str,
                 displaycon=self.displaycon,
                 connect_args=args.connection_arguments,
                 creator=args.creator,
