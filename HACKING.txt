@@ -7,7 +7,8 @@ run_tests.sh script for it.
     pip install -e .
     ./run_tests.sh
 
-To temporarily insert breakpoints for debugging: `from nose.tools import set_trace; set_trace()`
+To temporarily insert breakpoints for debugging: `from nose.tools import set_trace; set_trace()`.  
+Or, if running tests, use `pytest.set_trace()`.
 
 Tests have requirements not installed by setup.py:
 
