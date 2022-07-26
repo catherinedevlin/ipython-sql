@@ -1,3 +1,3 @@
 from .magic import *
 
-__version__ = "0.4.2dev"
+__version__ = "0.4.2"

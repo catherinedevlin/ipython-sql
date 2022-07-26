@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.4.2dev
+## 0.4.2 (2022-07-26)
 *First version release by Ploomber*
 
 * Adds `--no-index` option to `--persist` data frames without the index
@@ -51,7 +51,7 @@
 
 ## 0.3.6
 
-* Fixed issue #30, commit failures for sqlite (thanks stonebig, jandot)
+* Fixed issue [#30](https://github.com/ploomber/jupysql/issues/30), commit failures for sqlite (thanks stonebig, jandot)
 
 ## 0.3.5
 
