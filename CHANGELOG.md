@@ -1,6 +1,9 @@
 # CHANGELOG
 
 ## 0.4.2dev
+*First version release by Ploomber*
+
+* Adds `--no-index` option to `--persist` data frames without the index
 
 ## 0.4.1
 
