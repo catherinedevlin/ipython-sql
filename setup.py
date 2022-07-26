@@ -54,4 +54,5 @@ setup(name="jupysql",
       extras_require={'dev': [
           'pytest',
           'pandas',
+          'invoke',
       ]})
