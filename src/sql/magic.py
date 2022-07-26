@@ -36,7 +36,9 @@ class SqlMagic(Magics, Configurable):
 
     Provides the %%sql magic."""
 
-    displaycon = Bool(True, config=True, help="Show connection string after execute")
+    displaycon = Bool(True,
+                      config=True,
+                      help="Show connection string after execute")
     autolimit = Int(
         0,
         config=True,
@@ -46,7 +48,8 @@ class SqlMagic(Magics, Configurable):
     style = Unicode(
         "DEFAULT",
         config=True,
-        help="Set the table printing style to any of prettytable's defined styles (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)",
+        help=
+        "Set the table printing style to any of prettytable's defined styles (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)",
     )
     short_errors = Bool(
         True,
@@ -57,7 +60,8 @@ class SqlMagic(Magics, Configurable):
         None,
         config=True,
         allow_none=True,
-        help="Automatically limit the number of rows displayed (full result set is still stored)",
+        help=
+        "Automatically limit the number of rows displayed (full result set is still stored)",
     )
     autopandas = Bool(
         False,
@@ -65,9 +69,12 @@ class SqlMagic(Magics, Configurable):
         help="Return Pandas DataFrames instead of regular result sets",
     )
     column_local_vars = Bool(
-        False, config=True, help="Return data into local variables from column names"
-    )
-    feedback = Bool(True, config=True, help="Print number of rows affected by DML")
+        False,
+        config=True,
+        help="Return data into local variables from column names")
+    feedback = Bool(True,
+                    config=True,
+                    help="Print number of rows affected by DML")
     dsn_filename = Unicode(
         "odbc.ini",
         config=True,
@@ -90,18 +97,21 @@ class SqlMagic(Magics, Configurable):
     @cell_magic("sql")
     @magic_arguments()
     @argument("line", default="", nargs="*", type=str, help="sql")
-    @argument(
-        "-l", "--connections", action="store_true", help="list active connections"
-    )
+    @argument("-l",
+              "--connections",
+              action="store_true",
+              help="list active connections")
     @argument("-x", "--close", type=str, help="close a session by name")
-    @argument(
-        "-c", "--creator", type=str, help="specify creator function for new connection"
-    )
+    @argument("-c",
+              "--creator",
+              type=str,
+              help="specify creator function for new connection")
     @argument(
         "-s",
         "--section",
         type=str,
-        help="section of dsn_file to be used for generating a connection string",
+        help=
+        "section of dsn_file to be used for generating a connection string",
     )
     @argument(
         "-p",
@@ -110,9 +120,16 @@ class SqlMagic(Magics, Configurable):
         help="create a table name in the database from the named DataFrame",
     )
     @argument(
+        "-n",
+        "--no-index",
+        action="store_true",
+        help="Do not store Data Frame index when persisting",
+    )
+    @argument(
         "--append",
         action="store_true",
-        help="create, or append to, a table name in the database from the named DataFrame",
+        help=
+        "create, or append to, a table name in the database from the named DataFrame",
     )
     @argument(
         "-a",
@@ -148,7 +165,8 @@ class SqlMagic(Magics, Configurable):
         """
         # Parse variables (words wrapped in {}) for %%sql magic (for %sql this is done automatically)
         cell = self.shell.var_expand(cell)
-        line = sql.parse.without_sql_comment(parser=self.execute.parser, line=line)
+        line = sql.parse.without_sql_comment(parser=self.execute.parser,
+                                             line=line)
         args = parse_argstring(self.execute, line)
         if args.connections:
             return sql.connection.Connection.connections
@@ -169,7 +187,8 @@ class SqlMagic(Magics, Configurable):
 
         connect_str = parsed["connection"]
         if args.section:
-            connect_str = sql.parse.connection_from_dsn_section(args.section, self)
+            connect_str = sql.parse.connection_from_dsn_section(
+                args.section, self)
 
         if args.connection_arguments:
             try:
@@ -203,10 +222,18 @@ class SqlMagic(Magics, Configurable):
             return None
 
         if args.persist:
-            return self._persist_dataframe(parsed["sql"], conn, user_ns, append=False)
+            return self._persist_dataframe(parsed["sql"],
+                                           conn,
+                                           user_ns,
+                                           append=False,
+                                           index=not args.no_index)
 
         if args.append:
-            return self._persist_dataframe(parsed["sql"], conn, user_ns, append=True)
+            return self._persist_dataframe(parsed["sql"],
+                                           conn,
+                                           user_ns,
+                                           append=True,
+                                           index=not args.no_index)
 
         if not parsed["sql"]:
             return
@@ -214,11 +241,8 @@ class SqlMagic(Magics, Configurable):
         try:
             result = sql.run.run(conn, parsed["sql"], self, user_ns)
 
-            if (
-                result is not None
-                and not isinstance(result, str)
-                and self.column_local_vars
-            ):
+            if (result is not None and not isinstance(result, str)
+                    and self.column_local_vars):
                 # Instead of returning values, set variables directly in the
                 # users namespace. Variable names given by column names
 
@@ -229,9 +253,8 @@ class SqlMagic(Magics, Configurable):
                     result = result.dict()
 
                 if self.feedback:
-                    print(
-                        "Returning data to local variables [{}]".format(", ".join(keys))
-                    )
+                    print("Returning data to local variables [{}]".format(
+                        ", ".join(keys)))
 
                 self.shell.user_ns.update(result)
 
@@ -240,7 +263,8 @@ class SqlMagic(Magics, Configurable):
 
                 if parsed["result_var"]:
                     result_var = parsed["result_var"]
-                    print("Returning data to local variable {}".format(result_var))
+                    print("Returning data to local variable {}".format(
+                        result_var))
                     self.shell.user_ns.update({result_var: result})
                     return None
 
@@ -257,7 +281,7 @@ class SqlMagic(Magics, Configurable):
 
     legal_sql_identifier = re.compile(r"^[A-Za-z0-9#_$]+")
 
-    def _persist_dataframe(self, raw, conn, user_ns, append=False):
+    def _persist_dataframe(self, raw, conn, user_ns, append=False, index=True):
         """Implements PERSIST, which writes a DataFrame to the RDBMS"""
         if not DataFrame:
             raise ImportError("Must `pip install pandas` to use DataFrames")
@@ -272,14 +296,19 @@ class SqlMagic(Magics, Configurable):
         except SyntaxError:
             raise SyntaxError("Syntax: %sql --persist <name_of_data_frame>")
         if not isinstance(frame, DataFrame) and not isinstance(frame, Series):
-            raise TypeError("%s is not a Pandas DataFrame or Series" % frame_name)
+            raise TypeError("%s is not a Pandas DataFrame or Series" %
+                            frame_name)
 
         # Make a suitable name for the resulting database table
         table_name = frame_name.lower()
         table_name = self.legal_sql_identifier.search(table_name).group(0)
 
         if_exists = "append" if append else "fail"
-        frame.to_sql(table_name, conn.session.engine, if_exists=if_exists)
+
+        frame.to_sql(table_name,
+                     conn.session.engine,
+                     if_exists=if_exists,
+                     index=index)
         return "Persisted %s" % table_name
 
 
