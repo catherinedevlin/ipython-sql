@@ -55,4 +55,5 @@ setup(name="jupysql",
           'pytest',
           'pandas',
           'invoke',
+          'pkgmt',
       ]})
