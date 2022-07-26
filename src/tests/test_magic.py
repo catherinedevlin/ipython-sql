@@ -4,6 +4,7 @@ import tempfile
 from textwrap import dedent
 
 import pytest
+from IPython.core.interactiveshell import InteractiveShell
 
 from sql.magic import SqlMagic
 
@@ -19,8 +20,9 @@ def runsql(ip_session, statements):
 @pytest.fixture
 def ip():
     """Provides an IPython session in which tables have been created"""
+    ip_session = InteractiveShell()
+    ip_session.register_magics(SqlMagic)
 
-    ip_session = get_ipython()
     runsql(
         ip_session,
         [
@@ -90,7 +92,7 @@ def test_result_var_multiline_shovel(ip):
         "sql",
         "",
         """
-        sqlite:// x << SELECT last_name 
+        sqlite:// x << SELECT last_name
         FROM author;
         """,
     )
@@ -118,32 +120,32 @@ def test_duplicate_column_names_accepted(ip):
     assert (u"Brecht", u"Brecht") in result
 
 
-def test_autolimit(ip):
-    ip.run_line_magic("config", "SqlMagic.autolimit = 0")
-    result = runsql(ip, "SELECT * FROM test;")
-    assert len(result) == 2
-    ip.run_line_magic("config", "SqlMagic.autolimit = 1")
-    result = runsql(ip, "SELECT * FROM test;")
-    assert len(result) == 1
-
-
 def test_persist(ip):
     runsql(ip, "")
     ip.run_cell("results = %sql SELECT * FROM test;")
     ip.run_cell("results_dframe = results.DataFrame()")
     ip.run_cell("%sql --persist sqlite:// results_dframe")
     persisted = runsql(ip, "SELECT * FROM results_dframe")
-    assert "foo" in str(persisted)
+    assert persisted == [(0, 1, 'foo'), (1, 2, 'bar')]
+
+
+def test_persist_no_index(ip):
+    runsql(ip, "")
+    ip.run_cell("results = %sql SELECT * FROM test;")
+    ip.run_cell("results_no_index = results.DataFrame()")
+    ip.run_cell("%sql --persist sqlite:// results_no_index --no-index")
+    persisted = runsql(ip, "SELECT * FROM results_no_index")
+    assert persisted == [(1, 'foo'), (2, 'bar')]
 
 
 def test_append(ip):
     runsql(ip, "")
     ip.run_cell("results = %sql SELECT * FROM test;")
-    ip.run_cell("results_dframe = results.DataFrame()")
-    ip.run_cell("%sql --persist sqlite:// results_dframe")
-    persisted = runsql(ip, "SELECT COUNT(*) FROM results_dframe")
-    ip.run_cell("%sql --append sqlite:// results_dframe")
-    appended = runsql(ip, "SELECT COUNT(*) FROM results_dframe")
+    ip.run_cell("results_dframe_append = results.DataFrame()")
+    ip.run_cell("%sql --persist sqlite:// results_dframe_append")
+    persisted = runsql(ip, "SELECT COUNT(*) FROM results_dframe_append")
+    ip.run_cell("%sql --append sqlite:// results_dframe_append")
+    appended = runsql(ip, "SELECT COUNT(*) FROM results_dframe_append")
     assert appended[0][0] == persisted[0][0] * 2
 
 
@@ -178,19 +180,22 @@ def test_connection_args_enforce_json(ip):
 
 
 def test_connection_args_in_connection(ip):
-    ip.run_cell('%sql --connection_arguments {"timeout":10} sqlite:///:memory:')
+    ip.run_cell(
+        '%sql --connection_arguments {"timeout":10} sqlite:///:memory:')
     result = ip.run_cell("%sql --connections")
     assert "timeout" in result.result["sqlite:///:memory:"].connect_args
 
 
 def test_connection_args_single_quotes(ip):
-    ip.run_cell("%sql --connection_arguments '{\"timeout\": 10}' sqlite:///:memory:")
+    ip.run_cell(
+        "%sql --connection_arguments '{\"timeout\": 10}' sqlite:///:memory:")
     result = ip.run_cell("%sql --connections")
     assert "timeout" in result.result["sqlite:///:memory:"].connect_args
 
 
 def test_connection_args_double_quotes(ip):
-    ip.run_cell('%sql --connection_arguments "{\\"timeout\\": 10}" sqlite:///:memory:')
+    ip.run_cell(
+        '%sql --connection_arguments "{\\"timeout\\": 10}" sqlite:///:memory:')
     result = ip.run_cell("%sql --connections")
     assert "timeout" in result.result["sqlite:///:memory:"].connect_args
 
@@ -235,14 +240,11 @@ def test_column_local_vars(ip):
 
 def test_userns_not_changed(ip):
     ip.run_cell(
-        dedent(
-            """
+        dedent("""
     def function():
         local_var = 'local_val'
         %sql sqlite:// INSERT INTO test VALUES (2, 'bar');
-    function()"""
-        )
-    )
+    function()"""))
     assert "local_var" not in ip.user_ns
 
 
@@ -323,28 +325,32 @@ def test_dicts(ip):
 def test_bracket_var_substitution(ip):
 
     ip.user_global_ns["col"] = "first_name"
-    assert runsql(ip, "SELECT * FROM author" " WHERE {col} = 'William' ")[0] == (
-        u"William",
-        u"Shakespeare",
-        1616,
-    )
+    assert runsql(ip, "SELECT * FROM author"
+                  " WHERE {col} = 'William' ")[0] == (
+                      u"William",
+                      u"Shakespeare",
+                      1616,
+                  )
 
     ip.user_global_ns["col"] = "last_name"
-    result = runsql(ip, "SELECT * FROM author" " WHERE {col} = 'William' ")
+    result = runsql(ip, "SELECT * FROM author"
+                    " WHERE {col} = 'William' ")
     assert not result
 
 
 def test_multiline_bracket_var_substitution(ip):
 
     ip.user_global_ns["col"] = "first_name"
-    assert runsql(ip, "SELECT * FROM author\n" " WHERE {col} = 'William' ")[0] == (
-        u"William",
-        u"Shakespeare",
-        1616,
-    )
+    assert runsql(ip, "SELECT * FROM author\n"
+                  " WHERE {col} = 'William' ")[0] == (
+                      u"William",
+                      u"Shakespeare",
+                      1616,
+                  )
 
     ip.user_global_ns["col"] = "last_name"
-    result = runsql(ip, "SELECT * FROM author" " WHERE {col} = 'William' ")
+    result = runsql(ip, "SELECT * FROM author"
+                    " WHERE {col} = 'William' ")
     assert not result
 
 
@@ -354,7 +360,7 @@ def test_multiline_bracket_var_substitution(ip):
         "sql",
         "",
         """
-        sqlite:// SELECT * FROM author 
+        sqlite:// SELECT * FROM author
         WHERE {col} = 'William'
         """,
     )
@@ -365,28 +371,28 @@ def test_multiline_bracket_var_substitution(ip):
         "sql",
         "",
         """
-        sqlite:// SELECT * FROM author 
+        sqlite:// SELECT * FROM author
         WHERE {col} = 'William'
         """,
     )
     assert not result
- 
+
 
 def test_json_in_select(ip):
-    # Variable expansion does not work within json, but 
+    # Variable expansion does not work within json, but
     # at least the two usages of curly braces do not collide
     ip.user_global_ns["person"] = "prince"
     result = ip.run_cell_magic(
         "sql",
         "",
         """
-        sqlite:// 
+        sqlite://
         SELECT
-          '{"greeting": "Farewell sweet {person}"}' 
+          '{"greeting": "Farewell sweet {person}"}'
         AS json
         """,
     )
-    assert ('{"greeting": "Farewell sweet {person}"}',)
+    assert ('{"greeting": "Farewell sweet {person}"}', )
 
 
 def test_close_connection(ip):
@@ -395,3 +401,13 @@ def test_close_connection(ip):
     runsql(ip, f"%sql -x {connection_name}")
     connections_afterward = runsql(ip, "%sql -l")
     assert connection_name not in connections_afterward
+
+
+# theres some weird shared state with this one, moving it to the end
+def test_autolimit(ip):
+    ip.run_line_magic("config", "SqlMagic.autolimit = 0")
+    result = runsql(ip, "SELECT * FROM test;")
+    assert len(result) == 2
+    ip.run_line_magic("config", "SqlMagic.autolimit = 1")
+    result = runsql(ip, "SELECT * FROM test;")
+    assert len(result) == 1

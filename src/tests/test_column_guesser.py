@@ -4,19 +4,18 @@ import sys
 import pytest
 
 from sql.magic import SqlMagic
+from IPython.core.interactiveshell import InteractiveShell
 
-ip = get_ipython()
+ip = InteractiveShell()
 
 
 class SqlEnv(object):
+
     def __init__(self, connectstr):
         self.connectstr = connectstr
 
     def query(self, txt):
         return ip.run_line_magic("sql", "%s %s" % (self.connectstr, txt))
-
-
-sql_env = SqlEnv("sqlite://")
 
 
 @pytest.fixture
@@ -40,6 +39,7 @@ def tbl():
 
 
 class Harness(object):
+
     def run_query(self):
         return sql_env.query(self.query)
 
