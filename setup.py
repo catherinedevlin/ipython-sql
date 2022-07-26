@@ -1,5 +1,7 @@
 import os
 from io import open
+import re
+import ast
 
 from setuptools import find_packages, setup
 
@@ -7,7 +9,12 @@ here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, "README.rst"), encoding="utf-8").read()
 NEWS = open(os.path.join(here, "NEWS.rst"), encoding="utf-8").read()
 
-version = "0.4.1"
+_version_re = re.compile(r'__version__\s+=\s+(.*)')
+
+with open('src/sql/__init__.py', 'rb') as f:
+    VERSION = str(
+        ast.literal_eval(
+            _version_re.search(f.read().decode('utf-8')).group(1)))
 
 install_requires = [
     "prettytable<1",
@@ -19,7 +26,7 @@ install_requires = [
 ]
 
 setup(name="ipython-sql",
-      version=version,
+      version=VERSION,
       description="RDBMS access via IPython",
       long_description=README + "\n\n" + NEWS,
       long_description_content_type="text/x-rst",
