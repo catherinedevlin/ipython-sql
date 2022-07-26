@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.4.3dev
+
 ## 0.4.2 (2022-07-26)
 *First version release by Ploomber*
 
