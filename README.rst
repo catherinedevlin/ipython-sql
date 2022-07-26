@@ -1,8 +1,6 @@
-===========
-ipython-sql
-===========
-
-:Author: Catherine Devlin, http://catherinedevlin.blogspot.com
+=======
+jupysql
+=======
 
 Introduces a %sql (or %%sql) magic.
 
@@ -373,7 +371,7 @@ Caution
 Comments
 ~~~~~~~~
 
-Because ipyton-sql accepts ``--``-delimited options like ``--persist``, but ``--`` 
+Because jupysql accepts ``--``-delimited options like ``--persist``, but ``--`` 
 is also the syntax to denote a SQL comment, the parser needs to make some assumptions.
 
 - If you try to pass an unsupported argument, like ``--lutefisk``, it will 
@@ -389,21 +387,12 @@ Installing
 
 Install the latest release with::
 
-    pip install ipython-sql
-
-or download from https://github.com/catherinedevlin/ipython-sql and::
-
-    cd ipython-sql
-    sudo python setup.py install
-
-Development
------------
-
-https://github.com/catherinedevlin/ipython-sql
+    pip install jupysql
 
 Credits
 -------
 
+- Catherine Devlin (original author of ipython-sql)
 - Matthias Bussonnier for help with configuration
 - Olivier Le Thanh Duong for ``%config`` fixes and improvements
 - Distribute_
