@@ -286,9 +286,12 @@ class SqlMagic(Magics, Configurable):
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
 
-    # this fails in both Firefox and Chrome for OS X.
-    # I get the error: TypeError: IPython.CodeCell.config_defaults is undefined
-
-    # js = "IPython.CodeCell.config_defaults.highlight_modes['magic_sql'] = {'reg':[/^%%sql/]};"
-    # display_javascript(js, raw=True)
+    js = """
+        let codeCell = (Jupyter ?? IPython).CodeCell;
+        let highlightModes = (codeCell.options_default ?? codeCell.config_defaults).highlight_modes;
+        if (!highlightModes['magic_sql'])
+            highlightModes['magic_sql'] = {'reg': []};
+        highlightModes['magic_sql']['reg'].push(/^%%sql/);
+    """
+    display_javascript(js, raw=True)
     ip.register_magics(SqlMagic)
