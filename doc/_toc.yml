@@ -1,0 +1,13 @@
+# Table of contents
+# Learn more at https://jupyterbook.org/customize/toc.html
+
+format: jb-book
+root: intro
+chapters:
+- file: pandas
+- file: configuration
+- file: options
+- file: plotting
+- file: dumping
+- file: connecting
+- file: credits

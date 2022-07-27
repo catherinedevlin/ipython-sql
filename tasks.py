@@ -18,6 +18,11 @@ def setup(c, version=None):
     print(f'Done! Activate your environment with:\nconda activate {env_name}')
 
 
+@task
+def doc(c):
+    c.run('jupyter-book build doc')
+
+
 @task(aliases=['v'])
 def version(c):
     """Create a new stable version commit

@@ -1,3 +1,8 @@
+**/.ipynb_checkpoints
+.vscode
+doc/_build
+doc/*.csv
+
 *.py[cod]
 
 # C extensions

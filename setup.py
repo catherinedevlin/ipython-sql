@@ -6,7 +6,7 @@ import ast
 from setuptools import find_packages, setup
 
 here = os.path.abspath(os.path.dirname(__file__))
-README = open(os.path.join(here, "README.rst"), encoding="utf-8").read()
+README = open(os.path.join(here, "README.md"), encoding="utf-8").read()
 
 _version_re = re.compile(r'__version__\s+=\s+(.*)')
 
@@ -29,7 +29,7 @@ setup(
     version=VERSION,
     description="RDBMS access via IPython",
     long_description=README,
-    long_description_content_type="text/x-rst",
+    long_description_content_type="text/markdown",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: Console",
