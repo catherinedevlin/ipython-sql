@@ -2,6 +2,8 @@
 .vscode
 doc/_build
 doc/*.csv
+doc/*.db
+doc/*.sql
 
 *.py[cod]
 

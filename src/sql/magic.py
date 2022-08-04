@@ -29,6 +29,28 @@ except ImportError:
     DataFrame = None
     Series = None
 
+from sql.store import SQLStore
+
+store = SQLStore()
+
+
+@magics_class
+class RenderMagic(Magics):
+
+    @line_magic
+    @magic_arguments()
+    # TODO: only accept one arg
+    @argument("line", default="", nargs="*", type=str)
+    @argument("-w",
+              "--with",
+              type=str,
+              help="Use a saved query",
+              action='append',
+              dest='with_')
+    def sqlrender(self, line):
+        args = parse_argstring(self.sqlrender, line)
+        return str(store[args.line[0]])
+
 
 @magics_class
 class SqlMagic(Magics, Configurable):
@@ -86,6 +108,8 @@ class SqlMagic(Magics, Configurable):
     autocommit = Bool(True, config=True, help="Set autocommit mode")
 
     def __init__(self, shell):
+        self._store = store
+
         Configurable.__init__(self, config=shell.config)
         Magics.__init__(self, shell=shell)
 
@@ -128,8 +152,8 @@ class SqlMagic(Magics, Configurable):
     @argument(
         "--append",
         action="store_true",
-        help=
-        "create, or append to, a table name in the database from the named DataFrame",
+        help=("create, or append to, a table name in the database from the "
+              "named DataFrame"),
     )
     @argument(
         "-a",
@@ -138,6 +162,13 @@ class SqlMagic(Magics, Configurable):
         help="specify dictionary of connection arguments to pass to SQL driver",
     )
     @argument("-f", "--file", type=str, help="Run SQL from file at this path")
+    @argument("-S", "--save", type=str, help="Save this query for later use")
+    @argument("-w",
+              "--with",
+              type=str,
+              help="Use a saved query",
+              action='append',
+              dest='with_')
     def execute(self, line="", cell="", local_ns={}):
         """Runs SQL statement against a database, specified by SQLAlchemy connect string.
 
@@ -163,11 +194,13 @@ class SqlMagic(Magics, Configurable):
           mysql+pymysql://me:mypw@localhost/mydb
 
         """
+
         # Parse variables (words wrapped in {}) for %%sql magic (for %sql this is done automatically)
         cell = self.shell.var_expand(cell)
         line = sql.parse.without_sql_comment(parser=self.execute.parser,
                                              line=line)
         args = parse_argstring(self.execute, line)
+
         if args.connections:
             return sql.connection.Connection.connections
         elif args.close:
@@ -184,6 +217,12 @@ class SqlMagic(Magics, Configurable):
                 command_text = infile.read() + "\n" + command_text
 
         parsed = sql.parse.parse(command_text, self)
+
+        original = parsed['sql']
+
+        if args.with_:
+            final = self._store.render(original, with_=args.with_)
+            parsed['sql'] = str(final)
 
         connect_str = parsed["connection"]
         if args.section:
@@ -240,6 +279,10 @@ class SqlMagic(Magics, Configurable):
 
         try:
             result = sql.run.run(conn, parsed["sql"], self, user_ns)
+
+            # store the query if needed
+            if args.save:
+                self._store.store(args.save, original, with_=args.with_)
 
             if (result is not None and not isinstance(result, str)
                     and self.column_local_vars):
@@ -321,3 +364,4 @@ def load_ipython_extension(ip):
     # js = "IPython.CodeCell.config_defaults.highlight_modes['magic_sql'] = {'reg':[/^%%sql/]};"
     # display_javascript(js, raw=True)
     ip.register_magics(SqlMagic)
+    ip.register_magics(RenderMagic)

@@ -22,6 +22,7 @@ install_requires = [
     "sqlparse",
     "six",
     "ipython-genutils>=0.1.0",
+    "jinja2",
 ]
 
 setup(

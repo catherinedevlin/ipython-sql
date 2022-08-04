@@ -5,6 +5,7 @@ format: jb-book
 root: intro
 chapters:
 - file: pandas
+- file: compose
 - file: configuration
 - file: options
 - file: plotting
