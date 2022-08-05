@@ -11,4 +11,11 @@ dependencies:
   - pip
   - pip:
     - jupyter-book
+    # duckdb example
+    - duckdb
+    - duckdb-engine
+    # plot example
+    - memory-profiler
+    - psycopg2-binary
+    - pyarrow
     - ..

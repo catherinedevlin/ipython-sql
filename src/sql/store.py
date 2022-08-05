@@ -85,3 +85,7 @@ def _flatten(l):
     """Flatten a list of lists
     """
     return [element for sub in l for element in sub]
+
+
+# session-wide store
+store = SQLStore()

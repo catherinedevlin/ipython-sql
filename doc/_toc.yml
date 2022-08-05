@@ -8,7 +8,9 @@ chapters:
 - file: compose
 - file: configuration
 - file: options
+- file: plot
 - file: plotting
 - file: dumping
 - file: connecting
+- file: duckdb
 - file: credits

@@ -16,6 +16,7 @@ from sqlalchemy.exc import OperationalError, ProgrammingError, DatabaseError
 import sql.connection
 import sql.parse
 import sql.run
+from sql.store import store
 
 try:
     from traitlets.config.configurable import Configurable
@@ -28,10 +29,6 @@ try:
 except ImportError:
     DataFrame = None
     Series = None
-
-from sql.store import SQLStore
-
-store = SQLStore()
 
 
 @magics_class
@@ -169,6 +166,12 @@ class SqlMagic(Magics, Configurable):
               help="Use a saved query",
               action='append',
               dest='with_')
+    @argument(
+        "-N",
+        "--no-execute",
+        action="store_true",
+        help="Do not execute query (use it with --save)",
+    )
     def execute(self, line="", cell="", local_ns={}):
         """Runs SQL statement against a database, specified by SQLAlchemy connect string.
 
@@ -277,12 +280,16 @@ class SqlMagic(Magics, Configurable):
         if not parsed["sql"]:
             return
 
+        # store the query if needed
+        if args.save:
+            self._store.store(args.save, original, with_=args.with_)
+
+        if args.no_execute:
+            print('Skipping execution...')
+            return
+
         try:
             result = sql.run.run(conn, parsed["sql"], self, user_ns)
-
-            # store the query if needed
-            if args.save:
-                self._store.store(args.save, original, with_=args.with_)
 
             if (result is not None and not isinstance(result, str)
                     and self.column_local_vars):

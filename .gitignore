@@ -1,9 +1,15 @@
+*.parquet
+env.sh
 **/.ipynb_checkpoints
 .vscode
 doc/_build
 doc/*.csv
 doc/*.db
 doc/*.sql
+# temp testing assets
+src/tests/tmp
+
+scripts/large-table.sql
 
 *.py[cod]
 
