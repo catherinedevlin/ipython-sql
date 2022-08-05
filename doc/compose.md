@@ -52,7 +52,7 @@ Let's see the track-level information:
 SELECT * FROM Track
 ```
 
-Let's build a query to get the artist of each track and store the query using `--save tracks_with_info`.
+Let's join track with album and artist to get the artist name and store the query using `--save tracks_with_info`.
 
 *Note: `--save` stores the query, not the data*
 
@@ -66,7 +66,7 @@ JOIN Artist ar
 USING (ArtistId)
 ```
 
-Let's subset the genres we are interested in (Rock and Metal) and `--save` the query.
+Let's subset the genres we are interested in (Rock and Metal) and save the query.
 
 ```{code-cell} ipython3
 %%sql --save genres_fav
@@ -76,9 +76,9 @@ LIKE '%rock%'
 OR Name LIKE '%metal%' 
 ```
 
-Now, join genres a tracks so we only get Rock and Metal tracks. 
+Now, join genres and tracks, so we only get Rock and Metal tracks. 
 
-Note that we are using `--with`; this will retrieve previously saved queries, and preprend them (using CTEs), then, we `--save` in `track_fav` .
+Note that we are using `--with`; this will retrieve previously saved queries, and preprend them (using CTEs), then, we save the query in `track_fav` .
 
 ```{code-cell} ipython3
 %%sql --with genres_fav --with tracks_with_info --save track_fav
@@ -88,7 +88,7 @@ JOIN genres_fav
 ON t.GenreId = genres_fav.GenreId
 ```
 
-Now we have a query (`track_fav`) that contains Rock and Metal tracks, let's find which artists have produced the most tracks and store the query:
+We can now use `track_fav` (which contains Rock and Metal tracks). Let's find which artists have produced the most tracks (and save the query):
 
 ```{code-cell} ipython3
 %%sql --with track_fav --save top_artist
@@ -97,7 +97,7 @@ GROUP BY artist
 ORDER BY COUNT(*) DESC
 ```
 
-Let's retrieve the query to plot the results:
+Let's retrieve `top_artist` and plot the results:
 
 ```{code-cell} ipython3
 top_artist = %sql --with top_artist SELECT * FROM top_artist
@@ -111,7 +111,7 @@ final = %sqlrender top_artist
 print(final)
 ```
 
-Verify it produces the same result:
+We can verify the retrieved query returns the same result:
 
 ```{code-cell} ipython3
 %%sql
