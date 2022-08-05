@@ -29,11 +29,8 @@ from pathlib import Path
 from sqlite3 import connect
 
 if not Path('my.db').is_file():
-    url = "https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sql"
-    urllib.request.urlretrieve(url, 'db.sql')
-
-    conn = connect('my.db')
-    _ = conn.executescript(Path('db.sql').read_text())
+    url = "https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite"
+    urllib.request.urlretrieve(url, 'my.db')
 ```
 
 Initialize the extension and set `autolimit=3` so we only retrieve a few rows.
