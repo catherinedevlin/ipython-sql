@@ -1,6 +1,7 @@
 # CHANGELOG
 
-## 0.4.3dev
+## 0.4.3 (2022-08-04)
+* Adds `--save`, `--with`, and `%sqlrender` for SQL composition ([#1](https://github.com/ploomber/jupysql/issues/1))
 
 ## 0.4.2 (2022-07-26)
 *First version release by Ploomber*
