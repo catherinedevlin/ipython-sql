@@ -83,7 +83,7 @@ For secure access, you may dynamically access your credentials (e.g. from your s
 
 +++
 
-```python
+```
 user = os.getenv('SOME_USER')
 password = os.getenv('SOME_PASSWORD')
 connection_string = "postgresql://{user}:{password}@localhost/some_database".format(user=user, password=password)
@@ -98,7 +98,7 @@ makes sense for statements with no output
 
 +++
 
-```python
+```
 %%sql sqlite://
 CREATE TABLE writer (first_name, last_name, year_of_death);
 INSERT INTO writer VALUES ('William', 'Shakespeare', 1616);
@@ -112,7 +112,7 @@ leftmost column serving as key, for unique values.
 
 +++
 
-```python
+```
 result = %sql select * from work
 result['richard2']
 ```
