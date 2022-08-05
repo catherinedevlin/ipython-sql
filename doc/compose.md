@@ -36,7 +36,7 @@ if not Path('my.db').is_file():
     _ = conn.executescript(Path('db.sql').read_text())
 ```
 
-Initiqlize the extension and set `autolimit=3` so we only retrieve a few rows.
+Initialize the extension and set `autolimit=3` so we only retrieve a few rows.
 
 ```{code-cell} ipython3
 %load_ext sql
