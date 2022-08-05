@@ -1,0 +1,14 @@
+name: jupysql-doc
+
+channels:
+  - conda-forge
+
+
+dependencies:
+  - python=3.10
+  - matplotlib
+  - pandas
+  - pip
+  - pip:
+    - jupyter-book
+    - .
