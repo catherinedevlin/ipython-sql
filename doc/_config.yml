@@ -30,4 +30,5 @@ html:
 
 sphinx:
   fail_on_warning: true
-  execution_show_tb: true
+  config:
+    execution_show_tb: true
