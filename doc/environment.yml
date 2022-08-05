@@ -11,4 +11,4 @@ dependencies:
   - pip
   - pip:
     - jupyter-book
-    - .
+    - ..
