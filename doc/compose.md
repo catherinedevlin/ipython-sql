@@ -13,6 +13,8 @@ kernelspec:
 
 # Composing large queries
 
+*New in version 0.4.3*
+
 ```{note}
 This is a beta feature, please [join our community](https://ploomber.io/community) and let us know how we can improve it!
 ```
