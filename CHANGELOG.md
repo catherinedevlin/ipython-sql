@@ -1,6 +1,7 @@
 # CHANGELOG
 
-## 0.4.4dev
+## 0.4.4 (2022-08-06)
+* Adds `plot` module (boxplot and histogram)
 
 ## 0.4.3 (2022-08-04)
 * Adds `--save`, `--with`, and `%sqlrender` for SQL composition ([#1](https://github.com/ploomber/jupysql/issues/1))
