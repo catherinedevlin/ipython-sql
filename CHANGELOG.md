@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.4.5dev
+
 ## 0.4.4 (2022-08-06)
 * Adds `plot` module (boxplot and histogram)
 
