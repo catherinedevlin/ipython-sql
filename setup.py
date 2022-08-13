@@ -23,7 +23,7 @@ install_requires = [
     "six",
     "ipython-genutils>=0.1.0",
     "jinja2",
-    "ploomber-core",
+    "ploomber-core>=0.0.3",
     'importlib-metadata;python_version<"3.8"',
 ]
 
