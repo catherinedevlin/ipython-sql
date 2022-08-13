@@ -8,7 +8,6 @@ from sql import plot
 
 
 class DictOfFloats(Mapping):
-
     def __init__(self, data) -> None:
         self._data = data
 
@@ -44,15 +43,15 @@ class DictOfFloats(Mapping):
 
 
 def test_boxplot_stats(chinook_db):
-    con = duckdb.connect(database=':memory:')
+    con = duckdb.connect(database=":memory:")
     con.execute("INSTALL 'sqlite_scanner';")
     con.execute("LOAD 'sqlite_scanner';")
     con.execute(f"CALL sqlite_attach({chinook_db!r});")
 
-    res = con.execute('SELECT * FROM Invoice')
+    res = con.execute("SELECT * FROM Invoice")
     X = res.df().Total
     expected = cbook.boxplot_stats(X)
 
-    result = plot.boxplot_stats(con, 'Invoice', 'Total')
+    result = plot.boxplot_stats(con, "Invoice", "Total")
 
     assert DictOfFloats(result[0]) == DictOfFloats(expected[0])

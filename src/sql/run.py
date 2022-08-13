@@ -19,7 +19,7 @@ except ImportError:
 
 
 def unduplicate_field_names(field_names):
-    """Append a number to duplicate field names to make them unique. """
+    """Append a number to duplicate field names to make them unique."""
     res = []
     for k in field_names:
         if k in res:
@@ -46,9 +46,7 @@ class UnicodeWriter(object):
 
     def writerow(self, row):
         if six.PY2:
-            _row = [
-                s.encode("utf-8") if hasattr(s, "encode") else s for s in row
-            ]
+            _row = [s.encode("utf-8") if hasattr(s, "encode") else s for s in row]
         else:
             _row = row
         self.writer.writerow(_row)
@@ -76,12 +74,12 @@ class CsvResultDescriptor(object):
         self.file_path = file_path
 
     def __repr__(self):
-        return "CSV results at %s" % os.path.join(os.path.abspath("."),
-                                                  self.file_path)
+        return "CSV results at %s" % os.path.join(os.path.abspath("."), self.file_path)
 
     def _repr_html_(self):
         return '<a href="%s">CSV results</a>' % os.path.join(
-            ".", "files", self.file_path)
+            ".", "files", self.file_path
+        )
 
 
 def _nonbreaking_spaces(match_obj):
@@ -130,11 +128,11 @@ class ResultSet(list, ColumnGuesserMixin):
             self.pretty.add_rows(self)
             result = self.pretty.get_html_string()
             result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
-            if self.config.displaylimit and len(
-                    self) > self.config.displaylimit:
+            if self.config.displaylimit and len(self) > self.config.displaylimit:
                 result = (
                     '%s\n<span style="font-style:italic;text-align:center;">%d rows, truncated to displaylimit of %d</span>'
-                    % (result, len(self), self.config.displaylimit))
+                    % (result, len(self), self.config.displaylimit)
+                )
             return result
         else:
             return None
@@ -267,7 +265,7 @@ class ResultSet(list, ColumnGuesserMixin):
 
     def csv(self, filename=None, **format_params):
         """Generate results in comma-separated form.  Write to ``filename`` if given.
-           Any other parameters will be passed on to csv.writer."""
+        Any other parameters will be passed on to csv.writer."""
         if not self.pretty:
             return None  # no results
         self.pretty.add_rows(self)
@@ -325,7 +323,7 @@ class FakeResultProxy(object):
         def fetchmany(size):
             pos = 0
             while pos < len(source_list):
-                yield source_list[pos:pos + size]
+                yield source_list[pos : pos + size]
                 pos += size
 
         self.fetchmany = fetchmany
@@ -334,16 +332,23 @@ class FakeResultProxy(object):
 # some dialects have autocommit
 # specific dialects break when commit is used:
 
-_COMMIT_BLACKLIST_DIALECTS = ("athena", "bigquery", "clickhouse", "ingres",
-                              "mssql", "teradata", "vertica")
+_COMMIT_BLACKLIST_DIALECTS = (
+    "athena",
+    "bigquery",
+    "clickhouse",
+    "ingres",
+    "mssql",
+    "teradata",
+    "vertica",
+)
 
 
 def _commit(conn, config):
     """Issues a commit, if appropriate for current config and dialect"""
 
     _should_commit = config.autocommit and all(
-        dialect not in str(conn.dialect)
-        for dialect in _COMMIT_BLACKLIST_DIALECTS)
+        dialect not in str(conn.dialect) for dialect in _COMMIT_BLACKLIST_DIALECTS
+    )
 
     if _should_commit:
         try:
@@ -358,14 +363,15 @@ def run(conn, sql, config, user_namespace):
             first_word = sql.strip().split()[0].lower()
             if first_word == "begin":
                 raise Exception("ipython_sql does not support transactions")
-            if first_word.startswith("\\") and \
-                    ("postgres" in str(conn.dialect) or \
-                    "redshift" in str(conn.dialect)):
+            if first_word.startswith("\\") and (
+                "postgres" in str(conn.dialect) or "redshift" in str(conn.dialect)
+            ):
                 if not PGSpecial:
                     raise ImportError("pgspecial not installed")
                 pgspecial = PGSpecial()
                 _, cur, headers, _ = pgspecial.execute(
-                    conn.session.connection.cursor(), statement)[0]
+                    conn.session.connection.cursor(), statement
+                )[0]
                 result = FakeResultProxy(cur, headers)
             else:
                 txt = sqlalchemy.sql.text(statement)
@@ -384,7 +390,6 @@ def run(conn, sql, config, user_namespace):
 
 
 class PrettyTable(prettytable.PrettyTable):
-
     def __init__(self, *args, **kwargs):
         self.row_count = 0
         self.displaylimit = None
@@ -401,5 +406,5 @@ class PrettyTable(prettytable.PrettyTable):
             self.row_count = len(data)
         else:
             self.row_count = min(len(data), self.displaylimit)
-        for row in data[:self.displaylimit]:
+        for row in data[: self.displaylimit]:
             self.add_row(row)

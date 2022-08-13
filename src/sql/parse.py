@@ -1,10 +1,7 @@
 import itertools
-import json
-import re
 import shlex
 from os.path import expandvars
 
-import six
 from six.moves import configparser as CP
 from sqlalchemy.engine.url import URL
 
@@ -32,12 +29,12 @@ def _connection_string(s, config):
 
 def parse(cell, config):
     """Extract connection info and result variable from SQL
-    
-    Please don't add any more syntax requiring 
-    special parsing.  
+
+    Please don't add any more syntax requiring
+    special parsing.
     Instead, add @arguments to SqlMagic.execute.
-    
-    We're grandfathering the 
+
+    We're grandfathering the
     connection string and `<<` operator in.
     """
 
@@ -64,27 +61,27 @@ def parse(cell, config):
 
 
 def _option_strings_from_parser(parser):
-    """Extracts the expected option strings (-a, --append, etc) from argparse parser 
+    """Extracts the expected option strings (-a, --append, etc) from argparse parser
 
     Thanks Martijn Pieters
     https://stackoverflow.com/questions/28881456/how-can-i-list-all-registered-arguments-from-an-argumentparser-instance
 
     :param parser: [description]
-    :type parser: IPython.core.magic_arguments.MagicArgumentParser 
+    :type parser: IPython.core.magic_arguments.MagicArgumentParser
     """
     opts = [a.option_strings for a in parser._actions]
     return list(itertools.chain.from_iterable(opts))
 
 
 def without_sql_comment(parser, line):
-    """Strips -- comment from a line 
+    """Strips -- comment from a line
 
-    The argparser unfortunately expects -- to precede an option, 
-    but in SQL that delineates a comment.  So this removes comments 
+    The argparser unfortunately expects -- to precede an option,
+    but in SQL that delineates a comment.  So this removes comments
     so a line can safely be fed to the argparser.
 
-    :param line: A line of SQL, possibly mixed with option strings 
-    :type line: str 
+    :param line: A line of SQL, possibly mixed with option strings
+    :type line: str
     """
 
     args = _option_strings_from_parser(parser)

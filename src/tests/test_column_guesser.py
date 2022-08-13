@@ -10,7 +10,6 @@ ip = InteractiveShell()
 
 
 class SqlEnv(object):
-
     def __init__(self, connectstr):
         self.connectstr = connectstr
 
@@ -42,7 +41,6 @@ def tbl():
 
 
 class Harness(object):
-
     def run_query(self):
         return sql_env.query(self.query)
 

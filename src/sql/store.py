@@ -5,8 +5,7 @@ from jinja2 import Template
 
 
 class SQLStore(MutableMapping):
-    """Stores SQL scripts to render large queries with CTEs
-    """
+    """Stores SQL scripts to render large queries with CTEs"""
 
     def __init__(self):
         self._data = dict()
@@ -33,23 +32,23 @@ class SQLStore(MutableMapping):
 
     def store(self, key, query, with_=None):
         if with_ and key in with_:
-            raise ValueError(
-                f'Script name ({key!r}) cannot appear in with_ argument')
+            raise ValueError(f"Script name ({key!r}) cannot appear in with_ argument")
 
         self._data[key] = SQLQuery(self, query, with_)
 
 
-_template = Template("""\
+_template = Template(
+    """\
 WITH{% for name in with_ %} {{name}} AS (
     {{saved[name]._query}}
 ){{ "," if not loop.last }}{% endfor %}
 {{query}}
-""")
+"""
+)
 
 
 class SQLQuery:
-    """Holds queries and renders them
-    """
+    """Holds queries and renders them"""
 
     def __init__(self, store: SQLStore, query: str, with_: Iterable = None):
         self._store = store
@@ -58,14 +57,13 @@ class SQLQuery:
 
     def __str__(self) -> str:
         with_all = _get_dependencies(self._store, self._with_)
-        return _template.render(query=self._query,
-                                saved=self._store._data,
-                                with_=with_all)
+        return _template.render(
+            query=self._query, saved=self._store._data, with_=with_all
+        )
 
 
 def _get_dependencies(store, keys):
-    """Get a list of all dependencies to reconstruct the CTEs in keys
-    """
+    """Get a list of all dependencies to reconstruct the CTEs in keys"""
     # get the dependencies for each key
     deps = _flatten([_get_dependencies_for_key(store, key) for key in keys])
     # remove duplicates but preserve order
@@ -73,17 +71,14 @@ def _get_dependencies(store, keys):
 
 
 def _get_dependencies_for_key(store, key):
-    """Retrieve dependencies for a single key
-    """
+    """Retrieve dependencies for a single key"""
     deps = store[key]._with_
-    deps_of_deps = _flatten(
-        [_get_dependencies_for_key(store, dep) for dep in deps])
+    deps_of_deps = _flatten([_get_dependencies_for_key(store, dep) for dep in deps])
     return deps_of_deps + deps
 
 
 def _flatten(l):
-    """Flatten a list of lists
-    """
+    """Flatten a list of lists"""
     return [element for sub in l for element in sub]
 
 

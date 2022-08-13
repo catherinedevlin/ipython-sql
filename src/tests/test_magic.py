@@ -71,8 +71,8 @@ def test_result_var_multiline_shovel(ip):
 
 def test_access_results_by_keys(ip):
     assert runsql(ip, "SELECT * FROM author;")["William"] == (
-        u"William",
-        u"Shakespeare",
+        "William",
+        "Shakespeare",
         1616,
     )
 
@@ -86,7 +86,7 @@ def test_duplicate_column_names_accepted(ip):
         SELECT last_name, last_name FROM author;
         """,
     )
-    assert (u"Brecht", u"Brecht") in result
+    assert ("Brecht", "Brecht") in result
 
 
 def test_persist(ip):
@@ -95,7 +95,7 @@ def test_persist(ip):
     ip.run_cell("results_dframe = results.DataFrame()")
     ip.run_cell("%sql --persist sqlite:// results_dframe")
     persisted = runsql(ip, "SELECT * FROM results_dframe")
-    assert persisted == [(0, 1, 'foo'), (1, 2, 'bar')]
+    assert persisted == [(0, 1, "foo"), (1, 2, "bar")]
 
 
 def test_persist_no_index(ip):
@@ -104,7 +104,7 @@ def test_persist_no_index(ip):
     ip.run_cell("results_no_index = results.DataFrame()")
     ip.run_cell("%sql --persist sqlite:// results_no_index --no-index")
     persisted = runsql(ip, "SELECT * FROM results_no_index")
-    assert persisted == [(1, 'foo'), (2, 'bar')]
+    assert persisted == [(1, "foo"), (2, "bar")]
 
 
 def test_append(ip):
@@ -149,22 +149,19 @@ def test_connection_args_enforce_json(ip):
 
 
 def test_connection_args_in_connection(ip):
-    ip.run_cell(
-        '%sql --connection_arguments {"timeout":10} sqlite:///:memory:')
+    ip.run_cell('%sql --connection_arguments {"timeout":10} sqlite:///:memory:')
     result = ip.run_cell("%sql --connections")
     assert "timeout" in result.result["sqlite:///:memory:"].connect_args
 
 
 def test_connection_args_single_quotes(ip):
-    ip.run_cell(
-        "%sql --connection_arguments '{\"timeout\": 10}' sqlite:///:memory:")
+    ip.run_cell("%sql --connection_arguments '{\"timeout\": 10}' sqlite:///:memory:")
     result = ip.run_cell("%sql --connections")
     assert "timeout" in result.result["sqlite:///:memory:"].connect_args
 
 
 def test_connection_args_double_quotes(ip):
-    ip.run_cell(
-        '%sql --connection_arguments "{\\"timeout\\": 10}" sqlite:///:memory:')
+    ip.run_cell('%sql --connection_arguments "{\\"timeout\\": 10}" sqlite:///:memory:')
     result = ip.run_cell("%sql --connections")
     assert "timeout" in result.result["sqlite:///:memory:"].connect_args
 
@@ -209,11 +206,14 @@ def test_column_local_vars(ip):
 
 def test_userns_not_changed(ip):
     ip.run_cell(
-        dedent("""
+        dedent(
+            """
     def function():
         local_var = 'local_val'
         %sql sqlite:// INSERT INTO test VALUES (2, 'bar');
-    function()"""))
+    function()"""
+        )
+    )
     assert "local_var" not in ip.user_ns
 
 
@@ -294,32 +294,28 @@ def test_dicts(ip):
 def test_bracket_var_substitution(ip):
 
     ip.user_global_ns["col"] = "first_name"
-    assert runsql(ip, "SELECT * FROM author"
-                  " WHERE {col} = 'William' ")[0] == (
-                      u"William",
-                      u"Shakespeare",
-                      1616,
-                  )
+    assert runsql(ip, "SELECT * FROM author" " WHERE {col} = 'William' ")[0] == (
+        "William",
+        "Shakespeare",
+        1616,
+    )
 
     ip.user_global_ns["col"] = "last_name"
-    result = runsql(ip, "SELECT * FROM author"
-                    " WHERE {col} = 'William' ")
+    result = runsql(ip, "SELECT * FROM author" " WHERE {col} = 'William' ")
     assert not result
 
 
 def test_multiline_bracket_var_substitution(ip):
 
     ip.user_global_ns["col"] = "first_name"
-    assert runsql(ip, "SELECT * FROM author\n"
-                  " WHERE {col} = 'William' ")[0] == (
-                      u"William",
-                      u"Shakespeare",
-                      1616,
-                  )
+    assert runsql(ip, "SELECT * FROM author\n" " WHERE {col} = 'William' ")[0] == (
+        "William",
+        "Shakespeare",
+        1616,
+    )
 
     ip.user_global_ns["col"] = "last_name"
-    result = runsql(ip, "SELECT * FROM author"
-                    " WHERE {col} = 'William' ")
+    result = runsql(ip, "SELECT * FROM author" " WHERE {col} = 'William' ")
     assert not result
 
 
@@ -333,7 +329,7 @@ def test_multiline_bracket_var_substitution(ip):
         WHERE {col} = 'William'
         """,
     )
-    assert (u"William", u"Shakespeare", 1616) in result
+    assert ("William", "Shakespeare", 1616) in result
 
     ip.user_global_ns["col"] = "last_name"
     result = ip.run_cell_magic(
@@ -361,7 +357,7 @@ def test_json_in_select(ip):
         AS json
         """,
     )
-    assert ('{"greeting": "Farewell sweet {person}"}', )
+    assert ('{"greeting": "Farewell sweet {person}"}',)
 
 
 def test_close_connection(ip):
