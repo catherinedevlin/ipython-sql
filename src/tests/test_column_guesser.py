@@ -18,6 +18,9 @@ class SqlEnv(object):
         return ip.run_line_magic("sql", "%s %s" % (self.connectstr, txt))
 
 
+sql_env = SqlEnv("sqlite://")
+
+
 @pytest.fixture
 def tbl():
     sqlmagic = SqlMagic(shell=ip)
