@@ -35,6 +35,7 @@ DEV = [
     # tests
     'duckdb',
     'duckdb-engine',
+    'matplotlib',
 ]
 
 setup(name="jupysql",
