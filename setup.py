@@ -23,6 +23,7 @@ install_requires = [
     "six",
     "ipython-genutils>=0.1.0",
     "jinja2",
+    "ploomber-core",
 ]
 
 DEV = [
