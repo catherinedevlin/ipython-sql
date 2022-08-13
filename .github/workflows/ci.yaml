@@ -22,4 +22,4 @@ jobs:
           pip install ".[dev]"
       - name: Test with pytest
         run: |
-          bash run_tests.sh
+          pytest
