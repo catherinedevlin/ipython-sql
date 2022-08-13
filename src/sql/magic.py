@@ -1,6 +1,6 @@
+from importlib.metadata import version
 import json
 import re
-from string import Formatter
 
 from IPython.core.magic import (
     Magics,
@@ -9,8 +9,8 @@ from IPython.core.magic import (
     magics_class,
     needs_local_scope,
 )
-from IPython.core.magic_arguments import argument, magic_arguments, parse_argstring
-from IPython.display import display_javascript
+from IPython.core.magic_arguments import (argument, magic_arguments,
+                                          parse_argstring)
 from sqlalchemy.exc import OperationalError, ProgrammingError, DatabaseError
 
 import sql.connection
@@ -29,6 +29,13 @@ try:
 except ImportError:
     DataFrame = None
     Series = None
+
+from ploomber_core.telemetry.telemetry import Telemetry
+
+telemetry = Telemetry(
+    api_key='phc_TaEJeL7zLyyYWDi9rqtFakoPbtfHkLNiWAG3iuXVzH0',
+    package_name='jupysql',
+    version=version('jupysql'))
 
 
 @magics_class
@@ -105,6 +112,8 @@ class SqlMagic(Magics, Configurable):
     autocommit = Bool(True, config=True, help="Set autocommit mode")
 
     def __init__(self, shell):
+        telemetry.log_api('sql-magic-init')
+
         self._store = store
 
         Configurable.__init__(self, config=shell.config)
