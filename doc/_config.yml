@@ -17,11 +17,10 @@ latex:
 # bibtex_bibfiles:
 #   - references.bib
 
-# Information about where the book exists on the web
 repository:
-  url: https://github.com/ploomber/jupysql  # Online location of your book
-  path_to_book: docs  # Optional path to your book, relative to the repository root
-  branch: master  # Which branch of the repository should be used when creating links (optional)
+  url: https://github.com/ploomber/jupysql
+  path_to_book: doc
+  branch: master
 
 # Add GitHub buttons to your book
 # See https://jupyterbook.org/customize/config.html#add-a-link-to-your-repository
@@ -34,3 +33,6 @@ sphinx:
   config:
     execution_show_tb: true
 
+
+launch_buttons:
+  binderhub_url: "https://binder.ploomber.io"
