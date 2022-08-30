@@ -13,6 +13,17 @@ kernelspec:
 
 # Plotting large datasets
 
+
+```{tip}
+Try this locally:
+
+~~~
+pip install k2s -U && k2s get ploomber/jupysql/master/examples/plot.ipynb
+~~~
+
+```
+
+
 *New in version 0.4.4*
 
 ```{note}
