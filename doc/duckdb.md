@@ -10,21 +10,24 @@ kernelspec:
   language: python
   name: python3
 ---
-
 # DuckDB
 
-Here's an example showing how to use JupySQL and DuckDB:
 
-```{note}
-This example requires:
-
+```{dropdown} Required packages
 ~~~
 pip install duckdb duckdb-engine pyarrow
+~~~
+```
+
+```{tip}
+Try this locally:
+
+~~~
+pip install k2s -U && k2s get ploomber/jupysql/master/examples/duckdb.ipynb
 ~~~
 
 ```
 
-+++
 
 ## Reading a SQLite database
 
