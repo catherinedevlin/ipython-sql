@@ -13,6 +13,16 @@ kernelspec:
 
 # Composing large queries
 
+```{tip}
+Try this locally:
+
+~~~
+pip install k2s -U && k2s get ploomber/jupysql/master/examples/compose.ipynb
+~~~
+
+```
+
+
 *New in version 0.4.3*
 
 ```{note}
