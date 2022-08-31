@@ -12,13 +12,6 @@ kernelspec:
 ---
 # DuckDB
 
-
-```{dropdown} Required packages
-~~~
-pip install duckdb duckdb-engine pyarrow
-~~~
-```
-
 ```{tip}
 Try this locally:
 
@@ -26,6 +19,12 @@ Try this locally:
 pip install k2s -U && k2s get ploomber/jupysql/master/examples/duckdb.ipynb
 ~~~
 
+```
+
+```{dropdown} Required packages
+~~~
+pip install duckdb duckdb-engine pyarrow
+~~~
 ```
 
 
