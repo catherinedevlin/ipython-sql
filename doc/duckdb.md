@@ -13,7 +13,10 @@ kernelspec:
 # DuckDB
 
 ```{tip}
-Try this locally:
+[![](https://raw.githubusercontent.com/ploomber/ploomber/master/_static/open-in-jupyterlab.svg)](https://binder.ploomber.io/v2/gh/ploomber/binder-env/main?urlpath=git-pull%3Frepo%3Dhttps%253A%252F%252Fgithub.com%252Fploomber%252Fjupysql%26urlpath%3Dlab%252Ftree%252Fjupysql%252Fexamples%252Fduckdb.ipynb%26branch%3Dmaster)
+
+Or try locally:
+
 
 ~~~
 pip install k2s -U && k2s get ploomber/jupysql/master/examples/duckdb.ipynb
