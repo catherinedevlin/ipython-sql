@@ -6,6 +6,9 @@ doc/_build
 doc/*.csv
 doc/*.db
 doc/*.sql
+examples/*.csv
+examples/*.db
+examples/*.sql
 # temp testing assets
 src/tests/tmp
 

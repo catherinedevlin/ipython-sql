@@ -4,7 +4,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.0
+    jupytext_version: 1.14.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -34,6 +34,26 @@ This is a beta feature, please [join our community](https://ploomber.io/communit
 
 Using libraries like `matplotlib` or `seaborn`, requires fetching all the data locally, which quickly can fill up the memory in your machine. JupySQL runs computations in the warehouse/database to drastically reduce memory usage and runtime.
 
++++
+
+As an example, we are using a sales database from a record store. We’ll find the artists that have produced the largest number of Rock and Metal songs.
+
+Let’s load some data:
+
+```{code-cell} ipython3
+import urllib.request
+from pathlib import Path
+from sqlite3 import connect
+
+if not Path('my.db').is_file():
+    url = "https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite"
+    urllib.request.urlretrieve(url, 'my.db')
+```
+
+Now, let's initialize the extension so we only retrieve a few rows.
+
+Please note that `jupysql` and `memory_profiler` need o be installed.
+
 ```{code-cell} ipython3
 %load_ext autoreload
 %autoreload 2
@@ -45,15 +65,15 @@ Using libraries like `matplotlib` or `seaborn`, requires fetching all the data l
 We'll be using a sample dataset that contains information on music tracks:
 
 ```{code-cell} ipython3
-%%sql
-SELECT * FROM "TrackAll" LIMIT 2
+%%sql sqlite:///my.db
+SELECT * FROM "Track" LIMIT 3
 ```
 
-The `TrackAll` table contains 2.9 million rows:
+The `Track` table contains 3503 rows:
 
 ```{code-cell} ipython3
 %%sql
-SELECT COUNT(*) FROM "TrackAll"
+SELECT COUNT(*) FROM "Track"
 ```
 
 ## Boxplot
@@ -71,11 +91,12 @@ To use `plot.boxplot`, your SQL engine must support:
 ```{code-cell} ipython3
 from sql import plot
 import matplotlib.pyplot as plt
+plt.style.use('seaborn')
 ```
 
 ```{code-cell} ipython3
 %%memit
-plot.boxplot('TrackAll', 'Milliseconds')
+plot.boxplot('Track', 'Milliseconds')
 ```
 
 Note that the plot consumes only a few MiB of memory (increment), since most of the processing happens in the SQL engine. Furthermore, you'll also see big performance improvements if using a warehouse like Snowflake, Redshift or BigQuery, since they can process large amounts of data efficiently.
@@ -86,7 +107,7 @@ Note that the plot consumes only a few MiB of memory (increment), since most of 
 
 ```{code-cell} ipython3
 %%memit
-plot.histogram('TrackAll', 'Milliseconds', bins=50)
+plot.histogram('Track', 'Milliseconds', bins=50)
 ```
 
 ## Benchmark
@@ -99,10 +120,10 @@ from IPython import get_ipython
 def fetch_data():
     """
     Only needed to enable %%memit, this is the same as doing
-    res = %sql SELECT "Milliseconds" FROM "TrackAll"
+    res = %sql SELECT "Milliseconds" FROM "Track"
     """
     ip = get_ipython()
-    return ip.run_line_magic('sql', 'SELECT "Milliseconds" FROM "TrackAll"')
+    return ip.run_line_magic('sql', 'SELECT "Milliseconds" FROM "Track"')
 ```
 
 Fetching data consumes a lot of memory:
