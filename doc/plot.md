@@ -52,7 +52,7 @@ if not Path('my.db').is_file():
 
 Now, let's initialize the extension so we only retrieve a few rows.
 
-Please note that `jupysql` and `memory_profiler` need o be installed.
+Please note that `jupysql` and `memory_profiler` need to be installed.
 
 ```{code-cell} ipython3
 %load_ext autoreload
