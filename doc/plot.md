@@ -4,7 +4,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.0
+    jupytext_version: 1.14.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -34,6 +34,26 @@ This is a beta feature, please [join our community](https://ploomber.io/communit
 
 Using libraries like `matplotlib` or `seaborn`, requires fetching all the data locally, which quickly can fill up the memory in your machine. JupySQL runs computations in the warehouse/database to drastically reduce memory usage and runtime.
 
++++
+
+As an example, we are using a sales database from a record store. We’ll find the artists that have produced the largest number of Rock and Metal songs.
+
+Let’s load some data:
+
+```{code-cell} ipython3
+import urllib.request
+from pathlib import Path
+from sqlite3 import connect
+
+if not Path('my.db').is_file():
+    url = "https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite"
+    urllib.request.urlretrieve(url, 'my.db')
+```
+
+Now, let's initialize the extension so we only retrieve a few rows.
+
+Please note that `jupysql` and `memory_profiler` need to be installed.
+
 ```{code-cell} ipython3
 %load_ext autoreload
 %autoreload 2
@@ -45,11 +65,54 @@ Using libraries like `matplotlib` or `seaborn`, requires fetching all the data l
 We'll be using a sample dataset that contains information on music tracks:
 
 ```{code-cell} ipython3
-%%sql
-SELECT * FROM "TrackAll" LIMIT 2
+%%sql sqlite:///my.db
+SELECT * FROM "Track" LIMIT 3
 ```
 
-The `TrackAll` table contains 2.9 million rows:
+The `Track` table contains 3503 rows:
+
+```{code-cell} ipython3
+%%sql
+SELECT COUNT(*) FROM "Track"
+```
+
+Since we want to test plotting capabilities with a large database, we are going to create a new table by appending the original databse multiple times.
+
+For this, we will proceed to create a SQL template script that we will use  along Python to create a database generator. The SQL template will perform a union between the database with itself 500 times, since the [maximum number of terms in a compound SELECT statement is **500**](https://www.sqlite.org/limits.html). in any case, this will generate a table with ~1.7 million rows, as we will see below.
+
+```{code-cell} ipython3
+%%writefile large-table-template.sql
+DROP TABLE IF EXISTS "TrackAll";
+
+CREATE TABLE "TrackAll" AS
+    {% for _ in range(500) %}
+        SELECT * FROM "Track"
+        {% if not loop.last %}
+        UNION ALL
+        {% endif %}
+    {% endfor %}
+;
+```
+
+Now, the following Python script will use the SQL template script to generate a now script to create a big table from the database.
+
+```{code-cell} ipython3
+%%writefile large-table-gen.py
+from pathlib import Path
+from jinja2 import Template
+
+t = Template(Path('large-table-template.sql').read_text())
+Path('large-table.sql').write_text(t.render())
+```
+
+We can now proceed to execute the Python generator. The Python script can be run using the magic command `%run <file.py>`. After it generates the SQL script, we execute it to create the new table. To execute the SQL script, we use the `--file` flag from from [JupySQL's options](https://jupysql.readthedocs.io/en/latest/options.html) along the `%sql` magic command.
+
+```{code-cell} ipython3
+%run large-table-gen.py
+%sql --file large-table.sql
+```
+
+As we can see, the new table contains **~1.7 million rows**:
 
 ```{code-cell} ipython3
 %%sql
@@ -71,6 +134,7 @@ To use `plot.boxplot`, your SQL engine must support:
 ```{code-cell} ipython3
 from sql import plot
 import matplotlib.pyplot as plt
+plt.style.use('seaborn')
 ```
 
 ```{code-cell} ipython3
