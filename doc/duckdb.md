@@ -4,12 +4,13 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.0
+    jupytext_version: 1.14.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
 ---
+
 # DuckDB
 
 ```{tip}
@@ -51,7 +52,9 @@ if not Path('my.db').is_file():
     urllib.request.urlretrieve(url, 'my.db')
 ```
 
-We'll use `sqlite_scanner` extension to load a sample SQLite databse into DuckDB:
+Please note that `duckdb` dependencies need to be installed. You can install the dependencies with `pip install duckdb duckdb-engine pyarrow` from your terminal or `!pip install duckdb duckdb-engine pyarrow` from this notebook.
+
+We'll use `sqlite_scanner` extension to load a sample SQLite database into DuckDB:
 
 ```{code-cell} ipython3
 %%sql duckdb:///

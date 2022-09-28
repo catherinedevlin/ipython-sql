@@ -52,7 +52,7 @@ if not Path('my.db').is_file():
 
 Now, let's initialize the extension so we only retrieve a few rows.
 
-Please note that `jupysql` and `memory_profiler` need to be installed.
+Please note that `jupysql` and `memory_profiler` need to be installed. You can install them with `pip install jupysql memory_profiler` from your terminal or `!pip install jupysql memory_profiler` from this notebook.
 
 ```{code-cell} ipython3
 %load_ext autoreload
@@ -62,10 +62,19 @@ Please note that `jupysql` and `memory_profiler` need to be installed.
 %load_ext memory_profiler
 ```
 
+We'll use `sqlite_scanner` extension to load a sample SQLite database into DuckDB:
+
+```{code-cell} ipython3
+%%sql duckdb:///
+INSTALL 'sqlite_scanner';
+LOAD 'sqlite_scanner';
+CALL sqlite_attach('my.db');
+```
+
 We'll be using a sample dataset that contains information on music tracks:
 
 ```{code-cell} ipython3
-%%sql sqlite:///my.db
+%%sql
 SELECT * FROM "Track" LIMIT 3
 ```
 
@@ -112,12 +121,9 @@ We can now proceed to execute the Python generator. The Python script can be run
 %sql --file large-table.sql
 ```
 
-As we can see, the new table contains **~1.7 million rows**:
+As we can see, the new table contains **~1.7 million rows**.
 
-```{code-cell} ipython3
-%%sql
-SELECT COUNT(*) FROM "TrackAll"
-```
++++
 
 ## Boxplot
 
