@@ -25,6 +25,12 @@ pip install k2s -U && k2s get ploomber/jupysql/master/examples/plot.ipynb
 
 ```
 
+```{dropdown} Required packages
+~~~
+pip install jupysql memory_profiler
+~~~
+```
+
 
 *New in version 0.4.4*
 

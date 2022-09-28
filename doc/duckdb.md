@@ -52,8 +52,6 @@ if not Path('my.db').is_file():
     urllib.request.urlretrieve(url, 'my.db')
 ```
 
-Please note that `duckdb` dependencies need to be installed. You can install the dependencies with `pip install duckdb duckdb-engine pyarrow` from your terminal or `!pip install duckdb duckdb-engine pyarrow` from this notebook.
-
 We'll use `sqlite_scanner` extension to load a sample SQLite database into DuckDB:
 
 ```{code-cell} ipython3
