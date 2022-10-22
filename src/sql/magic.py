@@ -13,6 +13,7 @@ from IPython.core.magic_arguments import argument, magic_arguments, parse_argstr
 from IPython.display import display_javascript
 from sqlalchemy.exc import OperationalError, ProgrammingError, DatabaseError
 
+import sql
 import sql.connection
 import sql.parse
 import sql.run
@@ -121,6 +122,12 @@ class SqlMagic(Magics, Configurable):
         help="specify dictionary of connection arguments to pass to SQL driver",
     )
     @argument("-f", "--file", type=str, help="Run SQL from file at this path")
+    @argument(
+        "--lance",
+        type=bool,
+        default=True,
+        help="turn on the lance hack",
+    )
     def execute(self, line="", cell="", local_ns={}):
         """Runs SQL statement against a database, specified by SQLAlchemy connect string.
 
@@ -147,6 +154,7 @@ class SqlMagic(Magics, Configurable):
 
         """
         # Parse variables (words wrapped in {}) for %%sql magic (for %sql this is done automatically)
+        import sql
         cell = self.shell.var_expand(cell)
         line = sql.parse.without_sql_comment(parser=self.execute.parser, line=line)
         args = parse_argstring(self.execute, line)
@@ -241,6 +249,11 @@ class SqlMagic(Magics, Configurable):
                 if parsed["result_var"]:
                     result_var = parsed["result_var"]
                     print("Returning data to local variable {}".format(result_var))
+                    if args.lance:
+                        import sql.lance
+                        result = sql.lance.ResultSet(result, result_var)
+                        self.shell.user_ns.update({result_var: result})
+                        return result
                     self.shell.user_ns.update({result_var: result})
                     return None
 
