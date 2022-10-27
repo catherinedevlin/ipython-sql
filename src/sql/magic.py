@@ -245,19 +245,14 @@ class SqlMagic(Magics, Configurable):
 
                 return None
             else:
-
+                result_var = "sql_result_set"
                 if parsed["result_var"]:
                     result_var = parsed["result_var"]
-                    print("Returning data to local variable {}".format(result_var))
-                    if args.lance:
-                        import sql.lance
-                        result = sql.lance.ResultSet(result, result_var)
-                        self.shell.user_ns.update({result_var: result})
-                        return result
-                    self.shell.user_ns.update({result_var: result})
-                    return None
 
-                # Return results into the default ipython _ variable
+                if args.lance:
+                    import sql.lance
+                    result = sql.lance.ResultSet(result, result_var)
+                self.shell.user_ns.update({result_var: result})
                 return result
 
         # JA: added DatabaseError for MySQL

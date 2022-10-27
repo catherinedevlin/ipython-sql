@@ -1,6 +1,6 @@
 """Lance hack"""
 import json
-
+from pathlib import Path
 
 # Imagine the %%sql magic returns an instance of this
 class ResultSet:
@@ -13,7 +13,10 @@ class ResultSet:
         return json.dumps(self.df.to_dict(orient='records'))
 
     def _repr_html_(self):
-        return self._gen_html()
+        index_html = Path(__file__).parent / 'index.html'
+        self.df.to_json(r'df.json', orient="records")
+        with index_html.open(mode='r') as fh:
+            return fh.read()
 
     def _gen_html(self):
         return f"""
