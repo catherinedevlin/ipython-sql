@@ -61,14 +61,14 @@ class SqlMagic(Magics, Configurable):
         help="Automatically limit the number of rows displayed (full result set is still stored)",
     )
     autopandas = Bool(
-        False,
+        True,
         config=True,
         help="Return Pandas DataFrames instead of regular result sets",
     )
     column_local_vars = Bool(
         False, config=True, help="Return data into local variables from column names"
     )
-    feedback = Bool(True, config=True, help="Print number of rows affected by DML")
+    feedback = Bool(False, config=True, help="Print number of rows affected by DML")
     dsn_filename = Unicode(
         "odbc.ini",
         config=True,

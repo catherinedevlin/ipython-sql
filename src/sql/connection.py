@@ -71,7 +71,8 @@ class Connection(object):
 
             if cls.connections:
                 if displaycon:
-                    print(cls.connection_list())
+                    # print(cls.connection_list())
+                    pass
             else:
                 if os.getenv("DATABASE_URL"):
                     cls.current = Connection(
