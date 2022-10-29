@@ -1,3 +1,4 @@
 include README.rst
 include NEWS.rst
 include LICENSE
+include src/sql/index.html
