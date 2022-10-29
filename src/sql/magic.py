@@ -124,8 +124,7 @@ class SqlMagic(Magics, Configurable):
     @argument("-f", "--file", type=str, help="Run SQL from file at this path")
     @argument(
         "--lance",
-        type=bool,
-        default=True,
+        action="store_true",
         help="turn on the lance hack",
     )
     def execute(self, line="", cell="", local_ns={}):
@@ -155,6 +154,7 @@ class SqlMagic(Magics, Configurable):
         """
         # Parse variables (words wrapped in {}) for %%sql magic (for %sql this is done automatically)
         import sql
+
         cell = self.shell.var_expand(cell)
         line = sql.parse.without_sql_comment(parser=self.execute.parser, line=line)
         args = parse_argstring(self.execute, line)
@@ -220,7 +220,13 @@ class SqlMagic(Magics, Configurable):
             return
 
         try:
+            import time
+
+            start = time.time()
             result = sql.run.run(conn, parsed["sql"], self, user_ns)
+            end = time.time()
+            duration = end - start
+            print(f"Took {duration}")
 
             if (
                 result is not None
@@ -251,6 +257,7 @@ class SqlMagic(Magics, Configurable):
 
                 if args.lance:
                     import sql.lance
+
                     result = sql.lance.ResultSet(result, result_var)
                 self.shell.user_ns.update({result_var: result})
                 return result
