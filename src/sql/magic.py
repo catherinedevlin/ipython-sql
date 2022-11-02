@@ -306,4 +306,15 @@ def load_ipython_extension(ip):
 
     # js = "IPython.CodeCell.config_defaults.highlight_modes['magic_sql'] = {'reg':[/^%%sql/]};"
     # display_javascript(js, raw=True)
+    js = """
+            debugger;
+            let codeCell = (window.Jupyter ?? window.IPython)?.CodeCell;
+            if (codeCell) {
+                let highlightModes = (codeCell.options_default ?? codeCell.config_defaults).highlight_modes;
+                if (!highlightModes['magic_sql'])
+                    highlightModes['magic_sql'] = {'reg': []};
+                highlightModes['magic_sql']['reg'].push(/^%%sql/);
+            }
+        """
+    display_javascript(js, raw=True)
     ip.register_magics(SqlMagic)
