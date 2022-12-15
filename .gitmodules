@@ -1,0 +1,3 @@
+[submodule "viz-widget"]
+	path = viz-widget
+	url = git@github.com:eto-ai/viz-widget
