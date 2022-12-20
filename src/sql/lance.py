@@ -1,5 +1,6 @@
 """Lance hack"""
 import base64
+from io import BytesIO
 import json
 from pathlib import Path
 
@@ -11,7 +12,8 @@ def _convert_bytes(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     for name in df.columns:
         if _is_image_bytes(df[name]):
-            df[name] = df[name].apply(_to_base64)
+            df[name] = df[name].apply(lambda img: {"_lance_type": "image",
+                                                   "data": _to_base64(img)})
     return df
 
 
@@ -23,9 +25,10 @@ def _is_image_bytes(ser):
             if len(v) == 0:
                 continue
             try:
-                Image.open(v)
+                Image.open(BytesIO(v))
                 return True
             except Exception:
+                import pdb; pdb.set_trace()
                 return False
         return False
 
@@ -34,7 +37,7 @@ def _to_base64(v):
     if pd.isna(v) or len(v) == 0:
         return None
     else:
-        return base64.b64encode(v)
+        return base64.b64encode(v).decode('UTF-8')
 
 
 # Imagine the %%sql magic returns an instance of this
@@ -44,13 +47,17 @@ class ResultSet:
         self.df = df
         self.user_ns_name = user_ns_name
 
-    def to_json(self):
+    def to_json(self, output_file=None):
         df = _convert_bytes(self.df)
-        return json.dumps(df.to_dict(orient='records'))
+        if output_file is None:
+            return json.dumps(df.to_dict(orient='records'))
+        else:
+            return json.dump(df.to_dict(orient='records'), output_file)
 
     def _repr_html_(self):
         index_html = Path(__file__).parent / 'index.html'
-        self.df.to_json(r'df.json', orient="records")
+        with open(r'df.json', 'w') as fh:
+            self.to_json(fh)
         with index_html.open(mode='r') as fh:
             return fh.read()
 
