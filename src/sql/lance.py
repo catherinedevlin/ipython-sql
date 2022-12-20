@@ -1,6 +1,41 @@
 """Lance hack"""
+import base64
 import json
 from pathlib import Path
+
+import pandas as pd
+from PIL import Image
+
+
+def _convert_bytes(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    for name in df.columns:
+        if _is_image_bytes(df[name]):
+            df[name] = df[name].apply(_to_base64)
+    return df
+
+
+def _is_image_bytes(ser):
+    for k, v in ser.items():
+        if pd.isna(v):
+            continue
+        elif isinstance(v, bytes):
+            if len(v) == 0:
+                continue
+            try:
+                Image.open(v)
+                return True
+            except Exception:
+                return False
+        return False
+
+
+def _to_base64(v):
+    if pd.isna(v) or len(v) == 0:
+        return None
+    else:
+        return base64.b64encode(v)
+
 
 # Imagine the %%sql magic returns an instance of this
 class ResultSet:
@@ -10,7 +45,8 @@ class ResultSet:
         self.user_ns_name = user_ns_name
 
     def to_json(self):
-        return json.dumps(self.df.to_dict(orient='records'))
+        df = _convert_bytes(self.df)
+        return json.dumps(df.to_dict(orient='records'))
 
     def _repr_html_(self):
         index_html = Path(__file__).parent / 'index.html'
