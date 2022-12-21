@@ -14,8 +14,7 @@ def image_to_byte_array(image: Image) -> bytes:
 
 
 def _is_valid_image(img, img_bytes):
-    return ((img["_lance_type"] == "image") and
-            (img["data"] == base64.b64encode(img_bytes).decode("UTF-8")))
+    return img == base64.b64encode(img_bytes).decode("UTF-8")
 
 
 def test_image_embedded():
@@ -26,4 +25,4 @@ def test_image_embedded():
     json_data = json.loads(rs.to_json())
     for record in json_data:
         img = record["image"]
-        assert (img["data"] is None) or _is_valid_image(img, img_bytes)
+        assert img is None or _is_valid_image(img, img_bytes)

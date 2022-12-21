@@ -12,8 +12,7 @@ def _convert_bytes(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     for name in df.columns:
         if _is_image_bytes(df[name]):
-            df[name] = df[name].apply(lambda img: {"_lance_type": "image",
-                                                   "data": _to_base64(img)})
+            df[name] = df[name].apply(_to_base64)
     return df
 
 
