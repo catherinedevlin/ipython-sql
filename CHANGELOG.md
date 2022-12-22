@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## 0.4.7dev
+* Adds `--no-message` option to suppress output messages ([#13](https://github.com/ploomber/jupysql/issues/13))
 
 ## 0.4.6 (2022-08-30)
 * Updates telemetry key

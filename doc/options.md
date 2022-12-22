@@ -42,3 +42,6 @@ kernelspec:
 
 ``-f`` / ``--file <path>``
     Run SQL from file at this path
+
+``-m`` / ``--no-message``
+    Suppress output message
