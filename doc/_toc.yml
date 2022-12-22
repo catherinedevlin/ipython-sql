@@ -2,16 +2,22 @@
 # Learn more at https://jupyterbook.org/customize/toc.html
 
 format: jb-book
-root: intro
-chapters:
-- file: pandas
-- file: compose
-- file: configuration
-- file: options
-- file: plot
-- file: plotting
-- file: dumping
-- file: connecting
-- file: duckdb
-- file: credits
-- file: community
+root: quick-start
+parts:
+  - caption: User Guide
+    chapters:
+    - file: intro
+    - file: pandas
+    - file: compose
+    - file: configuration
+    - file: options
+    - file: plot
+    - file: plotting
+    - file: dumping
+    - file: connecting
+    - file: duckdb
+  - caption: Community
+    chapters:
+    - file: community/projects
+    - file: community/community
+    - file: community/credits

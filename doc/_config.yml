@@ -1,6 +1,6 @@
 title: JupySQL
 author: Ploomber
-# logo: logo.png
+logo: square-no-bg-small.png
 
 # Force re-execution of notebooks on each build.
 # See https://jupyterbook.org/content/execute.html
@@ -27,9 +27,10 @@ repository:
 html:
   use_issues_button: true
   use_repository_button: true
+  extra_navbar: Join us on <a href="https://ploomber.io/community/">Slack!</a>
+  announcement: To launch any tutorial in JupyterLab, click on the 🚀 button below!
 
 sphinx:
-  fail_on_warning: true
   config:
     execution_show_tb: true
 
