@@ -42,7 +42,7 @@ def test_multi_sql(ip):
     assert "Shakespeare" in str(result) and "Brecht" in str(result)
 
 
-def test_result_var(ip):
+def test_result_var(ip, capsys):
     ip.run_cell_magic(
         "sql",
         "",
@@ -53,37 +53,10 @@ def test_result_var(ip):
         """,
     )
     result = ip.user_global_ns["x"]
-    assert "Shakespeare" in str(result) and "Brecht" in str(result)
-
-
-def test_result_var_suppress_output_message(ip, capsys):
-    ip.run_cell_magic(
-        "sql",
-        "--no-message",
-        """
-        sqlite://
-        x <<
-        SELECT last_name FROM author;
-        """,
-    )
-    result = ip.user_global_ns["x"]
-
-    ip.run_cell_magic(
-        "sql",
-        "-m",
-        """
-        sqlite://
-        x <<
-        SELECT last_name FROM author;
-        """,
-    )
-    result_short = ip.user_global_ns["x"]
-
     out, _ = capsys.readouterr()
 
-    assert "Returning data to local variable" not in out
     assert "Shakespeare" in str(result) and "Brecht" in str(result)
-    assert "Shakespeare" in str(result_short) and "Brecht" in str(result_short)
+    assert "Returning data to local variable" not in out
 
 
 def test_result_var_multiline_shovel(ip):

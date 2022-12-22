@@ -182,12 +182,6 @@ class SqlMagic(Magics, Configurable):
         action="store_true",
         help="Do not execute query (use it with --save)",
     )
-    @argument(
-        "-m",
-        "--no-message",
-        action="store_false",
-        help="Suppress output message",
-    )
     def execute(self, line="", cell="", local_ns={}):
         """Runs SQL statement against a database, specified by SQLAlchemy connect string.
 
@@ -318,11 +312,10 @@ class SqlMagic(Magics, Configurable):
                     result = result.dict()
 
                 if self.feedback:
-                    if args.no_message is True:
-                        print(
-                            "Returning data to local variables [{}]".format(
-                                ", ".join(keys))
-                        )
+                    print(
+                        "Returning data to local variables [{}]".format(
+                            ", ".join(keys))
+                    )
 
                 self.shell.user_ns.update(result)
 
@@ -331,11 +324,6 @@ class SqlMagic(Magics, Configurable):
 
                 if parsed["result_var"]:
                     result_var = parsed["result_var"]
-
-                    if args.no_message is True:
-                        print(
-                            "Returning data to local variable {}".format(result_var))
-
                     self.shell.user_ns.update({result_var: result})
                     return None
 
