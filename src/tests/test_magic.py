@@ -56,6 +56,36 @@ def test_result_var(ip):
     assert "Shakespeare" in str(result) and "Brecht" in str(result)
 
 
+def test_result_var_suppress_output_message(ip, capsys):
+    ip.run_cell_magic(
+        "sql",
+        "--no-message",
+        """
+        sqlite://
+        x <<
+        SELECT last_name FROM author;
+        """,
+    )
+    result = ip.user_global_ns["x"]
+
+    ip.run_cell_magic(
+        "sql",
+        "-m",
+        """
+        sqlite://
+        x <<
+        SELECT last_name FROM author;
+        """,
+    )
+    result_short = ip.user_global_ns["x"]
+
+    out, _ = capsys.readouterr()
+
+    assert "Returning data to local variable" not in out
+    assert "Shakespeare" in str(result) and "Brecht" in str(result)
+    assert "Shakespeare" in str(result_short) and "Brecht" in str(result_short)
+
+
 def test_result_var_multiline_shovel(ip):
     ip.run_cell_magic(
         "sql",
@@ -149,19 +179,22 @@ def test_connection_args_enforce_json(ip):
 
 
 def test_connection_args_in_connection(ip):
-    ip.run_cell('%sql --connection_arguments {"timeout":10} sqlite:///:memory:')
+    ip.run_cell(
+        '%sql --connection_arguments {"timeout":10} sqlite:///:memory:')
     result = ip.run_cell("%sql --connections")
     assert "timeout" in result.result["sqlite:///:memory:"].connect_args
 
 
 def test_connection_args_single_quotes(ip):
-    ip.run_cell("%sql --connection_arguments '{\"timeout\": 10}' sqlite:///:memory:")
+    ip.run_cell(
+        "%sql --connection_arguments '{\"timeout\": 10}' sqlite:///:memory:")
     result = ip.run_cell("%sql --connections")
     assert "timeout" in result.result["sqlite:///:memory:"].connect_args
 
 
 def test_connection_args_double_quotes(ip):
-    ip.run_cell('%sql --connection_arguments "{\\"timeout\\": 10}" sqlite:///:memory:')
+    ip.run_cell(
+        '%sql --connection_arguments "{\\"timeout\\": 10}" sqlite:///:memory:')
     result = ip.run_cell("%sql --connections")
     assert "timeout" in result.result["sqlite:///:memory:"].connect_args
 

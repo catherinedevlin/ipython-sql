@@ -67,7 +67,8 @@ class SqlMagic(Magics, Configurable):
 
     Provides the %%sql magic."""
 
-    displaycon = Bool(True, config=True, help="Show connection string after execute")
+    displaycon = Bool(True, config=True,
+                      help="Show connection string after execute")
     autolimit = Int(
         0,
         config=True,
@@ -98,7 +99,8 @@ class SqlMagic(Magics, Configurable):
     column_local_vars = Bool(
         False, config=True, help="Return data into local variables from column names"
     )
-    feedback = Bool(True, config=True, help="Print number of rows affected by DML")
+    feedback = Bool(True, config=True,
+                    help="Print number of rows affected by DML")
     dsn_filename = Unicode(
         "odbc.ini",
         config=True,
@@ -180,6 +182,12 @@ class SqlMagic(Magics, Configurable):
         action="store_true",
         help="Do not execute query (use it with --save)",
     )
+    @argument(
+        "-m",
+        "--no-message",
+        action="store_false",
+        help="Suppress output message",
+    )
     def execute(self, line="", cell="", local_ns={}):
         """Runs SQL statement against a database, specified by SQLAlchemy connect string.
 
@@ -208,7 +216,8 @@ class SqlMagic(Magics, Configurable):
 
         # Parse variables (words wrapped in {}) for %%sql magic (for %sql this is done automatically)
         cell = self.shell.var_expand(cell)
-        line = sql.parse.without_sql_comment(parser=self.execute.parser, line=line)
+        line = sql.parse.without_sql_comment(
+            parser=self.execute.parser, line=line)
         args = parse_argstring(self.execute, line)
 
         if args.connections:
@@ -236,7 +245,8 @@ class SqlMagic(Magics, Configurable):
 
         connect_str = parsed["connection"]
         if args.section:
-            connect_str = sql.parse.connection_from_dsn_section(args.section, self)
+            connect_str = sql.parse.connection_from_dsn_section(
+                args.section, self)
 
         if args.connection_arguments:
             try:
@@ -308,9 +318,11 @@ class SqlMagic(Magics, Configurable):
                     result = result.dict()
 
                 if self.feedback:
-                    print(
-                        "Returning data to local variables [{}]".format(", ".join(keys))
-                    )
+                    if args.no_message is True:
+                        print(
+                            "Returning data to local variables [{}]".format(
+                                ", ".join(keys))
+                        )
 
                 self.shell.user_ns.update(result)
 
@@ -319,7 +331,11 @@ class SqlMagic(Magics, Configurable):
 
                 if parsed["result_var"]:
                     result_var = parsed["result_var"]
-                    print("Returning data to local variable {}".format(result_var))
+
+                    if args.no_message is True:
+                        print(
+                            "Returning data to local variable {}".format(result_var))
+
                     self.shell.user_ns.update({result_var: result})
                     return None
 
@@ -351,7 +367,8 @@ class SqlMagic(Magics, Configurable):
         except SyntaxError:
             raise SyntaxError("Syntax: %sql --persist <name_of_data_frame>")
         if not isinstance(frame, DataFrame) and not isinstance(frame, Series):
-            raise TypeError("%s is not a Pandas DataFrame or Series" % frame_name)
+            raise TypeError(
+                "%s is not a Pandas DataFrame or Series" % frame_name)
 
         # Make a suitable name for the resulting database table
         table_name = frame_name.lower()
@@ -359,7 +376,8 @@ class SqlMagic(Magics, Configurable):
 
         if_exists = "append" if append else "fail"
 
-        frame.to_sql(table_name, conn.session.engine, if_exists=if_exists, index=index)
+        frame.to_sql(table_name, conn.session.engine,
+                     if_exists=if_exists, index=index)
         return "Persisted %s" % table_name
 
 
