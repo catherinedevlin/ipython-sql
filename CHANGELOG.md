@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.4.7dev
+## 0.4.7 (2022-12-23)
 * Assigns a variable without displaying an output message ([#13](https://github.com/ploomber/jupysql/issues/13))
 
 ## 0.4.6 (2022-08-30)
