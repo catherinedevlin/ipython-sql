@@ -138,6 +138,43 @@ my_data = pd.DataFrame({"x": range(3, 6), "y": range(3, 6)})
 SELECT * FROM my_data LIMIT 2
 ```
 
+## Programmatic SQL queries
+
+```{code-cell} ipython3
+QUERY = """
+SELECT *
+FROM my_data
+LIMIT 3
+"""
+
+%sql $QUERY
+```
+
+## Templated SQL queries
+
+```{code-cell} ipython3
+from string import Template
+
+template = Template("""
+SELECT *
+FROM my_data
+LIMIT $limit
+""")
+
+limit_one = template.substitute(limit=1)
+limit_two = template.substitute(limit=2)
+```
+
+**Important:** Ensure you sanitize the input parameters; as malicious parameters will be able to run arbitrary SQL queries.
+
+```{code-cell} ipython3
+%sql $limit_one
+```
+
+```{code-cell} ipython3
+%sql $limit_two
+```
+
 ## Compose large queries
 
 ```{code-cell} ipython3
