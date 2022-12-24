@@ -202,9 +202,11 @@ class ResultSet(list, ColumnGuesserMixin):
         self.guess_pie_columns(xlabel_sep=key_word_sep)
         import matplotlib.pylab as plt
 
-        pie = plt.pie(self.ys[0], labels=self.xlabels, **kwargs)
-        plt.title(title or self.ys[0].name)
-        return pie
+        ax = plt.gca()
+
+        ax.pie(self.ys[0], labels=self.xlabels, **kwargs)
+        ax.set_title(title or self.ys[0].name)
+        return ax
 
     def plot(self, title=None, **kwargs):
         """Generates a pylab plot from the result set.
@@ -228,14 +230,21 @@ class ResultSet(list, ColumnGuesserMixin):
 
         self.guess_plot_columns()
         self.x = self.x or range(len(self.ys[0]))
+
+        ax = plt.gca()
+
         coords = reduce(operator.add, [(self.x, y) for y in self.ys])
-        plot = plt.plot(*coords, **kwargs)
+        ax.plot(*coords, **kwargs)
+
         if hasattr(self.x, "name"):
-            plt.xlabel(self.x.name)
+            ax.set_xlabel(self.x.name)
+
         ylabel = ", ".join(y.name for y in self.ys)
-        plt.title(title or ylabel)
-        plt.ylabel(ylabel)
-        return plot
+
+        ax.set_title(title or ylabel)
+        ax.set_ylabel(ylabel)
+
+        return ax
 
     def bar(self, key_word_sep=" ", title=None, **kwargs):
         """Generates a pylab bar plot from the result set.
@@ -259,13 +268,17 @@ class ResultSet(list, ColumnGuesserMixin):
         """
         import matplotlib.pylab as plt
 
+        ax = plt.gca()
+
         self.guess_pie_columns(xlabel_sep=key_word_sep)
-        plot = plt.bar(range(len(self.ys[0])), self.ys[0], **kwargs)
+        ax.bar(range(len(self.ys[0])), self.ys[0], **kwargs)
+
         if self.xlabels:
-            plt.xticks(range(len(self.xlabels)), self.xlabels, rotation=45)
-        plt.xlabel(self.xlabel)
-        plt.ylabel(self.ys[0].name)
-        return plot
+            ax.set_xticks(range(len(self.xlabels)), self.xlabels, rotation=45)
+
+        ax.set_xlabel(self.xlabel)
+        ax.set_ylabel(self.ys[0].name)
+        return ax
 
     def csv(self, filename=None, **format_params):
         """Generate results in comma-separated form.  Write to ``filename`` if given.
