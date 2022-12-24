@@ -63,7 +63,7 @@ df.head()
 type(df)
 ```
 
-## Authentication
+## Connecting
 
 To authenticate with your database, you can build your connection string:
 

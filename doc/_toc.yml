@@ -7,15 +7,17 @@ parts:
   - caption: User Guide
     chapters:
     - file: intro
-    - file: pandas
-    - file: compose
-    - file: configuration
-    - file: options
-    - file: plot
-    - file: plotting
-    - file: dumping
     - file: connecting
+    - file: plot
+    - file: plot-large
+    - file: csv
+    - file: compose
     - file: duckdb
+    - file: pandas
+  - caption: API Reference
+    chapters:
+    - file: api
+    - file: configuration
   - caption: Community
     chapters:
     - file: community/projects

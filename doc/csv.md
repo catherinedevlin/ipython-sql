@@ -13,7 +13,7 @@ kernelspec:
   name: python3
 ---
 
-# Dumping
+# Export to CSV
 
 Result sets come with a ``.csv(filename=None)`` method.  This generates
 comma-separated text either as a return value (if ``filename`` is not
