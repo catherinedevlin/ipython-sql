@@ -19,6 +19,20 @@ JupySQL allows you to run SQL in Jupyter/IPython via a `%sql` and `%%sql` magics
 
 +++
 
+## Installation
+
+Run this on your terminal:
+
+```sh
+pip install jupysql
+```
+
+Or the following in a Jupyter notebook:
+
+```{code-cell} ipython3
+%pip install jupysql --quiet
+```
+
 ## Setup
 
 Load the extension:
@@ -26,7 +40,6 @@ Load the extension:
 ```{code-cell} ipython3
 %load_ext sql
 ```
-
 
 Let's see an example using a SQLite database. Let's insert some sample data from the TIOBE index:
 
