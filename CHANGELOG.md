@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.4.8dev
+## 0.5 (2022-12-24)
 * `ResultSet.plot()`, `ResultSet.bar()`, and `ResultSet.pie()` return `matplotlib.Axes` objects
 
 ## 0.4.7 (2022-12-23)
