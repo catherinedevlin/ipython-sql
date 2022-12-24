@@ -14,10 +14,16 @@ parts:
     - file: compose
     - file: duckdb
     - file: pandas
+
   - caption: API Reference
     chapters:
     - file: api
     - file: configuration
+
+  - caption: How-To
+    chapters:
+    - file: howto
+
   - caption: Community
     chapters:
     - file: community/projects
