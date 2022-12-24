@@ -4,6 +4,7 @@ from os.path import expandvars
 
 from six.moves import configparser as CP
 from sqlalchemy.engine.url import URL
+from IPython.core.magic_arguments import parse_argstring
 
 
 def connection_from_dsn_section(section, config):
@@ -90,3 +91,8 @@ def without_sql_comment(parser, line):
         shlex.split(line, posix=False),
     )
     return " ".join(result)
+
+
+def magic_args(magic_execute, line):
+    line = without_sql_comment(parser=magic_execute.parser, line=line)
+    return parse_argstring(magic_execute, line)
