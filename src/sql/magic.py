@@ -44,6 +44,10 @@ telemetry = Telemetry(
 
 @magics_class
 class RenderMagic(Magics):
+    """
+    %sqlrender magic which prints composed queries
+    """
+
     @line_magic
     @magic_arguments()
     # TODO: only accept one arg
