@@ -67,8 +67,7 @@ class SqlMagic(Magics, Configurable):
 
     Provides the %%sql magic."""
 
-    displaycon = Bool(True, config=True,
-                      help="Show connection string after execute")
+    displaycon = Bool(True, config=True, help="Show connection string after execute")
     autolimit = Int(
         0,
         config=True,
@@ -78,7 +77,10 @@ class SqlMagic(Magics, Configurable):
     style = Unicode(
         "DEFAULT",
         config=True,
-        help="Set the table printing style to any of prettytable's defined styles (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)",
+        help=(
+            "Set the table printing style to any of prettytable's "
+            "defined styles (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)"
+        ),
     )
     short_errors = Bool(
         True,
@@ -89,7 +91,10 @@ class SqlMagic(Magics, Configurable):
         None,
         config=True,
         allow_none=True,
-        help="Automatically limit the number of rows displayed (full result set is still stored)",
+        help=(
+            "Automatically limit the number of rows "
+            "displayed (full result set is still stored)"
+        ),
     )
     autopandas = Bool(
         False,
@@ -99,8 +104,7 @@ class SqlMagic(Magics, Configurable):
     column_local_vars = Bool(
         False, config=True, help="Return data into local variables from column names"
     )
-    feedback = Bool(True, config=True,
-                    help="Print number of rows affected by DML")
+    feedback = Bool(True, config=True, help="Print number of rows affected by DML")
     dsn_filename = Unicode(
         "odbc.ini",
         config=True,
@@ -183,7 +187,9 @@ class SqlMagic(Magics, Configurable):
         help="Do not execute query (use it with --save)",
     )
     def execute(self, line="", cell="", local_ns={}):
-        """Runs SQL statement against a database, specified by SQLAlchemy connect string.
+        """
+        Runs SQL statement against a database, specified by
+        SQLAlchemy connect string.
 
         If no database connection has been established, first word
         should be a SQLAlchemy connection string, or the user@db name
@@ -208,10 +214,10 @@ class SqlMagic(Magics, Configurable):
 
         """
 
-        # Parse variables (words wrapped in {}) for %%sql magic (for %sql this is done automatically)
+        # Parse variables (words wrapped in {}) for %%sql magic
+        # (for %sql this is done automatically)
         cell = self.shell.var_expand(cell)
-        line = sql.parse.without_sql_comment(
-            parser=self.execute.parser, line=line)
+        line = sql.parse.without_sql_comment(parser=self.execute.parser, line=line)
         args = parse_argstring(self.execute, line)
 
         if args.connections:
@@ -239,8 +245,7 @@ class SqlMagic(Magics, Configurable):
 
         connect_str = parsed["connection"]
         if args.section:
-            connect_str = sql.parse.connection_from_dsn_section(
-                args.section, self)
+            connect_str = sql.parse.connection_from_dsn_section(args.section, self)
 
         if args.connection_arguments:
             try:
@@ -313,8 +318,7 @@ class SqlMagic(Magics, Configurable):
 
                 if self.feedback:
                     print(
-                        "Returning data to local variables [{}]".format(
-                            ", ".join(keys))
+                        "Returning data to local variables [{}]".format(", ".join(keys))
                     )
 
                 self.shell.user_ns.update(result)
@@ -355,8 +359,7 @@ class SqlMagic(Magics, Configurable):
         except SyntaxError:
             raise SyntaxError("Syntax: %sql --persist <name_of_data_frame>")
         if not isinstance(frame, DataFrame) and not isinstance(frame, Series):
-            raise TypeError(
-                "%s is not a Pandas DataFrame or Series" % frame_name)
+            raise TypeError("%s is not a Pandas DataFrame or Series" % frame_name)
 
         # Make a suitable name for the resulting database table
         table_name = frame_name.lower()
@@ -364,8 +367,7 @@ class SqlMagic(Magics, Configurable):
 
         if_exists = "append" if append else "fail"
 
-        frame.to_sql(table_name, conn.session.engine,
-                     if_exists=if_exists, index=index)
+        frame.to_sql(table_name, conn.session.engine, if_exists=if_exists, index=index)
         return "Persisted %s" % table_name
 
 
@@ -375,7 +377,7 @@ def load_ipython_extension(ip):
     # this fails in both Firefox and Chrome for OS X.
     # I get the error: TypeError: IPython.CodeCell.config_defaults is undefined
 
-    # js = "IPython.CodeCell.config_defaults.highlight_modes['magic_sql'] = {'reg':[/^%%sql/]};"
+    # js = "IPython.CodeCell.config_defaults.highlight_modes['magic_sql'] = {'reg':[/^%%sql/]};" # noqa
     # display_javascript(js, raw=True)
     ip.register_magics(SqlMagic)
     ip.register_magics(RenderMagic)

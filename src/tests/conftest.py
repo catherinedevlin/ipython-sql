@@ -19,7 +19,11 @@ def path_to_tests():
 def chinook_db():
     path = PATH_TO_TMP_ASSETS / "my.db"
     if not path.is_file():
-        url = "https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite"
+        url = (
+            "https://raw.githubusercontent.com"
+            "/lerocha/chinook-database/master/"
+            "ChinookDatabase/DataSources/Chinook_Sqlite.sqlite"
+        )
         urllib.request.urlretrieve(url, path)
 
     return str(path)

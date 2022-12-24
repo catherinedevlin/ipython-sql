@@ -1,12 +1,14 @@
 # JupySQL
 
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 Run SQL in Jupyter/IPython via a `%sql` and `%%sql` magics.
 
 ## Features
 
 - [Pandas integration](https://jupysql.readthedocs.io/en/latest/pandas.html)
 - [SQL composition (no more hard-to-debug CTEs!)](https://jupysql.readthedocs.io/en/latest/compose.html)
-- [Plot massive datasets without blowing up memory](https://jupysql.readthedocs.io/en/latest/plot.html)
+- [Plot massive datasets without blowing up memory](https://jupysql.readthedocs.io/en/latest/plot-large.html)
 - [DuckDB integration](https://jupysql.readthedocs.io/en/latest/duckdb.html)
 
 ## Installation

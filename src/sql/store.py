@@ -77,9 +77,9 @@ def _get_dependencies_for_key(store, key):
     return deps_of_deps + deps
 
 
-def _flatten(l):
+def _flatten(elements):
     """Flatten a list of lists"""
-    return [element for sub in l for element in sub]
+    return [element for sub in elements for element in sub]
 
 
 # session-wide store

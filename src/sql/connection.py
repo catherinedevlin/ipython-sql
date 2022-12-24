@@ -1,5 +1,4 @@
 import os
-import re
 
 import sqlalchemy
 
@@ -45,7 +44,7 @@ class Connection(object):
                 engine = sqlalchemy.create_engine(
                     connect_str, connect_args=connect_args
                 )
-        except:  # TODO: bare except; but what's an ArgumentError?
+        except Exception:
             print(self.tell_format())
             raise
         self.dialect = engine.url.get_dialect()
@@ -65,7 +64,7 @@ class Connection(object):
                 cls.current = descriptor
             else:
                 existing = rough_dict_get(cls.connections, descriptor)
-            # http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#custom-dbapi-connect-arguments
+            # http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#custom-dbapi-connect-arguments # noqa
             cls.current = existing or Connection(descriptor, connect_args, creator)
         else:
 
@@ -79,7 +78,8 @@ class Connection(object):
                     )
                 else:
                     raise ConnectionError(
-                        "Environment variable $DATABASE_URL not set, and no connect string given."
+                        "Environment variable $DATABASE_URL "
+                        "not set, and no connect string given."
                     )
         return cls.current
 

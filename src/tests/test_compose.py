@@ -1,6 +1,3 @@
-from conftest import runsql
-
-
 def test_compose(ip):
     ip.run_cell_magic(
         "sql",
@@ -16,13 +13,10 @@ def test_compose(ip):
 
     result = ip.run_cell("%sqlrender final").result
 
-    expected = """\
-WITH author_sub AS (
-    
-SELECT last_name FROM author WHERE year_of_death > 1900
-)
-
-SELECT last_name FROM author_sub;\
-"""
+    expected = (
+        "WITH author_sub AS (\n    \nSELECT last_name "
+        "FROM author WHERE year_of_death > 1900\n)\n\n"
+        "SELECT last_name FROM author_sub;"
+    )
 
     assert result == expected

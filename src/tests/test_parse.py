@@ -1,8 +1,6 @@
-import json
 import os
 from pathlib import Path
 
-from six.moves import configparser
 
 from sql.parse import connection_from_dsn_section, parse, without_sql_comment
 
@@ -54,22 +52,6 @@ def test_expand_environment_variables_in_connection():
     os.environ["DATABASE_URL"] = "postgresql:///shakes"
     assert parse("$DATABASE_URL SELECT * FROM work", empty_config) == {
         "connection": "postgresql:///shakes",
-        "sql": "SELECT * FROM work",
-        "result_var": None,
-    }
-
-
-def test_parse_shovel_operator():
-    assert parse("dest << SELECT * FROM work", empty_config) == {
-        "connection": "",
-        "sql": "SELECT * FROM work",
-        "result_var": "dest",
-    }
-
-
-def test_parse_connect_plus_shovel():
-    assert parse("sqlite:// dest << SELECT * FROM work", empty_config) == {
-        "connection": "sqlite://",
         "sql": "SELECT * FROM work",
         "result_var": None,
     }

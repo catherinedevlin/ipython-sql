@@ -68,7 +68,10 @@ class UnicodeWriter(object):
 
 
 class CsvResultDescriptor(object):
-    """Provides IPython Notebook-friendly output for the feedback after a ``.csv`` called."""
+    """
+    Provides IPython Notebook-friendly output for the
+    feedback after a ``.csv`` called.
+    """
 
     def __init__(self, file_path):
         self.file_path = file_path
@@ -129,10 +132,11 @@ class ResultSet(list, ColumnGuesserMixin):
             result = self.pretty.get_html_string()
             result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
             if self.config.displaylimit and len(self) > self.config.displaylimit:
-                result = (
-                    '%s\n<span style="font-style:italic;text-align:center;">%d rows, truncated to displaylimit of %d</span>'
-                    % (result, len(self), self.config.displaylimit)
+                HTML = (
+                    '%s\n<span style="font-style:italic;text-align:center;">'
+                    "%d rows, truncated to displaylimit of %d</span>"
                 )
+                result = HTML % (result, len(self), self.config.displaylimit)
             return result
         else:
             return None

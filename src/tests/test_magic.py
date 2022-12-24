@@ -152,22 +152,19 @@ def test_connection_args_enforce_json(ip):
 
 
 def test_connection_args_in_connection(ip):
-    ip.run_cell(
-        '%sql --connection_arguments {"timeout":10} sqlite:///:memory:')
+    ip.run_cell('%sql --connection_arguments {"timeout":10} sqlite:///:memory:')
     result = ip.run_cell("%sql --connections")
     assert "timeout" in result.result["sqlite:///:memory:"].connect_args
 
 
 def test_connection_args_single_quotes(ip):
-    ip.run_cell(
-        "%sql --connection_arguments '{\"timeout\": 10}' sqlite:///:memory:")
+    ip.run_cell("%sql --connection_arguments '{\"timeout\": 10}' sqlite:///:memory:")
     result = ip.run_cell("%sql --connections")
     assert "timeout" in result.result["sqlite:///:memory:"].connect_args
 
 
 def test_connection_args_double_quotes(ip):
-    ip.run_cell(
-        '%sql --connection_arguments "{\\"timeout\\": 10}" sqlite:///:memory:')
+    ip.run_cell('%sql --connection_arguments "{\\"timeout\\": 10}" sqlite:///:memory:')
     result = ip.run_cell("%sql --connections")
     assert "timeout" in result.result["sqlite:///:memory:"].connect_args
 
@@ -186,7 +183,8 @@ def test_displaylimit(ip):
     ip.run_line_magic("config", "SqlMagic.displaylimit = None")
     result = runsql(
         ip,
-        "SELECT * FROM (VALUES ('apple'), ('banana'), ('cherry')) AS Result ORDER BY 1;",
+        "SELECT * FROM (VALUES ('apple'), ('banana'), ('cherry')) "
+        "AS Result ORDER BY 1;",
     )
     assert "apple" in result._repr_html_()
     assert "banana" in result._repr_html_()
@@ -194,7 +192,8 @@ def test_displaylimit(ip):
     ip.run_line_magic("config", "SqlMagic.displaylimit = 1")
     result = runsql(
         ip,
-        "SELECT * FROM (VALUES ('apple'), ('banana'), ('cherry')) AS Result ORDER BY 1;",
+        "SELECT * FROM (VALUES ('apple'), ('banana'), ('cherry')) "
+        "AS Result ORDER BY 1;",
     )
     assert "apple" in result._repr_html_()
     assert "cherry" not in result._repr_html_()
@@ -311,6 +310,7 @@ def test_bracket_var_substitution(ip):
     assert not result
 
 
+# the next two tests had the same name, so I added a _2 to the second one
 def test_multiline_bracket_var_substitution(ip):
 
     ip.user_global_ns["col"] = "first_name"
@@ -325,7 +325,7 @@ def test_multiline_bracket_var_substitution(ip):
     assert not result
 
 
-def test_multiline_bracket_var_substitution(ip):
+def test_multiline_bracket_var_substitution_2(ip):
     ip.user_global_ns["col"] = "first_name"
     result = ip.run_cell_magic(
         "sql",
@@ -363,7 +363,8 @@ def test_json_in_select(ip):
         AS json
         """,
     )
-    assert ('{"greeting": "Farewell sweet {person}"}',)
+
+    assert result == [('{"greeting": "Farewell sweet {person}"}',)]
 
 
 def test_close_connection(ip):
