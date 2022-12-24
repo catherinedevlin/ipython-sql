@@ -15,6 +15,7 @@ from IPython.core.magic import (
 )
 from IPython.core.magic_arguments import argument, magic_arguments, parse_argstring
 from sqlalchemy.exc import OperationalError, ProgrammingError, DatabaseError
+from sqlalchemy.engine import Engine
 
 import sql.connection
 import sql.parse
@@ -217,10 +218,29 @@ class SqlMagic(Magics, Configurable):
           mysql+pymysql://me:mypw@localhost/mydb
 
         """
+        # line is the text after the magic, cell is the cell's body
+
+        # Examples
+
+        # %sql {line}
+        # note that line magic has no body
+
+        # %%sql {line}
+        # {cell}
+
+        # save globals and locals so they can be referenced in bind vars
+        user_ns = self.shell.user_ns.copy()
+        user_ns.update(local_ns)
 
         # Parse variables (words wrapped in {}) for %%sql magic
         # (for %sql this is done automatically)
         cell = self.shell.var_expand(cell)
+
+        # parse args
+        # args.line: contains the line after the magic with all options removed
+
+        # NOTE: this two lines were moved to parse.magic_args, we'll replace the
+        # whole parsing logic with SQLCommand once the migration is done
         line = sql.parse.without_sql_comment(parser=self.execute.parser, line=line)
         args = parse_argstring(self.execute, line)
 
@@ -228,10 +248,6 @@ class SqlMagic(Magics, Configurable):
             return sql.connection.Connection.connections
         elif args.close:
             return sql.connection.Connection._close(args.close)
-
-        # save globals and locals so they can be referenced in bind vars
-        user_ns = self.shell.user_ns.copy()
-        user_ns.update(local_ns)
 
         command_text = " ".join(args.line) + "\n" + cell
 
@@ -247,9 +263,9 @@ class SqlMagic(Magics, Configurable):
             final = self._store.render(original, with_=args.with_)
             parsed["sql"] = str(final)
 
-        connect_str = parsed["connection"]
+        connect_arg = parsed["connection"]
         if args.section:
-            connect_str = sql.parse.connection_from_dsn_section(args.section, self)
+            connect_arg = sql.parse.connection_from_dsn_section(args.section, self)
 
         if args.connection_arguments:
             try:
@@ -270,9 +286,22 @@ class SqlMagic(Magics, Configurable):
         if args.creator:
             args.creator = user_ns[args.creator]
 
+        # maybe there's a better variable to use than line
+        if line.strip() in user_ns and isinstance(user_ns[line.strip()], Engine):
+            existing_engine = user_ns[line]
+        else:
+            existing_engine = None
+
+        # FIXME: tmp hack, otherwise when passing an engine name,
+        # this is set to the engine name. we need to modify
+        # the parse.parse logic so it doesn't put the engine_name
+        # here
+        if existing_engine:
+            parsed["sql"] = None
+
         try:
             conn = sql.connection.Connection.set(
-                connect_str,
+                existing_engine or connect_arg,
                 displaycon=self.displaycon,
                 connect_args=args.connection_arguments,
                 creator=args.creator,
