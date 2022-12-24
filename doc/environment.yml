@@ -18,4 +18,4 @@ dependencies:
     - memory-profiler
     - psycopg2-binary
     - pyarrow
-    - ..
+    - -e ..

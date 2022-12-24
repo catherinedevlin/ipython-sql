@@ -10,10 +10,10 @@ parts:
     - file: connecting
     - file: plot
     - file: plot-large
-    - file: csv
-    - file: compose
     - file: duckdb
     - file: pandas
+    - file: csv
+    - file: compose
 
   - caption: API Reference
     chapters:

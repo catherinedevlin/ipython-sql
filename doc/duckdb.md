@@ -266,7 +266,7 @@ We see that memory usage increase just a bit.
 
 +++
 
-## Benchmark: Using pandas
+### Benchmark: Using pandas
 
 We now repeat the same process using pandas.
 

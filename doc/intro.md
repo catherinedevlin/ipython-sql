@@ -13,7 +13,7 @@ kernelspec:
   name: python3
 ---
 
-# The basics
+# Introduction
 
 JupySQL allows you to run SQL in Jupyter/IPython via a `%sql` and `%%sql` magics.
 
