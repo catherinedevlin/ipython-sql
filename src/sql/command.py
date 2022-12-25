@@ -55,3 +55,8 @@ class SQLCommand:
     def connection(self):
         """Returns the connection string"""
         return self.parsed["connection"]
+
+    @property
+    def result_var(self):
+        """Returns the result_var"""
+        return self.parsed["result_var"]

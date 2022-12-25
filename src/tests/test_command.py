@@ -12,26 +12,30 @@ def sql_magic(ip):
 
 
 @pytest.mark.parametrize(
-    "line, cell, parsed_sql, parsed_connection",
+    "line, cell, parsed_sql, parsed_connection, parsed_result_var",
     [
-        ("something --no-execute", "", "something\n", ""),
-        ("sqlite://", "", "", "sqlite://"),
-        ("SELECT * FROM TABLE", "", "SELECT * FROM TABLE\n", ""),
-        ("SELECT * FROM", "TABLE", "SELECT * FROM\nTABLE", ""),
+        ("something --no-execute", "", "something\n", "", None),
+        ("sqlite://", "", "", "sqlite://", None),
+        ("SELECT * FROM TABLE", "", "SELECT * FROM TABLE\n", "", None),
+        ("SELECT * FROM", "TABLE", "SELECT * FROM\nTABLE", "", None),
+        ("my_var << SELECT *", "FROM table", "SELECT *\nFROM table", "", "my_var"),
     ],
     ids=[
         "arg-with-option",
         "connection-string",
         "sql-query",
-        "sql-query-in-line-and-cell",  # NOTE: I'm unsure under which circumstances this happens # noqa
+        "sql-query-in-line-and-cell",
+        "parsed-var",
     ],
 )
-def test_parsed(ip, sql_magic, line, cell, parsed_sql, parsed_connection):
+def test_parsed(
+    ip, sql_magic, line, cell, parsed_sql, parsed_connection, parsed_result_var
+):
     cmd = SQLCommand(sql_magic, ip.user_ns, line, cell)
 
     assert cmd.parsed == {
         "connection": parsed_connection,
-        "result_var": None,
+        "result_var": parsed_result_var,
         "sql": parsed_sql,
         "sql_original": parsed_sql,
     }
@@ -125,7 +129,6 @@ def test_parse_sql_when_passing_engine(ip, sql_magic, tmp_empty):
     cell = "SELECT * FROM author"
 
     cmd = SQLCommand(sql_magic, ip.user_ns, line, cell)
-
 
     sql_expected = "\nSELECT * FROM author"
 

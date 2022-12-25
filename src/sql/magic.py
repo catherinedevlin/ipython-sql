@@ -240,15 +240,14 @@ class SqlMagic(Magics, Configurable):
         command = SQLCommand(self, user_ns, line, cell)
         # args.line: contains the line after the magic with all options removed
         args = command.args
-        parsed = command.parsed
-        original = parsed["sql_original"]
 
         if args.connections:
             return sql.connection.Connection.connections
         elif args.close:
             return sql.connection.Connection._close(args.close)
 
-        connect_arg = parsed["connection"]
+        connect_arg = command.connection
+
         if args.section:
             connect_arg = sql.parse.connection_from_dsn_section(args.section, self)
 
@@ -291,27 +290,27 @@ class SqlMagic(Magics, Configurable):
 
         if args.persist:
             return self._persist_dataframe(
-                parsed["sql"], conn, user_ns, append=False, index=not args.no_index
+                command.sql, conn, user_ns, append=False, index=not args.no_index
             )
 
         if args.append:
             return self._persist_dataframe(
-                parsed["sql"], conn, user_ns, append=True, index=not args.no_index
+                command.sql, conn, user_ns, append=True, index=not args.no_index
             )
 
-        if not parsed["sql"]:
+        if not command.sql:
             return
 
         # store the query if needed
         if args.save:
-            self._store.store(args.save, original, with_=args.with_)
+            self._store.store(args.save, command.sql_original, with_=args.with_)
 
         if args.no_execute:
             print("Skipping execution...")
             return
 
         try:
-            result = sql.run.run(conn, parsed["sql"], self, user_ns)
+            result = sql.run.run(conn, command.sql, self, user_ns)
 
             if (
                 result is not None
@@ -337,9 +336,8 @@ class SqlMagic(Magics, Configurable):
                 return None
             else:
 
-                if parsed["result_var"]:
-                    result_var = parsed["result_var"]
-                    self.shell.user_ns.update({result_var: result})
+                if command.result_var:
+                    self.shell.user_ns.update({command.result_var: result})
                     return None
 
                 # Return results into the default ipython _ variable
