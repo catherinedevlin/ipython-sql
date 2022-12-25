@@ -270,15 +270,9 @@ class SqlMagic(Magics, Configurable):
         if args.creator:
             args.creator = user_ns[args.creator]
 
-        # maybe there's a better variable to use than line
-        if line.strip() in user_ns and isinstance(user_ns[line.strip()], Engine):
-            existing_engine = user_ns[line]
-        else:
-            existing_engine = None
-
         try:
             conn = sql.connection.Connection.set(
-                existing_engine or connect_arg,
+                connect_arg,
                 displaycon=self.displaycon,
                 connect_args=args.connection_arguments,
                 creator=args.creator,
