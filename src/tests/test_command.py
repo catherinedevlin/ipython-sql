@@ -123,7 +123,8 @@ def test_args(ip, sql_magic):
 
 
 def test_parse_sql_when_passing_engine(ip, sql_magic, tmp_empty):
-    ip.user_global_ns["my_engine"] = create_engine("sqlite:///my.db")
+    engine = create_engine("sqlite:///my.db")
+    ip.user_global_ns["my_engine"] = engine
 
     line = "my_engine"
     cell = "SELECT * FROM author"
@@ -133,12 +134,12 @@ def test_parse_sql_when_passing_engine(ip, sql_magic, tmp_empty):
     sql_expected = "\nSELECT * FROM author"
 
     assert cmd.parsed == {
-        "connection": "my_engine",
+        "connection": engine,
         "result_var": None,
         "sql": sql_expected,
         "sql_original": sql_expected,
     }
 
-    assert cmd.connection == "my_engine"
+    assert cmd.connection is engine
     assert cmd.sql == sql_expected
     assert cmd.sql_original == sql_expected

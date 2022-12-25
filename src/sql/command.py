@@ -1,3 +1,5 @@
+from sqlalchemy.engine import Engine
+
 from sql import parse
 from sql.store import store
 
@@ -12,7 +14,11 @@ class SQLCommand:
     def __init__(self, magic, user_ns, line, cell) -> None:
         self.args = parse.magic_args(magic.execute, line)
 
-        if len(self.args.line) == 1 and self.args.line[0] in user_ns:
+        if (
+            len(self.args.line) == 1
+            and self.args.line[0].strip() in user_ns
+            and isinstance(user_ns[self.args.line[0].strip()], Engine)
+        ):
             line_for_command = []
             add_conn = True
         else:
@@ -31,7 +37,7 @@ class SQLCommand:
         self.parsed["sql_original"] = self.parsed["sql"]
 
         if add_conn:
-            self.parsed["connection"] = self.args.line[0]
+            self.parsed["connection"] = user_ns[self.args.line[0].strip()]
 
         if self.args.with_:
             final = store.render(self.parsed["sql"], with_=self.args.with_)
