@@ -12,11 +12,6 @@ class SQLCommand:
     def __init__(self, magic, user_ns, line, cell) -> None:
         self.args = parse.magic_args(magic.execute, line)
 
-        # if line == "my_engine":
-        #     from IPython import embed
-
-        #     embed()
-
         if len(self.args.line) == 1 and self.args.line[0] in user_ns:
             line_for_command = []
             add_conn = True

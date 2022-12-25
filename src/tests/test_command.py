@@ -6,6 +6,11 @@ from sqlalchemy import create_engine
 from sql.command import SQLCommand
 
 
+@pytest.fixture
+def sql_magic(ip):
+    return ip.magics_manager.lsmagic()["line"]["sql"].__self__
+
+
 @pytest.mark.parametrize(
     "line, cell, parsed_sql, parsed_connection",
     [
@@ -21,10 +26,8 @@ from sql.command import SQLCommand
         "sql-query-in-line-and-cell",  # NOTE: I'm unsure under which circumstances this happens # noqa
     ],
 )
-def test_parsed(ip, line, cell, parsed_sql, parsed_connection):
-    sql_line = ip.magics_manager.lsmagic()["line"]["sql"].__self__
-
-    cmd = SQLCommand(sql_line, ip.user_ns, line, cell)
+def test_parsed(ip, sql_magic, line, cell, parsed_sql, parsed_connection):
+    cmd = SQLCommand(sql_magic, ip.user_ns, line, cell)
 
     assert cmd.parsed == {
         "connection": parsed_connection,
@@ -34,7 +37,7 @@ def test_parsed(ip, line, cell, parsed_sql, parsed_connection):
     }
 
 
-def test_parsed_sql_when_using_with(ip):
+def test_parsed_sql_when_using_with(ip, sql_magic):
     ip.run_cell_magic(
         "sql",
         "--save author_one",
@@ -43,11 +46,9 @@ def test_parsed_sql_when_using_with(ip):
         """,
     )
 
-    line = "--with author_one"
-    cell = "SELECT * FROM author_one"
-    sql_line = ip.magics_manager.lsmagic()["line"]["sql"].__self__
-
-    cmd = SQLCommand(sql_line, ip.user_ns, line, cell)
+    cmd = SQLCommand(
+        sql_magic, ip.user_ns, line="--with author_one", cell="SELECT * FROM author_one"
+    )
 
     sql = (
         "WITH author_one AS (\n    \n\n        "
@@ -63,12 +64,9 @@ def test_parsed_sql_when_using_with(ip):
     }
 
 
-def test_parsed_sql_when_using_file(ip, tmp_empty):
+def test_parsed_sql_when_using_file(ip, sql_magic, tmp_empty):
     Path("query.sql").write_text("SELECT * FROM author")
-
-    sql_line = ip.magics_manager.lsmagic()["line"]["sql"].__self__
-
-    cmd = SQLCommand(sql_line, ip.user_ns, "--file query.sql", "")
+    cmd = SQLCommand(sql_magic, ip.user_ns, "--file query.sql", "")
 
     assert cmd.parsed == {
         "connection": "",
@@ -78,7 +76,7 @@ def test_parsed_sql_when_using_file(ip, tmp_empty):
     }
 
 
-def test_args(ip):
+def test_args(ip, sql_magic):
     ip.run_cell_magic(
         "sql",
         "--save author_one",
@@ -87,11 +85,7 @@ def test_args(ip):
         """,
     )
 
-    line = "--with author_one"
-    cell = ""
-    sql_line = ip.magics_manager.lsmagic()["line"]["sql"].__self__
-
-    cmd = SQLCommand(sql_line, ip.user_ns, line, cell)
+    cmd = SQLCommand(sql_magic, ip.user_ns, line="--with author_one", cell="")
 
     assert cmd.args.__dict__ == {
         "line": "",
@@ -109,17 +103,14 @@ def test_args(ip):
         "no_execute": False,
     }
 
-    # assert cmd.command_text == "something\n"
 
-
-def test_parse_sql_when_passing_engine(ip, tmp_empty):
+def test_parse_sql_when_passing_engine(ip, sql_magic, tmp_empty):
     ip.user_global_ns["my_engine"] = create_engine("sqlite:///my.db")
 
     line = "my_engine"
     cell = "SELECT * FROM author"
-    sql_line = ip.magics_manager.lsmagic()["line"]["sql"].__self__
 
-    cmd = SQLCommand(sql_line, ip.user_ns, line, cell)
+    cmd = SQLCommand(sql_magic, ip.user_ns, line, cell)
 
     assert cmd.parsed == {
         "connection": "my_engine",
