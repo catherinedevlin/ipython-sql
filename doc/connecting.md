@@ -88,8 +88,8 @@ engine = create_engine("sqlite:///my.db")
 ```
 
 ```{code-cell} ipython3
-df = pd.DataFrame({"x": range(5)})
-df.to_sql("numbers", engine)
+# df = pd.DataFrame({"x": range(5)})
+# df.to_sql("numbers", engine)
 ```
 
 ```{code-cell} ipython3
@@ -101,6 +101,19 @@ df.to_sql("numbers", engine)
 ```
 
 ```{code-cell} ipython3
+%sql
+```
+
+```{code-cell} ipython3
 %%sql
 SELECT * FROM numbers
+```
+
+```{code-cell} ipython3
+%%sql engine
+SELECT * FROM numbers
+```
+
+```{code-cell} ipython3
+
 ```
