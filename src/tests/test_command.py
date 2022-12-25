@@ -24,7 +24,7 @@ from sql.command import SQLCommand
 def test_parsed(ip, line, cell, parsed_sql, parsed_connection):
     sql_line = ip.magics_manager.lsmagic()["line"]["sql"].__self__
 
-    cmd = SQLCommand(sql_line, line, cell)
+    cmd = SQLCommand(sql_line, ip.user_ns, line, cell)
 
     assert cmd.parsed == {
         "connection": parsed_connection,
@@ -47,7 +47,7 @@ def test_parsed_sql_when_using_with(ip):
     cell = "SELECT * FROM author_one"
     sql_line = ip.magics_manager.lsmagic()["line"]["sql"].__self__
 
-    cmd = SQLCommand(sql_line, line, cell)
+    cmd = SQLCommand(sql_line, ip.user_ns, line, cell)
 
     sql = (
         "WITH author_one AS (\n    \n\n        "
@@ -68,7 +68,7 @@ def test_parsed_sql_when_using_file(ip, tmp_empty):
 
     sql_line = ip.magics_manager.lsmagic()["line"]["sql"].__self__
 
-    cmd = SQLCommand(sql_line, "--file query.sql", "")
+    cmd = SQLCommand(sql_line, ip.user_ns, "--file query.sql", "")
 
     assert cmd.parsed == {
         "connection": "",
@@ -91,7 +91,7 @@ def test_args(ip):
     cell = ""
     sql_line = ip.magics_manager.lsmagic()["line"]["sql"].__self__
 
-    cmd = SQLCommand(sql_line, line, cell)
+    cmd = SQLCommand(sql_line, ip.user_ns, line, cell)
 
     assert cmd.args.__dict__ == {
         "line": "",
