@@ -45,6 +45,7 @@ def ip():
     ip_session.register_magics(SqlMagic)
     ip_session.register_magics(RenderMagic)
 
+    # runsql creates an inmemory sqlitedatabase
     runsql(
         ip_session,
         [
