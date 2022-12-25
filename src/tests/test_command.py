@@ -1,8 +1,9 @@
 from pathlib import Path
 
-from sql.command import SQLCommand
-
 import pytest
+from sqlalchemy import create_engine
+
+from sql.command import SQLCommand
 
 
 @pytest.mark.parametrize(
@@ -109,3 +110,20 @@ def test_args(ip):
     }
 
     # assert cmd.command_text == "something\n"
+
+
+def test_parse_sql_when_passing_engine(ip, tmp_empty):
+    ip.user_global_ns["my_engine"] = create_engine("sqlite:///my.db")
+
+    line = "my_engine"
+    cell = "SELECT * FROM author"
+    sql_line = ip.magics_manager.lsmagic()["line"]["sql"].__self__
+
+    cmd = SQLCommand(sql_line, ip.user_ns, line, cell)
+
+    assert cmd.parsed == {
+        "connection": "my_engine",
+        "result_var": None,
+        "sql": "\nSELECT * FROM author",
+        "sql_original": "\nSELECT * FROM author",
+    }

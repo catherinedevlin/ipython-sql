@@ -237,10 +237,8 @@ class SqlMagic(Magics, Configurable):
         # (for %sql this is done automatically)
         cell = self.shell.var_expand(cell)
 
-        # parse args
+        command = SQLCommand(self, user_ns, line, cell)
         # args.line: contains the line after the magic with all options removed
-
-        command = SQLCommand(self, line, cell)
         args = command.args
         parsed = command.parsed
         original = parsed["sql_original"]
@@ -278,13 +276,6 @@ class SqlMagic(Magics, Configurable):
             existing_engine = user_ns[line]
         else:
             existing_engine = None
-
-        # FIXME: tmp hack, otherwise when passing an engine name,
-        # this is set to the engine name. we need to modify
-        # the parse.parse logic so it doesn't put the engine_name
-        # here
-        if existing_engine:
-            parsed["sql"] = None
 
         try:
             conn = sql.connection.Connection.set(
