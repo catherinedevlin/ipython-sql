@@ -15,7 +15,6 @@ from IPython.core.magic import (
 )
 from IPython.core.magic_arguments import argument, magic_arguments, parse_argstring
 from sqlalchemy.exc import OperationalError, ProgrammingError, DatabaseError
-from sqlalchemy.engine import Engine
 
 import sql.connection
 import sql.parse
