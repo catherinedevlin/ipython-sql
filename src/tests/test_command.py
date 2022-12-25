@@ -19,6 +19,7 @@ def sql_magic(ip):
         ("SELECT * FROM TABLE", "", "SELECT * FROM TABLE\n", "", None),
         ("SELECT * FROM", "TABLE", "SELECT * FROM\nTABLE", "", None),
         ("my_var << SELECT *", "FROM table", "SELECT *\nFROM table", "", "my_var"),
+        ("[db]", "", "", "sqlite://", None),
     ],
     ids=[
         "arg-with-option",
@@ -26,11 +27,27 @@ def sql_magic(ip):
         "sql-query",
         "sql-query-in-line-and-cell",
         "parsed-var",
+        "config",
     ],
 )
 def test_parsed(
-    ip, sql_magic, line, cell, parsed_sql, parsed_connection, parsed_result_var
+    ip,
+    sql_magic,
+    line,
+    cell,
+    parsed_sql,
+    parsed_connection,
+    parsed_result_var,
+    tmp_empty,
 ):
+    # needed for the last test case
+    Path("odbc.ini").write_text(
+        """
+[db]
+drivername = sqlite
+"""
+    )
+
     cmd = SQLCommand(sql_magic, ip.user_ns, line, cell)
 
     assert cmd.parsed == {

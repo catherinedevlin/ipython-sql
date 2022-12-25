@@ -30,7 +30,6 @@ class SQLCommand:
             with open(self.args.file, "r") as infile:
                 self.command_text = infile.read() + "\n" + self.command_text
 
-        # TODO: test with something that requires the dsn_filename attribute
         self.parsed = parse.parse(self.command_text, magic)
 
         self.parsed["sql_original"] = self.parsed["sql"]
