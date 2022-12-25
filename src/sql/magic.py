@@ -21,6 +21,7 @@ import sql.connection
 import sql.parse
 import sql.run
 from sql.store import store
+from sql.command import SQLCommand
 
 try:
     from traitlets.config.configurable import Configurable
@@ -239,29 +240,15 @@ class SqlMagic(Magics, Configurable):
         # parse args
         # args.line: contains the line after the magic with all options removed
 
-        # NOTE: this two lines were moved to parse.magic_args, we'll replace the
-        # whole parsing logic with SQLCommand once the migration is done
-        line = sql.parse.without_sql_comment(parser=self.execute.parser, line=line)
-        args = parse_argstring(self.execute, line)
+        command = SQLCommand(self, line, cell)
+        args = command.args
+        parsed = command.parsed
+        original = parsed["sql_original"]
 
         if args.connections:
             return sql.connection.Connection.connections
         elif args.close:
             return sql.connection.Connection._close(args.close)
-
-        command_text = " ".join(args.line) + "\n" + cell
-
-        if args.file:
-            with open(args.file, "r") as infile:
-                command_text = infile.read() + "\n" + command_text
-
-        parsed = sql.parse.parse(command_text, self)
-
-        original = parsed["sql"]
-
-        if args.with_:
-            final = self._store.render(original, with_=args.with_)
-            parsed["sql"] = str(final)
 
         connect_arg = parsed["connection"]
         if args.section:
