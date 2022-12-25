@@ -16,8 +16,8 @@ class SQLCommand:
 
         if (
             len(self.args.line) == 1
-            and self.args.line[0].strip() in user_ns
-            and isinstance(user_ns[self.args.line[0].strip()], Engine)
+            and self.args.line[0] in user_ns
+            and isinstance(user_ns[self.args.line[0]], Engine)
         ):
             line_for_command = []
             add_conn = True
@@ -37,7 +37,7 @@ class SQLCommand:
         self.parsed["sql_original"] = self.parsed["sql"]
 
         if add_conn:
-            self.parsed["connection"] = user_ns[self.args.line[0].strip()]
+            self.parsed["connection"] = user_ns[self.args.line[0]]
 
         if self.args.with_:
             final = store.render(self.parsed["sql"], with_=self.args.with_)

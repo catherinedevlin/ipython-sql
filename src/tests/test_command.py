@@ -122,14 +122,19 @@ def test_args(ip, sql_magic):
     }
 
 
-def test_parse_sql_when_passing_engine(ip, sql_magic, tmp_empty):
+@pytest.mark.parametrize(
+    "line",
+    [
+        "my_engine",
+        " my_engine",
+        "my_engine ",
+    ],
+)
+def test_parse_sql_when_passing_engine(ip, sql_magic, tmp_empty, line):
     engine = create_engine("sqlite:///my.db")
     ip.user_global_ns["my_engine"] = engine
 
-    line = "my_engine"
-    cell = "SELECT * FROM author"
-
-    cmd = SQLCommand(sql_magic, ip.user_ns, line, cell)
+    cmd = SQLCommand(sql_magic, ip.user_ns, line, cell="SELECT * FROM author")
 
     sql_expected = "\nSELECT * FROM author"
 

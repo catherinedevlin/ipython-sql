@@ -376,10 +376,9 @@ def test_close_connection(ip):
     assert connection_name not in connections_afterward
 
 
-# TODO: try with spaces
 def test_pass_existing_engine(ip, tmp_empty):
     ip.user_global_ns["my_engine"] = create_engine("sqlite:///my.db")
-    ip.run_line_magic("sql", "my_engine")
+    ip.run_line_magic("sql", "  my_engine ")
 
     runsql(
         ip,
