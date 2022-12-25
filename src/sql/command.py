@@ -36,3 +36,22 @@ class SQLCommand:
         if self.args.with_:
             final = store.render(self.parsed["sql"], with_=self.args.with_)
             self.parsed["sql"] = str(final)
+
+    @property
+    def sql(self):
+        """
+        Returns the SQL query to execute, without any other options or arguments
+        """
+        return self.parsed["sql"]
+
+    @property
+    def sql_original(self):
+        """
+        Returns the raw SQL query. Might be different from `sql` if using --with
+        """
+        return self.parsed["sql_original"]
+
+    @property
+    def connection(self):
+        """Returns the connection string"""
+        return self.parsed["connection"]

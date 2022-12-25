@@ -36,6 +36,10 @@ def test_parsed(ip, sql_magic, line, cell, parsed_sql, parsed_connection):
         "sql_original": parsed_sql,
     }
 
+    assert cmd.connection == parsed_connection
+    assert cmd.sql == parsed_sql
+    assert cmd.sql_original == parsed_sql
+
 
 def test_parsed_sql_when_using_with(ip, sql_magic):
     ip.run_cell_magic(
@@ -56,12 +60,18 @@ def test_parsed_sql_when_using_with(ip, sql_magic):
         "\n\nSELECT * FROM author_one"
     )
 
+    sql_original = "\nSELECT * FROM author_one"
+
     assert cmd.parsed == {
         "connection": "",
         "result_var": None,
         "sql": sql,
-        "sql_original": "\nSELECT * FROM author_one",
+        "sql_original": sql_original,
     }
+
+    assert cmd.connection == ""
+    assert cmd.sql == sql
+    assert cmd.sql_original == sql_original
 
 
 def test_parsed_sql_when_using_file(ip, sql_magic, tmp_empty):
@@ -74,6 +84,10 @@ def test_parsed_sql_when_using_file(ip, sql_magic, tmp_empty):
         "sql": "SELECT * FROM author\n\n",
         "sql_original": "SELECT * FROM author\n\n",
     }
+
+    assert cmd.connection == ""
+    assert cmd.sql == "SELECT * FROM author\n\n"
+    assert cmd.sql_original == "SELECT * FROM author\n\n"
 
 
 def test_args(ip, sql_magic):
@@ -112,9 +126,16 @@ def test_parse_sql_when_passing_engine(ip, sql_magic, tmp_empty):
 
     cmd = SQLCommand(sql_magic, ip.user_ns, line, cell)
 
+
+    sql_expected = "\nSELECT * FROM author"
+
     assert cmd.parsed == {
         "connection": "my_engine",
         "result_var": None,
-        "sql": "\nSELECT * FROM author",
-        "sql_original": "\nSELECT * FROM author",
+        "sql": sql_expected,
+        "sql_original": sql_expected,
     }
+
+    assert cmd.connection == "my_engine"
+    assert cmd.sql == sql_expected
+    assert cmd.sql_original == sql_expected
