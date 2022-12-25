@@ -99,7 +99,7 @@ df.to_sql("numbers", engine)
 ```
 
 ```{code-cell} ipython3
-%%sql engine
+%sql engine
 ```
 
 ```{code-cell} ipython3
