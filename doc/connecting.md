@@ -78,18 +78,20 @@ then you can:
 
 ## Using an existing `sqlalchemy.engine.Engine`
 
+Use an existing `Engine` by passing the variable name to `%sql`.
+
 ```{code-cell} ipython3
 import pandas as pd
 from sqlalchemy.engine import create_engine
 ```
 
 ```{code-cell} ipython3
-engine = create_engine("sqlite:///my.db")
+engine = create_engine("sqlite://")
 ```
 
 ```{code-cell} ipython3
-# df = pd.DataFrame({"x": range(5)})
-# df.to_sql("numbers", engine)
+df = pd.DataFrame({"x": range(5)})
+df.to_sql("numbers", engine)
 ```
 
 ```{code-cell} ipython3
@@ -97,23 +99,10 @@ engine = create_engine("sqlite:///my.db")
 ```
 
 ```{code-cell} ipython3
-%sql engine
-```
-
-```{code-cell} ipython3
-%sql
+%%sql engine
 ```
 
 ```{code-cell} ipython3
 %%sql
 SELECT * FROM numbers
-```
-
-```{code-cell} ipython3
-%%sql engine
-SELECT * FROM numbers
-```
-
-```{code-cell} ipython3
-
 ```

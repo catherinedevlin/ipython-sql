@@ -4,7 +4,6 @@ from sql import parse
 from sql.store import store
 
 
-# NOTE: this will encapsulate the logic in magic.py
 class SQLCommand:
     """
     Encapsulates the parsing logic (arguments, SQL code, connection string, etc.)
