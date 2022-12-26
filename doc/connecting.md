@@ -78,6 +78,9 @@ then you can:
 
 ## Using an existing `sqlalchemy.engine.Engine`
 
+```{versionadded} 0.5.1
+```
+
 Use an existing `Engine` by passing the variable name to `%sql`.
 
 ```{code-cell} ipython3

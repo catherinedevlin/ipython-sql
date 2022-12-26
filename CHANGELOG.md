@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## 0.5.1dev
+* Allow to connect to databases with an existing `sqlalchemy.engine.Engine` object
 
 ## 0.5 (2022-12-24)
 * `ResultSet.plot()`, `ResultSet.bar()`, and `ResultSet.pie()` return `matplotlib.Axes` objects
