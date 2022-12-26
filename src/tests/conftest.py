@@ -1,3 +1,4 @@
+import os
 import urllib.request
 from pathlib import Path
 
@@ -44,6 +45,7 @@ def ip():
     ip_session.register_magics(SqlMagic)
     ip_session.register_magics(RenderMagic)
 
+    # runsql creates an inmemory sqlitedatabase
     runsql(
         ip_session,
         [
@@ -58,3 +60,15 @@ def ip():
     yield ip_session
     runsql(ip_session, "DROP TABLE test")
     runsql(ip_session, "DROP TABLE author")
+
+
+@pytest.fixture
+def tmp_empty(tmp_path):
+    """
+    Create temporary path using pytest native fixture,
+    them move it, yield, and restore the original path
+    """
+    old = os.getcwd()
+    os.chdir(str(tmp_path))
+    yield str(Path(tmp_path).resolve())
+    os.chdir(old)

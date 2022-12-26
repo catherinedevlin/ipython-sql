@@ -4,6 +4,7 @@ import tempfile
 from textwrap import dedent
 
 import pytest
+from sqlalchemy import create_engine
 
 from conftest import runsql
 
@@ -373,6 +374,24 @@ def test_close_connection(ip):
     runsql(ip, f"%sql -x {connection_name}")
     connections_afterward = runsql(ip, "%sql -l")
     assert connection_name not in connections_afterward
+
+
+def test_pass_existing_engine(ip, tmp_empty):
+    ip.user_global_ns["my_engine"] = create_engine("sqlite:///my.db")
+    ip.run_line_magic("sql", "  my_engine ")
+
+    runsql(
+        ip,
+        [
+            "CREATE TABLE some_data (n INT, name TEXT)",
+            "INSERT INTO some_data VALUES (10, 'foo')",
+            "INSERT INTO some_data VALUES (20, 'bar')",
+        ],
+    )
+
+    result = ip.run_line_magic("sql", "SELECT * FROM some_data")
+
+    assert result == [(10, "foo"), (20, "bar")]
 
 
 # theres some weird shared state with this one, moving it to the end

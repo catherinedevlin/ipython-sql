@@ -20,6 +20,7 @@ import sql.connection
 import sql.parse
 import sql.run
 from sql.store import store
+from sql.command import SQLCommand
 
 try:
     from traitlets.config.configurable import Configurable
@@ -217,39 +218,37 @@ class SqlMagic(Magics, Configurable):
           mysql+pymysql://me:mypw@localhost/mydb
 
         """
+        # line is the text after the magic, cell is the cell's body
+
+        # Examples
+
+        # %sql {line}
+        # note that line magic has no body
+
+        # %%sql {line}
+        # {cell}
+
+        # save globals and locals so they can be referenced in bind vars
+        user_ns = self.shell.user_ns.copy()
+        user_ns.update(local_ns)
 
         # Parse variables (words wrapped in {}) for %%sql magic
         # (for %sql this is done automatically)
         cell = self.shell.var_expand(cell)
-        line = sql.parse.without_sql_comment(parser=self.execute.parser, line=line)
-        args = parse_argstring(self.execute, line)
+
+        command = SQLCommand(self, user_ns, line, cell)
+        # args.line: contains the line after the magic with all options removed
+        args = command.args
 
         if args.connections:
             return sql.connection.Connection.connections
         elif args.close:
             return sql.connection.Connection._close(args.close)
 
-        # save globals and locals so they can be referenced in bind vars
-        user_ns = self.shell.user_ns.copy()
-        user_ns.update(local_ns)
+        connect_arg = command.connection
 
-        command_text = " ".join(args.line) + "\n" + cell
-
-        if args.file:
-            with open(args.file, "r") as infile:
-                command_text = infile.read() + "\n" + command_text
-
-        parsed = sql.parse.parse(command_text, self)
-
-        original = parsed["sql"]
-
-        if args.with_:
-            final = self._store.render(original, with_=args.with_)
-            parsed["sql"] = str(final)
-
-        connect_str = parsed["connection"]
         if args.section:
-            connect_str = sql.parse.connection_from_dsn_section(args.section, self)
+            connect_arg = sql.parse.connection_from_dsn_section(args.section, self)
 
         if args.connection_arguments:
             try:
@@ -272,7 +271,7 @@ class SqlMagic(Magics, Configurable):
 
         try:
             conn = sql.connection.Connection.set(
-                connect_str,
+                connect_arg,
                 displaycon=self.displaycon,
                 connect_args=args.connection_arguments,
                 creator=args.creator,
@@ -284,27 +283,27 @@ class SqlMagic(Magics, Configurable):
 
         if args.persist:
             return self._persist_dataframe(
-                parsed["sql"], conn, user_ns, append=False, index=not args.no_index
+                command.sql, conn, user_ns, append=False, index=not args.no_index
             )
 
         if args.append:
             return self._persist_dataframe(
-                parsed["sql"], conn, user_ns, append=True, index=not args.no_index
+                command.sql, conn, user_ns, append=True, index=not args.no_index
             )
 
-        if not parsed["sql"]:
+        if not command.sql:
             return
 
         # store the query if needed
         if args.save:
-            self._store.store(args.save, original, with_=args.with_)
+            self._store.store(args.save, command.sql_original, with_=args.with_)
 
         if args.no_execute:
             print("Skipping execution...")
             return
 
         try:
-            result = sql.run.run(conn, parsed["sql"], self, user_ns)
+            result = sql.run.run(conn, command.sql, self, user_ns)
 
             if (
                 result is not None
@@ -330,9 +329,8 @@ class SqlMagic(Magics, Configurable):
                 return None
             else:
 
-                if parsed["result_var"]:
-                    result_var = parsed["result_var"]
-                    self.shell.user_ns.update({result_var: result})
+                if command.result_var:
+                    self.shell.user_ns.update({command.result_var: result})
                     return None
 
                 # Return results into the default ipython _ variable
