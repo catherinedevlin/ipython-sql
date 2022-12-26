@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.5.1dev
+## 0.5.1 (2022-12-26)
 * Allow to connect to databases with an existing `sqlalchemy.engine.Engine` object
 
 ## 0.5 (2022-12-24)
