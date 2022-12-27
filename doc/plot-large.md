@@ -120,7 +120,7 @@ t = Template(Path('large-table-template.sql').read_text())
 Path('large-table.sql').write_text(t.render())
 ```
 
-We can now proceed to execute the Python generator. The Python script can be run using the magic command `%run <file.py>`. After it generates the SQL script, we execute it to create the new table. To execute the SQL script, we use the `--file` flag from from [JupySQL's options](https://jupysql.readthedocs.io/en/latest/options.html) along the `%sql` magic command.
+We can now proceed to execute the Python generator. The Python script can be run using the magic command `%run <file.py>`. After it generates the SQL script, we execute it to create the new table. To execute the SQL script, we use the `--file` flag from from [JupySQL's options](https://jupysql.readthedocs.io/en/latest/api.html) along the `%sql` magic command.
 
 ```{code-cell} ipython3
 %run large-table-gen.py
