@@ -74,7 +74,7 @@
 
 ## 0.3.6
 
-* Fixed issue [#30](https://github.com/ploomber/jupysql/issues/30), commit failures for sqlite (thanks stonebig, jandot)
+* Fixed issue number 30, commit failures for sqlite (thanks stonebig, jandot)
 
 ## 0.3.5
 
