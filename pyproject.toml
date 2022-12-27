@@ -7,3 +7,4 @@ github = "ploomber/jupysql"
 
 [tool.pkgmt.check_links]
 extensions = ["md", "rst", "py", "ipynb"]
+ignore_substrings = ["d37ci6vzurychx.cloudfront.net"]
