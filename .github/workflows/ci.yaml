@@ -8,16 +8,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9, '3.10', '3.11']
+        python-version: [3.7, 3.8, 3.9, '3.10']
 
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
-          channels: conda-forge, defaults
           python-version: ${{ matrix.python-version }}
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -25,7 +23,6 @@ jobs:
           # check package is importable
           python -c "import sql"
           pip install ".[dev]"
-
       - name: Test with pytest
         run: |
           pytest
