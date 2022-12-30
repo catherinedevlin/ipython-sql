@@ -11,6 +11,10 @@ class SQLCommand:
     """
 
     def __init__(self, magic, user_ns, line, cell) -> None:
+        # Parse variables (words wrapped in {}) for %%sql magic
+        # (for %sql this is done automatically)
+        cell = magic.shell.var_expand(cell)
+
         self.args = parse.magic_args(magic.execute, line)
 
         if (

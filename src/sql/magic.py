@@ -232,10 +232,6 @@ class SqlMagic(Magics, Configurable):
         user_ns = self.shell.user_ns.copy()
         user_ns.update(local_ns)
 
-        # Parse variables (words wrapped in {}) for %%sql magic
-        # (for %sql this is done automatically)
-        cell = self.shell.var_expand(cell)
-
         command = SQLCommand(self, user_ns, line, cell)
         # args.line: contains the line after the magic with all options removed
         args = command.args

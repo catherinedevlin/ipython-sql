@@ -165,3 +165,16 @@ def test_parse_sql_when_passing_engine(ip, sql_magic, tmp_empty, line):
     assert cmd.connection is engine
     assert cmd.sql == sql_expected
     assert cmd.sql_original == sql_expected
+
+
+def test_variable_substitution_cell_magic(ip, sql_magic):
+    ip.user_global_ns["username"] = "some-user"
+
+    cmd = SQLCommand(
+        sql_magic,
+        ip.user_ns,
+        line="",
+        cell="GRANT CONNECT ON DATABASE postgres TO $username;",
+    )
+
+    assert cmd.parsed["sql"] == "\nGRANT CONNECT ON DATABASE postgres TO some-user;"
