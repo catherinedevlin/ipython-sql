@@ -6,6 +6,7 @@ from textwrap import dedent
 import pytest
 from sqlalchemy import create_engine
 
+from sql.connection import Connection
 from conftest import runsql
 
 
@@ -368,12 +369,25 @@ def test_json_in_select(ip):
     assert result == [('{"greeting": "Farewell sweet {person}"}',)]
 
 
-def test_close_connection(ip):
+def test_closed_connections_are_no_longer_listed(ip):
     connections = runsql(ip, "%sql -l")
     connection_name = list(connections)[0]
     runsql(ip, f"%sql -x {connection_name}")
     connections_afterward = runsql(ip, "%sql -l")
     assert connection_name not in connections_afterward
+
+
+def test_close_connection(ip, tmp_empty):
+    # open two connections
+    ip.run_cell("%sql sqlite:///one.db")
+    ip.run_cell("%sql sqlite:///two.db")
+
+    # close them
+    ip.run_cell("%sql -x sqlite:///one.db")
+    ip.run_cell("%sql --close sqlite:///two.db")
+
+    assert "sqlite:///one.db" not in Connection.connections
+    assert "sqlite:///two.db" not in Connection.connections
 
 
 def test_pass_existing_engine(ip, tmp_empty):
