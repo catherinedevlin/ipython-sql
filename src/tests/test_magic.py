@@ -391,6 +391,13 @@ def test_close_connection(ip, tmp_empty):
     assert "sqlite:///two.db" not in Connection.connections
 
 
+def test_column_names_visible(ip, tmp_empty):
+    res = ip.run_line_magic("sql", "SELECT * FROM empty_table")
+
+    assert "<th>column</th>" in res._repr_html_()
+    assert "<th>another</th>" in res._repr_html_()
+
+
 @pytest.mark.xfail(reason="known parse @ parser.py error")
 def test_sqlite_path_with_spaces(ip, tmp_empty):
     ip.run_cell("%sql sqlite:///some database.db")
