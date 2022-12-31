@@ -140,7 +140,7 @@ class Connection:
                 template = " * {}"
             else:
                 template = "   {}"
-            result.append(template.format(engine_url.__repr__()))
+            result.append(template.format(repr(engine_url)))
         return "\n".join(result)
 
     @classmethod
