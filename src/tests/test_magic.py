@@ -181,9 +181,11 @@ def test_connection_args_double_quotes(ip):
 #     assert 'Shakespeare' in str(persisted)
 
 
-def test_displaylimit(ip):
+@pytest.mark.parametrize("value", ["None", "0"])
+def test_displaylimit_disabled(ip, value):
     ip.run_line_magic("config", "SqlMagic.autolimit = None")
-    ip.run_line_magic("config", "SqlMagic.displaylimit = None")
+
+    ip.run_line_magic("config", f"SqlMagic.displaylimit = {value}")
     result = runsql(
         ip,
         "SELECT * FROM (VALUES ('apple'), ('banana'), ('cherry')) "
@@ -192,6 +194,19 @@ def test_displaylimit(ip):
     assert "apple" in result._repr_html_()
     assert "banana" in result._repr_html_()
     assert "cherry" in result._repr_html_()
+    ip.run_line_magic("config", "SqlMagic.displaylimit = 1")
+    result = runsql(
+        ip,
+        "SELECT * FROM (VALUES ('apple'), ('banana'), ('cherry')) "
+        "AS Result ORDER BY 1;",
+    )
+    assert "apple" in result._repr_html_()
+    assert "cherry" not in result._repr_html_()
+
+
+def test_displaylimit(ip):
+    ip.run_line_magic("config", "SqlMagic.autolimit = None")
+
     ip.run_line_magic("config", "SqlMagic.displaylimit = 1")
     result = runsql(
         ip,
@@ -418,9 +433,17 @@ def test_pass_existing_engine(ip, tmp_empty):
 
 # theres some weird shared state with this one, moving it to the end
 def test_autolimit(ip):
+    # test table has two rows
     ip.run_line_magic("config", "SqlMagic.autolimit = 0")
     result = runsql(ip, "SELECT * FROM test;")
     assert len(result) == 2
+
+    # test table has two rows
+    ip.run_line_magic("config", "SqlMagic.autolimit = None")
+    result = runsql(ip, "SELECT * FROM test;")
+    assert len(result) == 2
+
+    # test setting autolimit to 1
     ip.run_line_magic("config", "SqlMagic.autolimit = 1")
     result = runsql(ip, "SELECT * FROM test;")
     assert len(result) == 1
