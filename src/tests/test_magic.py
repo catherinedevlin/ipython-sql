@@ -194,14 +194,6 @@ def test_displaylimit_disabled(ip, value):
     assert "apple" in result._repr_html_()
     assert "banana" in result._repr_html_()
     assert "cherry" in result._repr_html_()
-    ip.run_line_magic("config", "SqlMagic.displaylimit = 1")
-    result = runsql(
-        ip,
-        "SELECT * FROM (VALUES ('apple'), ('banana'), ('cherry')) "
-        "AS Result ORDER BY 1;",
-    )
-    assert "apple" in result._repr_html_()
-    assert "cherry" not in result._repr_html_()
 
 
 def test_displaylimit(ip):
