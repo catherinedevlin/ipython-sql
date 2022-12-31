@@ -1,3 +1,4 @@
+from pathlib import Path
 import os.path
 import re
 import tempfile
@@ -388,6 +389,13 @@ def test_close_connection(ip, tmp_empty):
 
     assert "sqlite:///one.db" not in Connection.connections
     assert "sqlite:///two.db" not in Connection.connections
+
+
+@pytest.mark.xfail(reason="known parse @ parser.py error")
+def test_sqlite_path_with_spaces(ip, tmp_empty):
+    ip.run_cell("%sql sqlite:///some database.db")
+
+    assert Path("some database.db").is_file()
 
 
 def test_pass_existing_engine(ip, tmp_empty):
