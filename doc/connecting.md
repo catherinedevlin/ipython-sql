@@ -51,6 +51,39 @@ a flag with (-a|--connection_arguments)the connection string as a JSON string. S
 %sql -a '{"timeout":10, "mode":"ro"}' sqlite:// SELECT * from work;
 ```
 
++++
+
+## Connecting securely
+
+**It is highly recommended** that you do not pass plain credentials.
+
+```{code-cell} ipython3
+%load_ext sql
+```
+
+One option is to use `getpass`, type your password, build your connection string and pass it to `%sql`:
+
+```{code-cell} ipython3
+from getpass import getpass
+```
+
+```python
+password = getpass()
+connection_string = f"postgresql://user:{password}@localhost/database"
+%sql $connection_string
+```
+
++++
+
+You may also set the `DATABASE_URL` environment variable, and `%sql` will automatically load it from there:
+
+```python
+# without any args, %sql reads from DATABASE_URL
+%sql
+```
+
++++
+
 ## DSN connections
 
 Alternately, you can store connection info in a configuration file, under a section name chosen to  refer to your database.
