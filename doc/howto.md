@@ -110,3 +110,42 @@ Pass existing engines to `%sql`
 %%sql
 SELECT MYSUM(1, 2)
 ```
+
+## Connect to a SQLite database with spaces
+
+Currently, due to a limitation in the argument parser, it's not possible to directly connect to SQLite databases whose path contains spaces; however, you can do it by creating the engine first.
+
+### Setup
+
+```{code-cell} ipython3
+%pip install jupysql --quiet
+```
+
+```{code-cell} ipython3
+%load_ext sql
+```
+
+## Connect to db
+
+```{code-cell} ipython3
+from sqlalchemy import create_engine
+
+engine = create_engine("sqlite:///my database.db")
+```
+
+Add some sample data:
+
+```{code-cell} ipython3
+import pandas as pd
+
+_ = pd.DataFrame({"x": range(5)}).to_sql("numbers", engine)
+```
+
+```{code-cell} ipython3
+%sql engine
+```
+
+```{code-cell} ipython3
+%%sql
+SELECT * FROM numbers
+```
