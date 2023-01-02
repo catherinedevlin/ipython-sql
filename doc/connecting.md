@@ -61,13 +61,15 @@ a flag with (-a|--connection_arguments)the connection string as a JSON string. S
 %load_ext sql
 ```
 
+### Building connection string
+
 One option is to use `getpass`, type your password, build your connection string and pass it to `%sql`:
 
-```{code-cell} ipython3
-from getpass import getpass
-```
++++
 
 ```python
+from getpass import getpass
+
 password = getpass()
 connection_string = f"postgresql://user:{password}@localhost/database"
 %sql $connection_string
@@ -75,7 +77,19 @@ connection_string = f"postgresql://user:{password}@localhost/database"
 
 +++
 
-You may also set the `DATABASE_URL` environment variable, and `%sql` will automatically load it from there:
+### Using `DATABASE_URL`
+
++++
+
+You may also set the `DATABASE_URL` environment variable, and `%sql` will automatically load it from there. You can do it either by setting the environment variable from your terminal or in your notebook:
+
+```python
+from getpass import getpass
+from os import environ
+
+password = getpass()
+environ["DATABASE_URL"] = f"postgresql://user:{password}@localhost/database"
+```
 
 ```python
 # without any args, %sql reads from DATABASE_URL
