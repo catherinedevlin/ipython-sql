@@ -187,6 +187,7 @@ def test_without_sql_persist():
 
 def complete_with_defaults(mapping):
     defaults = {
+        "alias": None,
         "line": ["some-argument"],
         "connections": False,
         "close": None,

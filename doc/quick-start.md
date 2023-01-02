@@ -15,7 +15,7 @@ kernelspec:
 
 # Quick Start
 
-JupySQL allows you to run SQL in Jupyter/IPython via a `%sql` and `%%sql` magics.
+JupySQL allows you to run SQL in Jupyter/IPython via a `%sql` and `%%sql` magics. It is a fork of `ipython-sql` with bug fixes and a lot of great new features!
 
 +++
 

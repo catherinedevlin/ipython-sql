@@ -391,6 +391,21 @@ def test_close_connection(ip, tmp_empty):
     assert "sqlite:///two.db" not in Connection.connections
 
 
+def test_close_connection_with_alias(ip, tmp_empty):
+    # open two connections
+    ip.run_cell("%sql sqlite:///one.db --alias one")
+    ip.run_cell("%sql sqlite:///two.db --alias two")
+
+    # close them
+    ip.run_cell("%sql -x one")
+    ip.run_cell("%sql --close two")
+
+    assert "sqlite:///one.db" not in Connection.connections
+    assert "sqlite:///two.db" not in Connection.connections
+    assert "one" not in Connection.connections
+    assert "two" not in Connection.connections
+
+
 def test_column_names_visible(ip, tmp_empty):
     res = ip.run_line_magic("sql", "SELECT * FROM empty_table")
 

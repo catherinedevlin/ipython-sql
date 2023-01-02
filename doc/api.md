@@ -14,10 +14,10 @@ kernelspec:
 # API
 
 ``-l`` / ``--connections``
-    List all active connections
+    List all active connections ([example](#list-connections))
 
-``-x`` / ``--close <session-name>`` 
-    Close named connection 
+``-x`` / ``--close <session-name/alias>``
+    Close named connection ([example](#close-connection))
 
 ``-c`` / ``--creator <creator-function>``
     Specify creator function for new connection
@@ -26,19 +26,37 @@ kernelspec:
     Section of dsn_file to be used for generating a connection string
 
 ``-p`` / ``--persist``
-    Create a table name in the database from the named DataFrame
-
-``-n`` / ``--no-index``
-    Do not persist data frame's index
+    Create a table name in the database from the named DataFrame ([example](#create-table))
 
 ``--append``
-    Like ``--persist``, but appends to the table if it already exists 
+    Like ``--persist``, but appends to the table if it already exists ([example](#append-to-table))
 
 ``-a`` / ``--connection_arguments <"{connection arguments}">``
     Specify dictionary of connection arguments to pass to SQL driver
 
 ``-f`` / ``--file <path>``
-    Run SQL from file at this path
+    Run SQL from file at this path ([example](#run-query-from-file))
+
+```{versionadded} 0.4.2
+```
+
+``-n`` / ``--no-index``
+    Do not persist data frame's index (used with `-p/--persist`) ([example](#create-table-without-dataframe-index))
+
+```{versionadded} 0.4.3
+```
+
+``-S`` / ``--save <name>``
+    Save this query for later use ([example](#compose-large-queries))
+
+``-w`` / ``--with <name>``
+    Use a previously saved query (used after `-S/--save`) ([example](#compose-large-queries))
+
+```{versionadded} 0.5.2
+```
+
+``-A`` / ``--alias <alias>``
+    Assign an alias when establishing a connection ([example](#connect-to-database))
 
 ```{code-cell} ipython3
 :tags: [remove-input]
@@ -64,13 +82,13 @@ for f in files:
 %sql sqlite:///db_one.db
 ```
 
-## List connections
-
-Connect to another database to demonstrate `--list`'s usage:
+Assign an alias to the connection (**added 0.5.2**):
 
 ```{code-cell} ipython3
-%sql sqlite:///db_two.db
+%sql sqlite:///db_two.db --alias db-two
 ```
+
+## List connections
 
 ```{code-cell} ipython3
 %sql --list
@@ -82,7 +100,17 @@ Connect to another database to demonstrate `--list`'s usage:
 %sql --close sqlite:///db_one.db
 ```
 
+Or pass an alias (**added in 0.5.2**):
+
+```{code-cell} ipython3
+%sql --close db-two
+```
+
 ## Create table
+
+```{code-cell} ipython3
+%sql sqlite://
+```
 
 ```{code-cell} ipython3
 import pandas as pd

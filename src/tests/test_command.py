@@ -125,6 +125,7 @@ def test_args(ip, sql_magic):
     cmd = SQLCommand(sql_magic, ip.user_ns, line="--with author_one", cell="")
 
     assert cmd.args.__dict__ == {
+        "alias": None,
         "line": "",
         "connections": False,
         "close": None,

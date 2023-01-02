@@ -50,40 +50,46 @@ class Connection:
             cls.connections.keys()
         )
 
-    def __init__(self, engine):
+    def __init__(self, engine, alias=None):
         self.dialect = engine.url.get_dialect()
         self.metadata = sqlalchemy.MetaData(bind=engine)
         self.name = self.assign_name(engine)
         self.session = engine.connect()
-        self.connections[repr(self.metadata.bind.url)] = self
+        self.connections[alias or repr(self.metadata.bind.url)] = self
         self.connect_args = None
+        self.alias = alias
         Connection.current = self
 
     @classmethod
-    def from_connect_str(cls, connect_str=None, connect_args=None, creator=None):
+    def from_connect_str(
+        cls, connect_str=None, connect_args=None, creator=None, alias=None
+    ):
         """Creates a new connection from a connection string"""
         connect_args = connect_args or {}
 
         try:
             if creator:
                 engine = sqlalchemy.create_engine(
-                    connect_str, connect_args=connect_args, creator=creator
+                    connect_str,
+                    connect_args=connect_args,
+                    creator=creator,
                 )
             else:
                 engine = sqlalchemy.create_engine(
-                    connect_str, connect_args=connect_args
+                    connect_str,
+                    connect_args=connect_args,
                 )
         except Exception:
             print(cls.tell_format())
             raise
 
-        connection = cls(engine)
+        connection = cls(engine, alias=alias)
         connection.connect_args = connect_args
 
         return connection
 
     @classmethod
-    def set(cls, descriptor, displaycon, connect_args=None, creator=None):
+    def set(cls, descriptor, displaycon, connect_args=None, creator=None, alias=None):
         """
         Sets the current database connection
         """
@@ -105,7 +111,10 @@ class Connection:
                 # when descriptor is a connection object
                 # http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#custom-dbapi-connect-arguments # noqa
                 cls.current = existing or Connection.from_connect_str(
-                    descriptor, connect_args, creator
+                    connect_str=descriptor,
+                    connect_args=connect_args,
+                    creator=creator,
+                    alias=alias,
                 )
         else:
 
@@ -115,7 +124,10 @@ class Connection:
             else:
                 if os.getenv("DATABASE_URL"):
                     cls.current = Connection.from_connect_str(
-                        os.getenv("DATABASE_URL"), connect_args, creator
+                        connect_str=os.getenv("DATABASE_URL"),
+                        connect_args=connect_args,
+                        creator=creator,
+                        alias=alias,
                     )
                 else:
                     raise ConnectionError(
@@ -133,14 +145,18 @@ class Connection:
     def connection_list(cls):
         result = []
         for key in sorted(cls.connections):
-            engine_url = cls.connections[
-                key
-            ].metadata.bind.url  # type: sqlalchemy.engine.url.URL
-            if cls.connections[key] == cls.current:
-                template = " * {}"
+            conn = cls.connections[key]
+            engine_url = conn.metadata.bind.url  # type: sqlalchemy.engine.url.URL
+
+            prefix = "* " if conn == cls.current else "  "
+
+            if conn.alias:
+                repr_ = f"{prefix} ({conn.alias}) {engine_url!r}"
             else:
-                template = "   {}"
-            result.append(template.format(repr(engine_url)))
+                repr_ = f"{prefix} {engine_url!r}"
+
+            result.append(repr_)
+
         return "\n".join(result)
 
     @classmethod
@@ -156,7 +172,12 @@ class Connection:
                 "Could not close connection because it was not found amongst these: %s"
                 % str(cls.connections.keys())
             )
-        cls.connections.pop(str(conn.metadata.bind.url))
+
+        if descriptor in cls.connections:
+            cls.connections.pop(descriptor)
+        else:
+            cls.connections.pop(str(conn.metadata.bind.url))
+
         conn.session.close()
 
     def close(self):
