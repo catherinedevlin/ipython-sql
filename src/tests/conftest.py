@@ -55,6 +55,7 @@ def ip():
             "CREATE TABLE author (first_name, last_name, year_of_death)",
             "INSERT INTO author VALUES ('William', 'Shakespeare', 1616)",
             "INSERT INTO author VALUES ('Bertold', 'Brecht', 1956)",
+            "CREATE TABLE empty_table (column INT, another INT)",
         ],
     )
     yield ip_session
