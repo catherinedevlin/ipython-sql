@@ -12,8 +12,7 @@ doc/**/*.py
 doc/**/*.sql
 examples/*.csv
 examples/*.db
-examples//*.sql
-examples/*.py
+examples/*.sql
 # temp testing assets
 src/tests/tmp
 
