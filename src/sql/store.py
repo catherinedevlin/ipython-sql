@@ -5,7 +5,31 @@ from jinja2 import Template
 
 
 class SQLStore(MutableMapping):
-    """Stores SQL scripts to render large queries with CTEs"""
+    """Stores SQL scripts to render large queries with CTEs
+
+    Notes
+    -----
+    .. versionadded:: 0.4.3
+
+    Examples
+    --------
+    >>> from sql.store import SQLStore
+    >>> sqlstore = SQLStore()
+    >>> sqlstore.store("writers_fav",
+    ...                "SELECT * FROM writers WHERE genre = 'non-fiction'")
+    >>> sqlstore.store("writers_fav_modern",
+    ...                "SELECT * FROM writers_fav WHERE born >= 1970",
+    ...                with_=["writers_fav"])
+    >>> query = sqlstore.render("SELECT * FROM writers_fav_modern LIMIT 10",
+    ...                         with_=["writers_fav_modern"])
+    >>> print(query)
+    WITH "writers_fav" AS (
+        SELECT * FROM writers WHERE genre = 'non-fiction'
+    ), "writers_fav_modern" AS (
+        SELECT * FROM writers_fav WHERE born >= 1970
+    )
+    SELECT * FROM writers_fav_modern LIMIT 10
+    """
 
     def __init__(self):
         self._data = dict()
@@ -39,7 +63,7 @@ class SQLStore(MutableMapping):
 
 _template = Template(
     """\
-WITH{% for name in with_ %} {{name}} AS (
+WITH{% for name in with_ %} "{{name}}" AS (
     {{saved[name]._query}}
 ){{ "," if not loop.last }}{% endfor %}
 {{query}}

@@ -16,6 +16,5 @@ dependencies:
     - duckdb-engine
     # plot example
     - memory-profiler
-    - psycopg2-binary
     - pyarrow
     - -e ..

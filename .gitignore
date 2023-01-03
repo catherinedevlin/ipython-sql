@@ -1,15 +1,18 @@
+*.db
+*.csv
 *.parquet
 env.sh
 **/.ipynb_checkpoints
 .vscode
 doc/_build
-doc/*.csv
-doc/*.db
-doc/*.sql
-doc/*.py
+doc/**/*.csv
+doc/**/*.db
+doc/**/*.sql
+doc/**/*.py
+doc/**/*.sql
 examples/*.csv
 examples/*.db
-examples/*.sql
+examples//*.sql
 examples/*.py
 # temp testing assets
 src/tests/tmp

@@ -21,6 +21,7 @@ import sql.parse
 import sql.run
 from sql.store import store
 from sql.command import SQLCommand
+from sql.magic_plot import SqlPlotMagic
 
 try:
     from traitlets.config.configurable import Configurable
@@ -72,7 +73,7 @@ class SqlMagic(Magics, Configurable):
 
     Provides the %%sql magic."""
 
-    displaycon = Bool(True, config=True, help="Show connection string after execute")
+    displaycon = Bool(True, config=True, help="Show connection string after execution")
     autolimit = Int(
         0,
         config=True,
@@ -388,3 +389,4 @@ def load_ipython_extension(ip):
     # display_javascript(js, raw=True)
     ip.register_magics(SqlMagic)
     ip.register_magics(RenderMagic)
+    ip.register_magics(SqlPlotMagic)

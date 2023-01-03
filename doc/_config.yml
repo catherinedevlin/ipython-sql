@@ -36,6 +36,18 @@ sphinx:
   config:
     execution_show_tb: true
 
+    # plot directive config
+    plot_include_source: True
+    plot_html_show_formats: False
+    plot_html_show_source_link: False
+
+  extra_extensions:
+    - sphinx.ext.autodoc
+    - sphinx.ext.napoleon
+    - sphinx.ext.autosummary
+    - matplotlib.sphinxext.plot_directive
+
+
 
 launch_buttons:
   binderhub_url: "https://binder.ploomber.io"

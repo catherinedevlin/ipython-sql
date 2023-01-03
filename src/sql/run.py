@@ -4,9 +4,9 @@ import operator
 import os.path
 import re
 from functools import reduce
+from io import StringIO
 
 import prettytable
-import six
 import sqlalchemy
 import sqlparse
 
@@ -39,23 +39,16 @@ class UnicodeWriter(object):
 
     def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
         # Redirect output to a queue
-        self.queue = six.StringIO()
+        self.queue = StringIO()
         self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
         self.stream = f
         self.encoder = codecs.getincrementalencoder(encoding)()
 
     def writerow(self, row):
-        if six.PY2:
-            _row = [s.encode("utf-8") if hasattr(s, "encode") else s for s in row]
-        else:
-            _row = row
+        _row = row
         self.writer.writerow(_row)
         # Fetch UTF-8 output from the queue ...
         data = self.queue.getvalue()
-        if six.PY2:
-            data = data.decode("utf-8")
-            # ... and re-encode it into the target encoding
-            data = self.encoder.encode(data)
         # write to the target stream
         self.stream.write(data)
         # empty queue
@@ -288,12 +281,10 @@ class ResultSet(list, ColumnGuesserMixin):
         self.pretty.add_rows(self)
         if filename:
             encoding = format_params.get("encoding", "utf-8")
-            if six.PY2:
-                outfile = open(filename, "wb")
-            else:
-                outfile = open(filename, "w", newline="", encoding=encoding)
+            outfile = open(filename, "w", newline="", encoding=encoding)
         else:
-            outfile = six.StringIO()
+            outfile = StringIO()
+
         writer = UnicodeWriter(outfile, **format_params)
         writer.writerow(self.field_names)
         for row in self:

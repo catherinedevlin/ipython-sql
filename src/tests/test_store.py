@@ -42,11 +42,11 @@ def test_serial(with_):
     assert (
         str(result)
         == """\
-WITH first AS (
+WITH "first" AS (
     SELECT * FROM a WHERE x > 10
-), second AS (
+), "second" AS (
     SELECT * FROM first WHERE x > 20
-), third AS (
+), "third" AS (
     SELECT * FROM second WHERE x > 30
 )
 SELECT * FROM third\
@@ -67,13 +67,13 @@ def test_branch_root():
     assert (
         str(result)
         == """\
-WITH first_a AS (
+WITH "first_a" AS (
     SELECT * FROM a WHERE x > 10
-), second_a AS (
+), "second_a" AS (
     SELECT * FROM first_a WHERE x > 20
-), third_a AS (
+), "third_a" AS (
     SELECT * FROM second_a WHERE x > 30
-), first_b AS (
+), "first_b" AS (
     SELECT * FROM b WHERE y > 10
 )
 SELECT * FROM third\
@@ -94,13 +94,13 @@ def test_branch_root_reverse_final_with():
     assert (
         str(result)
         == """\
-WITH first_a AS (
+WITH "first_a" AS (
     SELECT * FROM a WHERE x > 10
-), second_a AS (
+), "second_a" AS (
     SELECT * FROM first_a WHERE x > 20
-), first_b AS (
+), "first_b" AS (
     SELECT * FROM b WHERE y > 10
-), third_a AS (
+), "third_a" AS (
     SELECT * FROM second_a WHERE x > 30
 )
 SELECT * FROM third\
@@ -121,13 +121,13 @@ def test_branch():
     assert (
         str(result)
         == """\
-WITH first_a AS (
+WITH "first_a" AS (
     SELECT * FROM a WHERE x > 10
-), second_a AS (
+), "second_a" AS (
     SELECT * FROM first_a WHERE x > 20
-), first_b AS (
+), "first_b" AS (
     SELECT * FROM second_a WHERE y > 10
-), third_a AS (
+), "third_a" AS (
     SELECT * FROM second_a WHERE x > 30
 )
 SELECT * FROM third\

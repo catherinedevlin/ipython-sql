@@ -5,6 +5,11 @@ from sql.store import store
 from sql.connection import Connection
 
 
+class SQLPlotCommand:
+    def __init__(self, magic, line) -> None:
+        self.args = parse.magic_args(magic.execute, line)
+
+
 class SQLCommand:
     """
     Encapsulates the parsing logic (arguments, SQL code, connection string, etc.)

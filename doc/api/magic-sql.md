@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# API
+# `%sql`/`%%sql`
 
 ``-l`` / ``--connections``
     List all active connections ([example](#list-connections))

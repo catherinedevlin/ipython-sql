@@ -52,6 +52,6 @@ def test_boxplot_stats(chinook_db):
     X = res.df().Total
     expected = cbook.boxplot_stats(X)
 
-    result = plot.boxplot_stats(con, "Invoice", "Total")
+    result = plot._boxplot_stats(con, "Invoice", "Total")
 
-    assert DictOfFloats(result[0]) == DictOfFloats(expected[0])
+    assert DictOfFloats(result) == DictOfFloats(expected[0])

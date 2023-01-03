@@ -15,22 +15,24 @@ kernelspec:
 
 # Quick Start
 
-JupySQL allows you to run SQL in Jupyter/IPython via a `%sql` and `%%sql` magics. It is a fork of `ipython-sql` with bug fixes and a lot of great new features!
+JupySQL allows you to run SQL and plot large datasets in Jupyter via a `%sql`, `%%sql`, and `%sqlplot` magics. JupySQL is compatible with all major databases (e.g., PostgreSQL, MySQL, SQL Server), data warehouses (e.g., Snowflake, BigQuery, Redshift), and embedded engines (SQLite, and DuckDB).
+
+It is a fork of `ipython-sql` with many bug fixes and a lot of great new features!
 
 +++
 
 ## Installation
 
-Run this on your terminal:
+Run this on your terminal (we'll use DuckDB for this example):
 
 ```sh
-pip install jupysql
+pip install jupysql duckdb-engine
 ```
 
 Or the following in a Jupyter notebook:
 
 ```{code-cell} ipython3
-%pip install jupysql --quiet
+%pip install jupysql duckdb-engine --quiet
 ```
 
 ## Setup
@@ -41,27 +43,71 @@ Load the extension:
 %load_ext sql
 ```
 
-Let's see an example using a SQLite database. Let's insert some sample data from the TIOBE index:
+Let's download some sample `.csv` data:
 
 ```{code-cell} ipython3
-%%sql sqlite://
-CREATE TABLE languages (name, rating, change);
-INSERT INTO languages VALUES ('Python', 14.44, 2.48);
-INSERT INTO languages VALUES ('C', 13.13, 1.50);
-INSERT INTO languages VALUES ('Java', 11.59, 0.40);
-INSERT INTO languages VALUES ('C++', 10.00, 1.98);
+from pathlib import Path
+from urllib.request import urlretrieve
+
+if not Path("penguins.csv").is_file():
+    urlretrieve("https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv",
+                "penguins.csv")
+```
+
+Start a DuckDB in-memory database:
+
+```{code-cell} ipython3
+%sql duckdb://
+```
+
+```{tip}
+You can create as many connections as you want. Pass an `--alias {alias}` to easily
+[switch them or close](howto.html#switch-connections) them.
 ```
 
 ## Querying
 
+For short queries, you can write them in a single line via the `%sql` line magic:
+
 ```{code-cell} ipython3
-%sql SELECT * FROM languages
+%sql SELECT * FROM penguins.csv LIMIT 3
+```
+
+For longer queries, you can break them down into multiple lines using the `%%sql` cell magic:
+
+
+```{code-cell} ipython3
+%%sql
+SELECT *
+FROM penguins.csv
+WHERE bill_length_mm > 40
+LIMIT 3
+```
+
+## Saving queries
+
+```{code-cell} ipython3
+%%sql --save not-nulls --no-execute
+SELECT *
+FROM penguins.csv
+WHERE bill_length_mm IS NOT NULL
+AND bill_depth_mm IS NOT NULL
+```
+
+## Plotting
+
+```{code-cell} ipython3
+%sqlplot boxplot --column bill_length_mm bill_depth_mm --table not-nulls --with not-nulls
+```
+
+```{code-cell} ipython3
+%sqlplot histogram --column bill_length_mm bill_depth_mm --table not-nulls --with not-nulls
 ```
 
 ## `pandas` integration
 
 ```{code-cell} ipython3
-result = %sql SELECT * FROM languages
+result = %sql SELECT * FROM penguins.csv
 ```
 
 ```{code-cell} ipython3
@@ -70,24 +116,4 @@ df = result.DataFrame()
 
 ```{code-cell} ipython3
 df.head()
-```
-
-```{code-cell} ipython3
-type(df)
-```
-
-## Connecting
-
-To authenticate with your database, you can build your connection string:
-
-```python
-user = os.getenv('SOME_USER')
-password = os.getenv('SOME_PASSWORD')
-connection_string = f"postgresql://{user}:{password}@localhost/some_database"
-```
-
-Then, pass it to the `%sql` magic
-
-```python
-%sql $connection_string
 ```

@@ -1,7 +1,5 @@
 ---
 jupytext:
-  cell_metadata_filter: -all
-  formats: md:myst
   text_representation:
     extension: .md
     format_name: myst
@@ -15,79 +13,131 @@ kernelspec:
 
 # Plotting
 
-+++
+```{versionadded} 0.5.2
+`%sqlplot` was introduceed in 0.5.2; however, the underlying [Python API](api/python.html#sql-plot) was introduced in 0.4.4
+```
 
-Ensure you have `matplotlib` installed:
+
+The most common way for plotting datasets in Python is to load them using pandas and then use matplotlib or seaborn for plotting. This approach requires loading all your data into memory which is highly inefficient, since you can easily run out of memory as you perform data transformations.
+
+The plotting module in JupySQL runs computations in the SQL engine (database, warehouse, or embedded engine). This delegates memory management to the engine and ensures that intermediate computations do not keep eating up memory, allowing you to efficiently plot massive datasets. There are two primary use cases:
+
+**1. Plotting large remote tables**
+
+If your data is stored in a data warehouse such as Snowflake, Redshift, or BigQuery, downloading entire tables locally is extremely inefficient, and you might not even have enough memory in your laptop to load the entire dataset. With JupySQL, the data is aggregated and summarized in the warehouse, and only the summary statistics are fetched over the network. Keeping memory usage at minimum and allowing you to quickly plot entire warehouse tables efficiently.
+
+**2. Plotting large local files**
+
+If you have large `.csv` or `.parquet` files, plotting them locally is challenging. You might not have enough memory in your laptop. Furthermore, as you transform your data, those transformed datasets will consume memory, making it even more challenging. With JupySQL, loading, aggregating, and summarizing is performed in DuckDB, an embedded SQL engine; allowing you to plot larger-than-memory datasets from your laptop.
+
+### Download data
+
+In this example, we'll demonstrate this second use case and query a `.parquet` file using DuckDB. However, the same code applies for plotting data stored in a database or data warehoouse such as Snowflake, Redshift, BigQuery, PostgreSQL, etc.
 
 ```{code-cell} ipython3
-%pip install matplotlib --quiet
+from pathlib import Path
+from urllib.request import urlretrieve
+
+if not Path("yellow_tripdata_2021-01.parquet").is_file():
+    urlretrieve("https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2021-01.parquet",
+                "yellow_tripdata_2021-01.parquet")
 ```
+
+### Setup
+
+```{note}
+`%sqlplot` requires `matplotlib`: `pip install matplotlib` and this example requires
+duckdb-engine: `pip install duckdb-engine`
+```
+
++++
+
+Load the extension and connect to an in-memory DuckDB database:
 
 ```{code-cell} ipython3
 %load_ext sql
 ```
 
-Connect to an in-memory SQLite database.
-
 ```{code-cell} ipython3
-%sql sqlite://
+%sql duckdb://
 ```
 
-## Line
-
-```{code-cell} ipython3
-%%sql sqlite://
-CREATE TABLE points (x, y);
-INSERT INTO points VALUES (0, 0);
-INSERT INTO points VALUES (1, 1.5);
-INSERT INTO points VALUES (2, 3);
-INSERT INTO points VALUES (3, 3);
-```
-
-```{code-cell} ipython3
-points = %sql SELECT x, y FROM points
-points.plot()
-```
-
-## Bar
+We'll be using a sample dataset that contains historical taxi data from NYC:
 
 +++
 
-*Note: sample data from the TIOBE index.*
+### Data preview
 
 ```{code-cell} ipython3
-%%sql sqlite://
-CREATE TABLE languages (name, rating, change);
-INSERT INTO languages VALUES ('Python', 14.44, 2.48);
-INSERT INTO languages VALUES ('C', 13.13, 1.50);
-INSERT INTO languages VALUES ('Java', 11.59, 0.40);
-INSERT INTO languages VALUES ('C++', 10.00, 1.98);
+%%sql
+SELECT * FROM "yellow_tripdata_2021-01.parquet" LIMIT 3
 ```
 
 ```{code-cell} ipython3
-change = %sql SELECT name, change FROM languages
-change.bar()
+%%sql
+SELECT COUNT(*) FROM "yellow_tripdata_2021-01.parquet"
 ```
 
-## Pie
+## Boxplot
 
-Data from [Our World in Data.](https://ourworldindata.org/grapher/energy-consumption-by-source-and-country?time=latest)
+```{note}
+To use `%sqlplot boxplot`, your SQL engine must support:
 
-```{code-cell} ipython3
-%%sql sqlite://
-CREATE TABLE energy_2021 (source, percentage);
-INSERT INTO energy_2021 VALUES ('Oil', 31.26);
-INSERT INTO energy_2021 VALUES ('Coal', 27.17);
-INSERT INTO energy_2021 VALUES ('Gas', 24.66);
-INSERT INTO energy_2021 VALUES ('Hydropower', 6.83);
-INSERT INTO energy_2021 VALUES ('Nuclear', 4.3);
-INSERT INTO energy_2021 VALUES ('Wind', 2.98);
-INSERT INTO energy_2021 VALUES ('Solar', 1.65);
-INSERT INTO energy_2021 VALUES ('Biofuels', 0.70);
-INSERT INTO energy_2021 VALUES ('Other renewables', 0.47);
+`percentile_disc(...) WITHIN GROUP (ORDER BY ...)`
+
+[Snowflake](https://docs.snowflake.com/en/sql-reference/functions/percentile_disc.html),
+[Postgres](https://www.postgresql.org/docs/9.4/functions-aggregate.html),
+[DuckDB](https://duckdb.org/docs/sql/aggregates), and others support this.
 ```
 
+To create a boxplot, call `%sqlplot boxplot`, and pass the name of the table, and the column you want to plot. Since we're using DuckDB for this example, the table is the path to the parquet file.
+
 ```{code-cell} ipython3
-energy = %sql SELECT source, percentage FROM energy_2021
-energy.pie()
+%sqlplot boxplot --table yellow_tripdata_2021-01.parquet --column trip_distance
+```
+
+There are many outliers in the data, let's find the 90th percentile to use it as cutoff value, this will allow us to create a cleaner visulization:
+
+```{code-cell} ipython3
+%%sql
+SELECT percentile_disc(0.90) WITHIN GROUP (ORDER BY trip_distance),
+FROM 'yellow_tripdata_2021-01.parquet'
+```
+
+Now, let's create a query that filters by the 90th percentile. Note that we're using the `--save`, and `--no-execute` functions. This tells JupySQL to store the query, but *skips execution*. We'll reference it in our next plotting call.
+
+```{code-cell} ipython3
+%%sql --save short-trips --no-execute
+SELECT *
+FROM "yellow_tripdata_2021-01.parquet"
+WHERE trip_distance < 6.3
+```
+
+Now, let's plot again, but this time let's pass `--table short-trips`. Note that this table *doesn't exist*; however, since we're passing the `--with` argument, JupySQL will use the query we defined above:
+
+```{code-cell} ipython3
+%sqlplot boxplot --table short-trips --column trip_distance --with short-trips
+```
+
+We can see the highest value is a bit over 6, that's expected since we set a 6.3 cutoff value.
+
++++
+
+## Histogram
+
+To create a histogram, call `%sqlplot boxplot`, and pass the name of the table, the column you want to plot, and the number of bins. Similarly to what we did in the [Boxplot](#boxplot) example, we're using `--with short-trips` so JupySQL uses the query we defined and only plots such data subset.
+
+```{code-cell} ipython3
+%sqlplot histogram --table short-trips --column trip_distance --bins 10 --with short-trips
+```
+
+## Customize plot
+
+`%sqlplot` returns a `matplotlib.Axes` object that you can further customize:
+
+```{code-cell} ipython3
+ax = %sqlplot histogram --table short-trips --column trip_distance --bins 50 --with short-trips
+ax.grid()
+ax.set_title("Trip distance from trips < 6.3")
+_ = ax.set_xlabel("Trip distance")
 ```
