@@ -37,3 +37,4 @@ sphinx:
 
 launch_buttons:
   binderhub_url: "https://binder.ploomber.io"
+  notebook_interface: "jupyterlab"
