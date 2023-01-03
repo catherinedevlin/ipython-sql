@@ -1,6 +1,13 @@
 # CHANGELOG
 
 ## 0.5.2dev
+* Adds example for connecting to a SQLite database with spaces (#35)
+* Documents how to securely pass credentials (#40)
+* Adds `-a/--alias` option to name connections for easier management (#59)
+* Adds `%sqlplot` for plotting histograms and boxplots
+* Adds missing documentation for the Python API
+* Several improvements to the `sql.plot` module
+* Removes `six` as dependency (drops Python 2 support)
 
 ## 0.5.1 (2022-12-26)
 * Allow to connect to databases with an existing `sqlalchemy.engine.Engine` object
