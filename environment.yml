@@ -1,0 +1,20 @@
+# binder environment
+name: jupysql-binder
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python=3.10
+  - matplotlib
+  - pandas
+  - pip
+  - pip:
+    - jupyter-book
+    # duckdb example
+    - duckdb
+    - duckdb-engine
+    # plot example
+    - memory-profiler
+    - pyarrow
+    - -e ..
