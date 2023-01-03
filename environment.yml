@@ -17,4 +17,4 @@ dependencies:
     # plot example
     - memory-profiler
     - pyarrow
-    - -e ..
+    - -e .
