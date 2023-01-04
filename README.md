@@ -8,7 +8,7 @@ Run SQL in Jupyter/IPython via a `%sql` and `%%sql` magics.
 
 - [Pandas integration](https://jupysql.readthedocs.io/en/latest/pandas.html)
 - [SQL composition (no more hard-to-debug CTEs!)](https://jupysql.readthedocs.io/en/latest/compose.html)
-- [Plot massive datasets without blowing up memory](https://jupysql.readthedocs.io/en/latest/plot-large.html)
+- [Plot massive datasets without blowing up memory](https://jupysql.readthedocs.io/en/latest/plot.html)
 - [DuckDB integration](https://jupysql.readthedocs.io/en/latest/duckdb.html)
 
 ## Installation
