@@ -26,6 +26,8 @@ parts:
   - caption: How-To
     chapters:
     - file: howto
+    - file: howto/postgres-install
+    - file: howto/postgres-connect
 
   - caption: Community
     chapters:

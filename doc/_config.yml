@@ -1,6 +1,6 @@
 title: JupySQL
 author: Ploomber
-copyright: 2023
+copyright: '2023'
 logo: square-no-bg-small.png
 
 # Force re-execution of notebooks on each build.
@@ -8,6 +8,9 @@ logo: square-no-bg-small.png
 execute:
   execute_notebooks: force
   timeout: 90
+
+  exclude_patterns:
+    - 'howto/*-connect.ipynb'
 
 # Define the name of the latex output file for PDF builds
 latex:
