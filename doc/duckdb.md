@@ -201,7 +201,7 @@ We have some outliers, let's find the 99th percentile:
 
 ```{code-cell} ipython3
 %%sql
-SELECT percentile_disc(0.99) WITHIN GROUP (ORDER BY trip_distance),
+SELECT percentile_disc(0.99) WITHIN GROUP (ORDER BY trip_distance)
 FROM 'yellow_tripdata_2021-*.parquet'
 ```
 
