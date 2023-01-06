@@ -3,8 +3,6 @@
 [![Twitter](https://img.shields.io/twitter/follow/edublancas?label=Follow&style=social)](https://twitter.com/intent/user?screen_name=ploomber)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-Run SQL in Jupyter/IPython via a `%sql` and `%%sql` magics.
-
 <p align="center">
   <a href="https://ploomber.io/community">Join our community</a>
   |
@@ -20,6 +18,8 @@ Run SQL in Jupyter/IPython via a `%sql` and `%%sql` magics.
   |
   <a href="https://www.youtube.com/channel/UCaIS5BMlmeNQE4-Gn0xTDXQ">YouTube</a>
 </p>
+
+Run SQL in Jupyter/IPython via a `%sql` and `%%sql` magics.
 
 ## Features
 
