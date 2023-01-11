@@ -9,6 +9,9 @@ execute:
   execute_notebooks: force
   timeout: 90
 
+  exclude_patterns:
+    - 'howto/*-connect.ipynb'
+
 # Define the name of the latex output file for PDF builds
 latex:
   latex_documents:
