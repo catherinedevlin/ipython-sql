@@ -125,7 +125,7 @@ We can see the highest value is a bit over 6, that's expected since we set a 6.3
 
 ## Histogram
 
-To create a histogram, call `%sqlplot boxplot`, and pass the name of the table, the column you want to plot, and the number of bins. Similarly to what we did in the [Boxplot](#boxplot) example, we're using `--with short-trips` so JupySQL uses the query we defined and only plots such data subset.
+To create a histogram, call `%sqlplot histogram`, and pass the name of the table, the column you want to plot, and the number of bins. Similarly to what we did in the [Boxplot](#boxplot) example, we're using `--with short-trips` so JupySQL uses the query we defined and only plots such data subset.
 
 ```{code-cell} ipython3
 %sqlplot histogram --table short-trips --column trip_distance --bins 10 --with short-trips
