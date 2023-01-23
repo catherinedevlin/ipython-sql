@@ -15,6 +15,12 @@ parts:
     - file: compose
     - file: plot-legacy
 
+  - caption: Integrations
+    chapters:
+      - file: integrations/duckdb
+      - file: integrations/pandas
+      - file: integrations/mindsdb
+
   - caption: API Reference
     chapters:
     - file: api/magic-sql
