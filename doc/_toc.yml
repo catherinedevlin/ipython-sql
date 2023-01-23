@@ -9,24 +9,25 @@ parts:
     - file: intro
     - file: connecting
     - file: plot
-    - file: plot-large
+    - file: duckdb
+    - file: pandas
     - file: csv
     - file: compose
-
-  - caption: Integrations
-    chapters:
-      - file: integrations/duckdb
-      - file: integrations/pandas
-      - file: integrations/mindsdb
+    - file: plot-legacy
 
   - caption: API Reference
     chapters:
-    - file: api
-    - file: configuration
+    - file: api/magic-sql
+    - file: api/magic-plot
+    - file: api/magic-render
+    - file: api/configuration
+    - file: api/python
 
   - caption: How-To
     chapters:
     - file: howto
+    - file: howto/postgres-install
+    - file: howto/postgres-connect
 
   - caption: Community
     chapters:
