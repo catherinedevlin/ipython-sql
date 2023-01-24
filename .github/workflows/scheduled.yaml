@@ -4,6 +4,8 @@ on:
   schedule:
     - cron: '0 8 * * *'
 
+  pull_request:
+
 jobs:
   broken-links:
     runs-on: ubuntu-latest
