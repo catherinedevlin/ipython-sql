@@ -32,11 +32,26 @@ CREATE TABLE another (n INT, name TEXT)
 ```
 
 ```{code-cell} ipython3
-from sql import inspect
-
-inspect.get_table_names()
+%sqlcmd tables
 ```
 
 ```{code-cell} ipython3
-inspect.get_columns("another")
+%sqlcmd columns -t test
+```
+
+```{code-cell} ipython3
+%sqlcmd columns -t another
+```
+
+```{code-cell} ipython3
+%%sql
+CREATE TABLE final(n INT, name TEXT)
+```
+
+```{code-cell} ipython3
+%sqlcmd tables
+```
+
+```{code-cell} ipython3
+
 ```
