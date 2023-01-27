@@ -51,7 +51,7 @@ class RenderMagic(Magics):
         action="append",
         dest="with_",
     )
-    @telemetry.log_call('sqlrender')
+    @telemetry.log_call("sqlrender")
     def sqlrender(self, line):
         args = parse_argstring(self.sqlrender, line)
         return str(store[args.line[0]])
@@ -62,7 +62,7 @@ class SqlMagic(Magics, Configurable):
     """Runs SQL statement on a database, specified by SQLAlchemy connect string.
 
     Provides the %%sql magic."""
-    
+
     displaycon = Bool(True, config=True, help="Show connection string after execution")
     autolimit = Int(
         0,
@@ -100,8 +100,7 @@ class SqlMagic(Magics, Configurable):
     column_local_vars = Bool(
         False, config=True, help="Return data into local variables from column names"
     )
-    feedback = Bool(True, config=True,
-                    help="Print number of rows affected by DML")
+    feedback = Bool(True, config=True, help="Print number of rows affected by DML")
     dsn_filename = Unicode(
         "odbc.ini",
         config=True,
@@ -112,7 +111,7 @@ class SqlMagic(Magics, Configurable):
     )
     autocommit = Bool(True, config=True, help="Set autocommit mode")
 
-    @telemetry.log_call('init')
+    @telemetry.log_call("init")
     def __init__(self, shell):
 
         self._store = store
@@ -189,7 +188,7 @@ class SqlMagic(Magics, Configurable):
         type=str,
         help="Assign an alias to the connection",
     )
-    @telemetry.log_call('execute')
+    @telemetry.log_call("execute")
     def execute(self, line="", cell="", local_ns={}):
         """
         Runs SQL statement against a database, specified by
@@ -319,8 +318,7 @@ class SqlMagic(Magics, Configurable):
 
                 if self.feedback:
                     print(
-                        "Returning data to local variables [{}]".format(
-                            ", ".join(keys))
+                        "Returning data to local variables [{}]".format(", ".join(keys))
                     )
 
                 self.shell.user_ns.update(result)
@@ -361,8 +359,7 @@ class SqlMagic(Magics, Configurable):
         except SyntaxError:
             raise SyntaxError("Syntax: %sql --persist <name_of_data_frame>")
         if not isinstance(frame, DataFrame) and not isinstance(frame, Series):
-            raise TypeError(
-                "%s is not a Pandas DataFrame or Series" % frame_name)
+            raise TypeError("%s is not a Pandas DataFrame or Series" % frame_name)
 
         # Make a suitable name for the resulting database table
         table_name = frame_name.lower()
@@ -370,8 +367,7 @@ class SqlMagic(Magics, Configurable):
 
         if_exists = "append" if append else "fail"
 
-        frame.to_sql(table_name, conn.session.engine,
-                     if_exists=if_exists, index=index)
+        frame.to_sql(table_name, conn.session.engine, if_exists=if_exists, index=index)
         return "Persisted %s" % table_name
 
 

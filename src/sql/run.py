@@ -166,7 +166,7 @@ class ResultSet(list, ColumnGuesserMixin):
         for row in self:
             yield dict(zip(self.keys, row))
 
-    @telemetry.log_call('data-frame')
+    @telemetry.log_call("data-frame")
     def DataFrame(self):
         "Returns a Pandas DataFrame instance built from the result set."
         import pandas as pd
@@ -174,7 +174,7 @@ class ResultSet(list, ColumnGuesserMixin):
         frame = pd.DataFrame(self, columns=(self and self.keys) or [])
         return frame
 
-    @telemetry.log_call('pie')
+    @telemetry.log_call("pie")
     def pie(self, key_word_sep=" ", title=None, **kwargs):
         """Generates a pylab pie chart from the result set.
 
@@ -205,7 +205,7 @@ class ResultSet(list, ColumnGuesserMixin):
         ax.set_title(title or self.ys[0].name)
         return ax
 
-    @telemetry.log_call('plot')
+    @telemetry.log_call("plot")
     def plot(self, title=None, **kwargs):
         """Generates a pylab plot from the result set.
 
@@ -244,7 +244,7 @@ class ResultSet(list, ColumnGuesserMixin):
 
         return ax
 
-    @telemetry.log_call('bar')
+    @telemetry.log_call("bar")
     def bar(self, key_word_sep=" ", title=None, **kwargs):
         """Generates a pylab bar plot from the result set.
 
@@ -279,7 +279,7 @@ class ResultSet(list, ColumnGuesserMixin):
         ax.set_ylabel(self.ys[0].name)
         return ax
 
-    @telemetry.log_call('generate-csv')
+    @telemetry.log_call("generate-csv")
     def csv(self, filename=None, **format_params):
         """Generate results in comma-separated form.  Write to ``filename`` if given.
         Any other parameters will be passed on to csv.writer."""
@@ -338,7 +338,7 @@ class FakeResultProxy(object):
         def fetchmany(size):
             pos = 0
             while pos < len(source_list):
-                yield source_list[pos: pos + size]
+                yield source_list[pos : pos + size]
                 pos += size
 
         self.fetchmany = fetchmany
@@ -379,8 +379,7 @@ def run(conn, sql, config, user_namespace):
             if first_word == "begin":
                 raise Exception("ipython_sql does not support transactions")
             if first_word.startswith("\\") and (
-                "postgres" in str(
-                    conn.dialect) or "redshift" in str(conn.dialect)
+                "postgres" in str(conn.dialect) or "redshift" in str(conn.dialect)
             ):
                 if not PGSpecial:
                     raise ImportError("pgspecial not installed")

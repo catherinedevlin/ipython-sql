@@ -11,4 +11,3 @@ telemetry = Telemetry(
     package_name="jupysql",
     version=version("jupysql"),
 )
-
