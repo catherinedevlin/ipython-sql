@@ -7,6 +7,7 @@ from sql.connection import Connection
 
 class SQLPlotCommand:
     def __init__(self, magic, line) -> None:
+        # TODO: I dont think i need this here,  i can use vanilla parse
         self.args = parse.magic_args(magic.execute, line)
 
 
