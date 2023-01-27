@@ -35,7 +35,7 @@ class SqlCmdMagic(Magics, Configurable):
 
     @line_magic("sqlcmd")
     @magic_arguments()
-    @argument("line", default="", nargs="*", type=str, help="Command name")
+    @argument("line", default="", type=str, help="Command name")
     def execute(self, line="", cell="", local_ns=None):
         """
         Command
