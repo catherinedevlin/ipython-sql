@@ -1,3 +1,5 @@
+from IPython.core.magic_arguments import parse_argstring
+
 from sqlalchemy.engine import Engine
 
 from sql import parse
@@ -7,8 +9,7 @@ from sql.connection import Connection
 
 class SQLPlotCommand:
     def __init__(self, magic, line) -> None:
-        # TODO: I dont think i need this here,  i can use vanilla parse
-        self.args = parse.magic_args(magic.execute, line)
+        self.args = parse_argstring(magic.execute, line)
 
 
 class SQLCommand:
