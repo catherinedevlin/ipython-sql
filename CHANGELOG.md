@@ -2,6 +2,8 @@
 
 ## 0.5.3dev
 * [Fix] `setup.py` fix due to change in setuptools 67.0.0
+* [Feature] Adds `%sqlcmd tables` (#76)
+* [Feature] Adds `%sqlcmd columns` (#76)
 
 ## 0.5.2 (2023-01-03)
 * Adds example for connecting to a SQLite database with spaces ([#35](https://github.com/ploomber/jupysql/issues/35))
