@@ -37,3 +37,8 @@ def test_columns(ip):
     assert "first_name" in out
     assert "last_name" in out
     assert "year_of_death" in out
+
+
+# MISSING TESTS
+# # %sqlcmd x --help
+# %sqlcmd columns --help

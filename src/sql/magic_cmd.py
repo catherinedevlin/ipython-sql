@@ -26,7 +26,6 @@ class CmdParser(argparse.ArgumentParser):
             self._print_message(message, sys.stderr)
 
     def error(self, message):
-        print("A")
         raise UsageError(message)
 
 
@@ -59,9 +58,7 @@ class SqlCmdMagic(Magics, Configurable):
                 "-s", "--schema", type=str, help="Schema name", required=False
             )
 
-            print("parsing: ", others)
             args = parser.parse_args(others)
-            print("end of parsing")
             return inspect.get_columns(name=args.table, schema=args.schema)
         else:
             raise UsageError(f"Unknown command: {cmd_name}")
