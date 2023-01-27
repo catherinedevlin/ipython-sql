@@ -16,7 +16,6 @@ import sql.parse
 import sql.run
 from sql.store import store
 from sql.command import SQLCommand
-from sql.magic_cmd import SqlCmdMagic
 from sql.magic_plot import SqlPlotMagic
 
 try:
@@ -387,4 +386,3 @@ def load_ipython_extension(ip):
     ip.register_magics(SqlMagic)
     ip.register_magics(RenderMagic)
     ip.register_magics(SqlPlotMagic)
-    ip.register_magics(SqlCmdMagic)
