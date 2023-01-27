@@ -14,7 +14,7 @@ kernelspec:
 # List tables and columns
 
 ```{note}
-This example uses `SQLite` but the same commands work for otehr databases.
+This example uses `SQLite` but the same commands work for other databases.
 ```
 
 With JupySQL, you can quickly explore what tables are available in your database and which columns each table has.
