@@ -9,10 +9,9 @@ parts:
     - file: intro
     - file: connecting
     - file: plot
-    - file: duckdb
-    - file: pandas
     - file: csv
     - file: compose
+    - file: user-guide/tables-columns
     - file: plot-legacy
 
   - caption: Integrations
