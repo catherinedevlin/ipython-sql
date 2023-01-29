@@ -61,4 +61,7 @@ class SqlCmdMagic(Magics, Configurable):
             args = parser.parse_args(others)
             return inspect.get_columns(name=args.table, schema=args.schema)
         else:
-            raise UsageError(f"Unknown command: {cmd_name}")
+            raise UsageError(
+                f"%sqlcmd has no command: {cmd_name!r}. "
+                "Valid commands are: 'tables', 'columns'"
+            )
