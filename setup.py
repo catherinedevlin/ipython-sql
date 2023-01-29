@@ -22,7 +22,7 @@ install_requires = [
     "sqlparse",
     "ipython-genutils>=0.1.0",
     "jinja2",
-    "ploomber-core>=0.1.*",
+    "ploomber-core>=0.2",
     'importlib-metadata;python_version<"3.8"',
 ]
 
