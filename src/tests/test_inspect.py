@@ -1,3 +1,4 @@
+from inspect import getsource
 import sqlite3
 import pytest
 from functools import partial
@@ -84,3 +85,14 @@ def test_nonexistent_table(name, schema, error):
         inspect.get_columns(name, schema)
 
     assert str(excinfo.value) == error
+
+
+@pytest.mark.parametrize(
+    "function",
+    [
+        inspect.get_table_names,
+        inspect.get_columns,
+    ],
+)
+def test_seome_telemetry(function):
+    assert "@telemetry.log_call" in getsource(function)
