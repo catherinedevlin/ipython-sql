@@ -54,6 +54,14 @@ Use `%sqlcmd tables` to print the tables for the current connection:
 %sqlcmd tables
 ```
 
+Pass `--schema/-s` to get tables in a different schema:
+
+```python
+%sqlcmd tables --schema schema
+```
+
++++
+
 ## List columns
 
 Use `%sqlcmd columns --table/-t` to get the columns for the given table.
