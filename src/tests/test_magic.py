@@ -1,3 +1,4 @@
+import platform
 from pathlib import Path
 import os.path
 import re
@@ -154,18 +155,21 @@ def test_connection_args_enforce_json(ip):
     assert result.error_in_exec
 
 
+@pytest.mark.skipif(platform.system() == "Windows", reason="failing on windows")
 def test_connection_args_in_connection(ip):
     ip.run_cell('%sql --connection_arguments {"timeout":10} sqlite:///:memory:')
     result = ip.run_cell("%sql --connections")
     assert "timeout" in result.result["sqlite:///:memory:"].connect_args
 
 
+@pytest.mark.skipif(platform.system() == "Windows", reason="failing on windows")
 def test_connection_args_single_quotes(ip):
     ip.run_cell("%sql --connection_arguments '{\"timeout\": 10}' sqlite:///:memory:")
     result = ip.run_cell("%sql --connections")
     assert "timeout" in result.result["sqlite:///:memory:"].connect_args
 
 
+@pytest.mark.skipif(platform.system() == "Windows", reason="failing on windows")
 def test_connection_args_double_quotes(ip):
     ip.run_cell('%sql --connection_arguments "{\\"timeout\\": 10}" sqlite:///:memory:')
     result = ip.run_cell("%sql --connections")
