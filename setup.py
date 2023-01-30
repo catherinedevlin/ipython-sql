@@ -8,15 +8,15 @@ README = open(os.path.join(here, "README.rst"), encoding="utf-8").read()
 NEWS = open(os.path.join(here, "NEWS.rst"), encoding="utf-8").read()
 
 
-version = "0.4.1"
+version = "0.5.0"
 
 install_requires = [
-    "prettytable<1",
-    "ipython>=1.0",
-    "sqlalchemy>=0.6.7",
+    "prettytable",
+    "ipython",
+    "sqlalchemy",
     "sqlparse",
     "six",
-    "ipython-genutils>=0.1.0",
+    "ipython-genutils",
 ]
 
 

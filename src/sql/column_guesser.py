@@ -6,7 +6,7 @@ makes guesses about the role of each column for plotting purposes
 
 
 class Column(list):
-    "Store a column of tabular data; record its name and whether it is numeric"
+    """Store a column of tabular data; record its name and whether it is numeric"""
     is_quantity = True
     name = ""
 
@@ -27,6 +27,9 @@ class ColumnGuesserMixin(object):
     plot: [x, y, y...], y
     pie: ... y
     """
+
+    def __init__(self):
+        self.keys = None
 
     def _build_columns(self):
         self.columns = [Column() for col in self.keys]

@@ -1,6 +1,6 @@
 import json
 import re
-from string import Formatter
+import traceback
 
 from IPython.core.magic import (
     Magics,
@@ -10,7 +10,6 @@ from IPython.core.magic import (
     needs_local_scope,
 )
 from IPython.core.magic_arguments import argument, magic_arguments, parse_argstring
-from IPython.display import display_javascript
 from sqlalchemy.exc import OperationalError, ProgrammingError, DatabaseError
 
 import sql.connection
@@ -46,7 +45,8 @@ class SqlMagic(Magics, Configurable):
     style = Unicode(
         "DEFAULT",
         config=True,
-        help="Set the table printing style to any of prettytable's defined styles (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)",
+        help="Set the table printing style to any of prettytable's defined styles "
+             "(currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, RANDOM)",
     )
     short_errors = Bool(
         True,
@@ -72,9 +72,9 @@ class SqlMagic(Magics, Configurable):
         "odbc.ini",
         config=True,
         help="Path to DSN file. "
-        "When the first argument is of the form [section], "
-        "a sqlalchemy connection string is formed from the "
-        "matching section in the DSN file.",
+             "When the first argument is of the form [section], "
+             "a sqlalchemy connection string is formed from the "
+             "matching section in the DSN file.",
     )
     autocommit = Bool(True, config=True, help="Set autocommit mode")
 
@@ -82,7 +82,7 @@ class SqlMagic(Magics, Configurable):
         Configurable.__init__(self, config=shell.config)
         Magics.__init__(self, shell=shell)
 
-        # Add ourself to the list of module configurable via %config
+        # Add ourselves to the list of module configurable via %config
         self.shell.configurables.append(self)
 
     @needs_local_scope
@@ -121,7 +121,7 @@ class SqlMagic(Magics, Configurable):
         help="specify dictionary of connection arguments to pass to SQL driver",
     )
     @argument("-f", "--file", type=str, help="Run SQL from file at this path")
-    def execute(self, line="", cell="", local_ns={}):
+    def execute(self, line="", cell="", local_ns=None):
         """Runs SQL statement against a database, specified by SQLAlchemy connect string.
 
         If no database connection has been established, first word
@@ -147,15 +147,17 @@ class SqlMagic(Magics, Configurable):
 
         """
         # Parse variables (words wrapped in {}) for %%sql magic (for %sql this is done automatically)
+        if local_ns is None:
+            local_ns = {}
         cell = self.shell.var_expand(cell)
         line = sql.parse.without_sql_comment(parser=self.execute.parser, line=line)
         args = parse_argstring(self.execute, line)
         if args.connections:
             return sql.connection.Connection.connections
         elif args.close:
-            return sql.connection.Connection._close(args.close)
+            return sql.connection.Connection.close(args.close)
 
-        # save globals and locals so they can be referenced in bind vars
+        # save globals and locals, so they can be referenced in bind vars
         user_ns = self.shell.user_ns.copy()
         user_ns.update(local_ns)
 
@@ -173,7 +175,7 @@ class SqlMagic(Magics, Configurable):
 
         if args.connection_arguments:
             try:
-                # check for string deliniators, we need to strip them for json parse
+                # check for string delineators, we need to strip them for json parse
                 raw_args = args.connection_arguments
                 if len(raw_args) > 1:
                     targets = ['"', "'"]
@@ -183,7 +185,7 @@ class SqlMagic(Magics, Configurable):
                         raw_args = raw_args[1:-1]
                 args.connection_arguments = json.loads(raw_args)
             except Exception as e:
-                print(e)
+                print(traceback.format_exc())
                 raise e
         else:
             args.connection_arguments = {}
@@ -197,8 +199,10 @@ class SqlMagic(Magics, Configurable):
                 connect_args=args.connection_arguments,
                 creator=args.creator,
             )
-        except Exception as e:
-            print(e)
+            # Rollback just in case there was an error in previous statement
+            conn.internal_connection.rollback()
+        except Exception:
+            print(traceback.format_exc())
             print(sql.connection.Connection.tell_format())
             return None
 
@@ -220,7 +224,7 @@ class SqlMagic(Magics, Configurable):
                 and self.column_local_vars
             ):
                 # Instead of returning values, set variables directly in the
-                # users namespace. Variable names given by column names
+                # user's namespace. Variable names given by column names
 
                 if self.autopandas:
                     keys = result.keys()
@@ -253,7 +257,8 @@ class SqlMagic(Magics, Configurable):
             if self.short_errors:
                 print(e)
             else:
-                raise
+                print(traceback.format_exc())
+                raise e
 
     legal_sql_identifier = re.compile(r"^[A-Za-z0-9#_$]+")
 
@@ -279,7 +284,7 @@ class SqlMagic(Magics, Configurable):
         table_name = self.legal_sql_identifier.search(table_name).group(0)
 
         if_exists = "append" if append else "fail"
-        frame.to_sql(table_name, conn.session.engine, if_exists=if_exists)
+        frame.to_sql(table_name, conn.internal_connection.engine, if_exists=if_exists)
         return "Persisted %s" % table_name
 
 

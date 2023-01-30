@@ -5,8 +5,6 @@ from textwrap import dedent
 
 import pytest
 
-from sql.magic import SqlMagic
-
 
 def runsql(ip_session, statements):
     if isinstance(statements, str):
@@ -321,7 +319,6 @@ def test_dicts(ip):
 
 
 def test_bracket_var_substitution(ip):
-
     ip.user_global_ns["col"] = "first_name"
     assert runsql(ip, "SELECT * FROM author" " WHERE {col} = 'William' ")[0] == (
         u"William",
@@ -335,7 +332,6 @@ def test_bracket_var_substitution(ip):
 
 
 def test_multiline_bracket_var_substitution(ip):
-
     ip.user_global_ns["col"] = "first_name"
     assert runsql(ip, "SELECT * FROM author\n" " WHERE {col} = 'William' ")[0] == (
         u"William",
@@ -370,7 +366,7 @@ def test_multiline_bracket_var_substitution(ip):
         """,
     )
     assert not result
- 
+
 
 def test_json_in_select(ip):
     # Variable expansion does not work within json, but 

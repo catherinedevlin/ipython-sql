@@ -1,6 +1,3 @@
-import re
-import sys
-
 import pytest
 
 from sql.magic import SqlMagic
