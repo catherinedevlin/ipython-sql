@@ -28,7 +28,7 @@ With JupySQL, you can quickly explore what tables are available in your database
 %sql sqlite://
 ```
 
-Let's create some sample tables:
+Let's create some sample tables in the default schema:
 
 ```{code-cell} ipython3
 :tags: [hide-output]
@@ -43,6 +43,30 @@ CREATE TABLE coordinates (x INT, y INT)
 %%sql
 CREATE TABLE people (name TEXT, birth_year INT)
 ```
+
+## List tables
+
++++
+
+Use `%sqlcmd tables` to print the tables for the current connection:
+
+```{code-cell} ipython3
+%sqlcmd tables
+```
+
+## List columns
+
+Use `%sqlcmd columns --table/-t` to get the columns for the given table.
+
+```{code-cell} ipython3
+%sqlcmd columns --table coordinates
+```
+
+```{code-cell} ipython3
+%sqlcmd columns -t people
+```
+
+If the table isn't in the defautl schema, pass `--schema/-s`.  Let's create a new table in a new schema:
 
 ```{code-cell} ipython3
 :tags: [hide-output]
@@ -60,31 +84,7 @@ with sqlite3.connect("my.db") as conn:
 ATTACH DATABASE 'my.db' AS some_schema
 ```
 
-## List tables
-
-+++
-
-Use `%sqlcmd tables` to print the tables for the current connection:
-
-```{code-cell} ipython3
-%sqlcmd tables
-```
-
-## List columns
-
-+++
-
-User `%sqlcmd columns --table/-t` to get the columns for the given table:
-
-```{code-cell} ipython3
-%sqlcmd columns --table coordinates
-```
-
-```{code-cell} ipython3
-%sqlcmd columns -t people
-```
-
-If the table isn't in the defautl schema, pass `--schema/-s`:
+Get the columns for the table in the newly created schema:
 
 ```{code-cell} ipython3
 %sqlcmd columns --table numbers --schema some_schema
