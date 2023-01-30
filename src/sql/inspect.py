@@ -29,13 +29,13 @@ class Tables(DatabaseInspection):
     Displays the tables in a database
     """
 
-    def __init__(self, conn=None) -> None:
+    def __init__(self, schema=None, conn=None) -> None:
         inspector = _get_inspector(conn)
 
         self._table = PrettyTable()
         self._table.field_names = ["Name"]
 
-        for row in inspector.get_table_names():
+        for row in inspector.get_table_names(schema=schema):
             self._table.add_row([row])
 
         self._table_html = self._table.get_html_string()
@@ -73,9 +73,9 @@ class Columns(DatabaseInspection):
 
 
 @telemetry.log_call()
-def get_table_names():
+def get_table_names(schema=None):
     """Get table names for a given connection"""
-    return Tables()
+    return Tables(schema)
 
 
 @telemetry.log_call()

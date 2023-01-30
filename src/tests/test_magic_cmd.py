@@ -33,6 +33,21 @@ def test_tables(ip):
     assert "test" in out
 
 
+def test_tables_with_schema(ip, tmp_empty):
+    with sqlite3.connect("my.db") as conn:
+        conn.execute("CREATE TABLE numbers (some_number FLOAT)")
+
+    ip.run_cell(
+        """%%sql
+ATTACH DATABASE 'my.db' AS some_schema
+"""
+    )
+
+    out = ip.run_cell("%sqlcmd tables --schema some_schema").result._repr_html_()
+
+    assert "numbers" in out
+
+
 def test_columns(ip):
     out = ip.run_cell("%sqlcmd columns -t author").result._repr_html_()
     assert "first_name" in out

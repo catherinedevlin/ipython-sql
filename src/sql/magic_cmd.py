@@ -45,9 +45,14 @@ class SqlCmdMagic(Magics, Configurable):
 
         if cmd_name == "tables":
             parser = CmdParser()
+
+            parser.add_argument(
+                "-s", "--schema", type=str, help="Schema name", required=False
+            )
+
             args = parser.parse_args(others)
 
-            return inspect.get_table_names()
+            return inspect.get_table_names(schema=args.schema)
         elif cmd_name == "columns":
             parser = CmdParser()
 
