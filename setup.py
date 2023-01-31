@@ -27,6 +27,7 @@ install_requires = [
 ]
 
 DEV = [
+    "flake8",
     "pytest",
     "pandas",
     "invoke",
@@ -37,6 +38,7 @@ DEV = [
     "duckdb-engine",
     # sql.plot module tests
     "matplotlib",
+    "black",
 ]
 
 setup(
