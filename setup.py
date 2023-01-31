@@ -24,7 +24,6 @@ install_requires = [
     "jinja2",
     "ploomber-core>=0.2",
     'importlib-metadata;python_version<"3.8"',
-    "black",
 ]
 
 DEV = [
@@ -39,6 +38,7 @@ DEV = [
     "duckdb-engine",
     # sql.plot module tests
     "matplotlib",
+    "black",
 ]
 
 setup(
