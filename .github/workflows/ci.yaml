@@ -74,7 +74,7 @@ jobs:
           pip install 'pkgmt[check]' twine wheel
       - name: Configure git
         run: |
-          git config user.email "github-actions@github.com"
+          git config user.email "github-actions@ploomber.io"
           git config user.name "github-actions"
       - name: Bump up tag version 
         run: |
