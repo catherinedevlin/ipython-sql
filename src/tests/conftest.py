@@ -7,6 +7,7 @@ from IPython.core.interactiveshell import InteractiveShell
 
 from sql.magic import SqlMagic, RenderMagic
 from sql.magic_plot import SqlPlotMagic
+from sql.magic_cmd import SqlCmdMagic
 
 PATH_TO_TESTS = Path(__file__).absolute().parent
 PATH_TO_TMP_ASSETS = PATH_TO_TESTS / "tmp"
@@ -46,6 +47,7 @@ def ip():
     ip_session.register_magics(SqlMagic)
     ip_session.register_magics(RenderMagic)
     ip_session.register_magics(SqlPlotMagic)
+    ip_session.register_magics(SqlCmdMagic)
 
     # runsql creates an inmemory sqlitedatabase
     runsql(
