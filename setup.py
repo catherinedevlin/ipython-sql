@@ -24,9 +24,11 @@ install_requires = [
     "jinja2",
     "ploomber-core>=0.2",
     'importlib-metadata;python_version<"3.8"',
+    "black",
 ]
 
 DEV = [
+    "flake8",
     "pytest",
     "pandas",
     "invoke",
