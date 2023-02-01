@@ -2,6 +2,7 @@
 Plot using the SQL backend
 """
 from ploomber_core.dependencies import requires
+from ploomber_core.exceptions import modify_exceptions
 from jinja2 import Template
 
 try:
@@ -123,6 +124,7 @@ OR  "{{column}}" > {{whishi}}
 
 
 # https://github.com/matplotlib/matplotlib/blob/b5ac96a8980fdb9e59c9fb649e0714d776e26701/lib/matplotlib/cbook/__init__.py
+@modify_exceptions
 def _boxplot_stats(con, table, column, whis=1.5, autorange=False, with_=None):
     """Compute statistics required to create a boxplot"""
 
@@ -347,6 +349,7 @@ def histogram(table, column, bins, with_=None, conn=None):
     return ax
 
 
+@modify_exceptions
 def _histogram(table, column, bins, with_=None, conn=None):
     """Compute bins and heights"""
     if not conn:

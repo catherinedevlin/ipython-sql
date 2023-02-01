@@ -135,7 +135,11 @@ def test_persist_non_frame_raises(ip):
     ip.run_cell("not_a_dataframe = 22")
     runsql(ip, "")
     result = ip.run_cell("%sql --persist sqlite:// not_a_dataframe")
-    assert result.error_in_exec
+    assert isinstance(result.error_in_exec, TypeError)
+    assert (
+        "is not a Pandas DataFrame or Series".lower()
+        in str(result.error_in_exec).lower()
+    )
 
 
 def test_persist_bare(ip):
@@ -304,7 +308,6 @@ def test_dicts(ip):
 
 
 def test_bracket_var_substitution(ip):
-
     ip.user_global_ns["col"] = "first_name"
     assert runsql(ip, "SELECT * FROM author" " WHERE {col} = 'William' ")[0] == (
         "William",
@@ -319,7 +322,6 @@ def test_bracket_var_substitution(ip):
 
 # the next two tests had the same name, so I added a _2 to the second one
 def test_multiline_bracket_var_substitution(ip):
-
     ip.user_global_ns["col"] = "first_name"
     assert runsql(ip, "SELECT * FROM author\n" " WHERE {col} = 'William' ")[0] == (
         "William",

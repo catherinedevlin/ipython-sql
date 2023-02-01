@@ -1,6 +1,6 @@
 from sqlalchemy import inspect
 from prettytable import PrettyTable
-
+from ploomber_core.exceptions import modify_exceptions
 
 from sql.connection import Connection
 from sql.telemetry import telemetry
@@ -42,6 +42,7 @@ class Tables(DatabaseInspection):
         self._table_txt = self._table.get_string()
 
 
+@modify_exceptions
 class Columns(DatabaseInspection):
     """
     Represents the columns in a database table

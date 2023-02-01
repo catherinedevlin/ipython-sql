@@ -3,7 +3,6 @@ import sqlite3
 import pytest
 from functools import partial
 
-
 from sql import inspect, connection
 
 
@@ -96,7 +95,7 @@ def test_nonexistent_table(name, schema, error):
     with pytest.raises(ValueError) as excinfo:
         inspect.get_columns(name, schema)
 
-    assert str(excinfo.value) == error
+    assert error.lower() in str(excinfo.value).lower()
 
 
 @pytest.mark.parametrize(
