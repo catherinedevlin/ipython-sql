@@ -57,7 +57,7 @@ a flag with (-a|--connection_arguments)the connection string as a JSON string. S
 
 Check out our guide for connecting to a database:
 
-- [PosgreSQL](howto/postgres-connect)
+- [PostgreSQL](howto/postgres-connect)
 
 +++
 
