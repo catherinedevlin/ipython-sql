@@ -11,6 +11,19 @@ kernelspec:
   name: python3
 ---
 
+```{code-cell} ipython3
+:tags: [remove-cell]
+
+# clean up all .db files (this cell will not be displayed in the docs)
+from pathlib import Path
+from glob import glob
+
+for file in (Path(f) for f in glob("*.db")):
+    if file.exists():
+        print(f"Deleting: {file}")
+        file.unlink()
+```
+
 # How-To
 
 ## Query CSV files with SQL
@@ -229,4 +242,37 @@ Close by passing the alias:
 
 ```{code-cell} ipython3
 %sql -l
+```
+
+## Connect to existing `engine`
+
+Pass the name of the engine:
+
+```{code-cell} ipython3
+some_engine = create_engine("sqlite:///some.db")
+```
+
+```{code-cell} ipython3
+%sql some_engine
+```
+
++++ {"tags": []}
+
+## Use `%sql`/`%%sql` in Databricks
+
+Databricks uses the same name (`%sql`/`%%sql`) for its SQL magics; however, JupySQL exposes a `%jupysql`/`%%jupysql` alias so you can use both:
+
+```{code-cell} ipython3
+%jupysql duckdb://
+```
+
+```{code-cell} ipython3
+%jupysql SELECT * FROM "penguins.csv" LIMIT 3
+```
+
+```{code-cell} ipython3
+%%jupysql
+SELECT *
+FROM "penguins.csv"
+LIMIT 3
 ```

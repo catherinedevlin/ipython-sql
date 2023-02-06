@@ -126,6 +126,8 @@ class SqlMagic(Magics, Configurable):
     @needs_local_scope
     @line_magic("sql")
     @cell_magic("sql")
+    @line_magic("jupysql")
+    @cell_magic("jupysql")
     @magic_arguments()
     @argument("line", default="", nargs="*", type=str, help="sql")
     @argument(

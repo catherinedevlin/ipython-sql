@@ -9,6 +9,7 @@ import pytest
 from sqlalchemy import create_engine
 
 from sql.connection import Connection
+from sql.magic import SqlMagic
 from conftest import runsql
 
 
@@ -460,3 +461,10 @@ def test_autolimit(ip):
     ip.run_line_magic("config", "SqlMagic.autolimit = 1")
     result = runsql(ip, "SELECT * FROM test;")
     assert len(result) == 1
+
+
+def test_jupysql_alias():
+    assert SqlMagic.magics == {
+        "line": {"jupysql": "execute", "sql": "execute"},
+        "cell": {"jupysql": "execute", "sql": "execute"},
+    }

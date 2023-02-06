@@ -9,6 +9,7 @@
 * [Feature] Adds `%sqlcmd tables` ([#76](https://github.com/ploomber/jupysql/issues/76))
 * [Feature] Adds `%sqlcmd columns` ([#76](https://github.com/ploomber/jupysql/issues/76))
 * [Fix] `setup.py` fix due to change in setuptools 67.0.0
+* [Feature] Adds `%jupysql`/`%%jupysql` as alias for `%sql`/`%%sql`
 
 ## 0.5.2 (2023-01-03)
 
