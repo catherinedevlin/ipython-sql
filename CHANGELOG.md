@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.5.5dev
+
 ## 0.5.4 (2023-02-06)
 
 * [Feature] Adds `%jupysql`/`%%jupysql` as alias for `%sql`/`%%sql`
