@@ -1,0 +1,55 @@
+name: CI - DB Integration
+
+on: [push, pull_request]
+
+jobs:
+  database-integration-test:
+    strategy:
+      matrix:
+        python-version: ['3.11']
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    services:
+    # postgreSQL Service
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_DB: db
+          POSTGRES_USER: ploomber_app
+          POSTGRES_PASSWORD: ploomber_app_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      # mySQL Service
+      mysql:
+        image: mysql
+        env:
+          MYSQL_DATABASE: db
+          MYSQL_USER: ploomber_app
+          MYSQL_PASSWORD: ploomber_app_password
+          MYSQL_ROOT_PASSWORD: ploomber_app_root_password
+        ports:
+          - 33306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+
+          # Install required package for integration testing
+          pip install pandas pyarrow psycopg2-binary pymysql
+          pip install ".[dev]"
+      - name: Integration Test
+        run:
+          # Run the integration test by pytest marker
+          pytest src/tests/integration

@@ -36,7 +36,7 @@ jobs:
 
       - name: Test with pytest
         run: |
-          pytest --durations-min=5
+          pytest --durations-min=5 --ignore=src/tests/integration
 
 
   # run: pkgmt check
