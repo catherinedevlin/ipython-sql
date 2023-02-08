@@ -27,7 +27,7 @@ from pathlib import Path
 paths = ["people.jsonl", "people.csv"]
 
 for path in paths:
-    path = Path(p)
+    path = Path(path)
 
     if path.exists():
         print(f"Deleting {path}")
