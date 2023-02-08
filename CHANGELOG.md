@@ -3,6 +3,7 @@
 ## 0.5.5dev
 
 * [Doc] Adds tutorial on querying JSON data
+* [Fix] Clearer error message on connection failure (#120)
 
 ## 0.5.4 (2023-02-06)
 
