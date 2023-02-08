@@ -7,6 +7,7 @@ from textwrap import dedent
 
 import pytest
 from sqlalchemy import create_engine
+from IPython.core.error import UsageError
 
 from sql.connection import Connection
 from sql.magic import SqlMagic
@@ -461,6 +462,106 @@ def test_autolimit(ip):
     ip.run_line_magic("config", "SqlMagic.autolimit = 1")
     result = runsql(ip, "SELECT * FROM test;")
     assert len(result) == 1
+
+
+invalid_connection_string = """
+No active connection.
+
+To fix it:
+
+Pass a valid connection string:
+    Example: %sql postgresql://username:password@hostname/dbname
+
+OR
+
+Set the environment variable $DATABASE_URL
+
+For technical support: https://ploomber.io/community
+Documentation: https://jupysql.ploomber.io/en/latest/connecting.html
+"""
+
+
+def test_error_on_invalid_connection_string(ip_empty, clean_conns):
+    result = ip_empty.run_cell("%sql some invalid connection string")
+
+    assert invalid_connection_string.strip() == str(result.error_in_exec)
+    assert isinstance(result.error_in_exec, UsageError)
+
+
+invalid_connection_string_format = """\
+An error happened while creating the connection: Can't load plugin: sqlalchemy.dialects:something.
+
+To fix it:
+
+Pass a valid connection string:
+    Example: %sql postgresql://username:password@hostname/dbname
+
+For technical support: https://ploomber.io/community
+Documentation: https://jupysql.ploomber.io/en/latest/connecting.html
+"""  # noqa
+
+
+def test_error_on_invalid_connection_string_format(ip_empty, clean_conns):
+    result = ip_empty.run_cell("%sql something://")
+
+    assert invalid_connection_string_format.strip() == str(result.error_in_exec)
+    assert isinstance(result.error_in_exec, UsageError)
+
+
+invalid_connection_string_existing_conns = """
+An error happened while creating the connection: Can't load plugin: sqlalchemy.dialects:something.
+
+To fix it:
+
+Pass a valid connection string:
+    Example: %sql postgresql://username:password@hostname/dbname
+
+OR
+
+Pass a connection key (one of: 'sqlite://')
+    Example: %sql 'sqlite://'
+
+For technical support: https://ploomber.io/community
+Documentation: https://jupysql.ploomber.io/en/latest/connecting.html
+"""  # noqa
+
+
+def test_error_on_invalid_connection_string_with_existing_conns(ip_empty, clean_conns):
+    ip_empty.run_cell("%sql sqlite://")
+    result = ip_empty.run_cell("%sql something://")
+
+    assert invalid_connection_string_existing_conns.strip() == str(result.error_in_exec)
+    assert isinstance(result.error_in_exec, UsageError)
+
+
+invalid_connection_string_with_possible_typo = """
+An error happened while creating the connection: Can't load plugin: sqlalchemy.dialects:sqlit.
+
+Perhaps you meant to use the existing connection: %sql 'sqlite://'?
+
+Otherwise, try the following:
+
+Pass a valid connection string:
+    Example: %sql postgresql://username:password@hostname/dbname
+
+OR
+
+Pass a connection key (one of: 'sqlite://')
+    Example: %sql 'sqlite://'
+
+For technical support: https://ploomber.io/community
+Documentation: https://jupysql.ploomber.io/en/latest/connecting.html
+"""  # noqa
+
+
+def test_error_on_invalid_connection_string_with_possible_typo(ip_empty, clean_conns):
+    ip_empty.run_cell("%sql sqlite://")
+    result = ip_empty.run_cell("%sql sqlit://")
+
+    assert invalid_connection_string_with_possible_typo.strip() == str(
+        result.error_in_exec
+    )
+    assert isinstance(result.error_in_exec, UsageError)
 
 
 def test_jupysql_alias():

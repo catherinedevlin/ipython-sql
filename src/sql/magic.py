@@ -266,20 +266,15 @@ class SqlMagic(Magics, Configurable):
         if args.creator:
             args.creator = user_ns[args.creator]
 
-        try:
-            # this creates a new connection or use an existing one
-            # depending on the connect_arg value
-            conn = sql.connection.Connection.set(
-                connect_arg,
-                displaycon=self.displaycon,
-                connect_args=args.connection_arguments,
-                creator=args.creator,
-                alias=args.alias,
-            )
-        except Exception as e:
-            print(e)
-            print(sql.connection.Connection.tell_format())
-            return None
+        # this creates a new connection or use an existing one
+        # depending on the connect_arg value
+        conn = sql.connection.Connection.set(
+            connect_arg,
+            displaycon=self.displaycon,
+            connect_args=args.connection_arguments,
+            creator=args.creator,
+            alias=args.alias,
+        )
 
         if args.persist:
             return self._persist_dataframe(

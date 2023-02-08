@@ -8,6 +8,7 @@ from IPython.core.interactiveshell import InteractiveShell
 from sql.magic import SqlMagic, RenderMagic
 from sql.magic_plot import SqlPlotMagic
 from sql.magic_cmd import SqlCmdMagic
+from sql.connection import Connection
 
 PATH_TO_TESTS = Path(__file__).absolute().parent
 PATH_TO_TMP_ASSETS = PATH_TO_TESTS / "tmp"
@@ -41,17 +42,30 @@ def runsql(ip_session, statements):
 
 
 @pytest.fixture
-def ip():
-    """Provides an IPython session in which tables have been created"""
+def clean_conns():
+    Connection.current = None
+    Connection.connections = dict()
+    yield
+
+
+@pytest.fixture
+def ip_empty():
+
     ip_session = InteractiveShell()
     ip_session.register_magics(SqlMagic)
     ip_session.register_magics(RenderMagic)
     ip_session.register_magics(SqlPlotMagic)
     ip_session.register_magics(SqlCmdMagic)
+    yield ip_session
+
+
+@pytest.fixture
+def ip(ip_empty):
+    """Provides an IPython session in which tables have been created"""
 
     # runsql creates an inmemory sqlitedatabase
     runsql(
-        ip_session,
+        ip_empty,
         [
             "CREATE TABLE test (n INT, name TEXT)",
             "INSERT INTO test VALUES (1, 'foo')",
@@ -62,9 +76,9 @@ def ip():
             "CREATE TABLE empty_table (column INT, another INT)",
         ],
     )
-    yield ip_session
-    runsql(ip_session, "DROP TABLE test")
-    runsql(ip_session, "DROP TABLE author")
+    yield ip_empty
+    runsql(ip_empty, "DROP TABLE test")
+    runsql(ip_empty, "DROP TABLE author")
 
 
 @pytest.fixture

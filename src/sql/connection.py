@@ -1,11 +1,9 @@
 import os
+from difflib import get_close_matches
 
 import sqlalchemy
 from sqlalchemy.engine import Engine
-
-
-class ConnectionError(Exception):
-    pass
+from IPython.core.error import UsageError
 
 
 def rough_dict_get(dct, sought, default=None):
@@ -39,15 +37,68 @@ class Connection:
     connections = {}
 
     @classmethod
-    def tell_format(cls):
+    def _suggest_fix(cls, env_var, connect_str=None):
         """
         Returns an error message that we can display to the user
         to tell them how to pass the connection string
         """
-        return """Connection info needed in SQLAlchemy format, example:
-               postgresql://username:password@hostname/dbname
-               or an existing connection: %s""" % str(
-            cls.connections.keys()
+        DEFAULT_PREFIX = "\n\n"
+
+        if connect_str:
+            matches = get_close_matches(connect_str, list(cls.connections), n=1)
+
+            if matches:
+                prefix = (
+                    "\n\nPerhaps you meant to use the existing "
+                    f"connection: %sql {matches[0]!r}?\n\n"
+                )
+
+            else:
+                prefix = DEFAULT_PREFIX
+        else:
+            matches = None
+            prefix = DEFAULT_PREFIX
+
+        connection_string = (
+            "Pass a valid connection string:\n    "
+            "Example: %sql postgresql://username:password@hostname/dbname"
+        )
+
+        suffix = "To fix it:" if not matches else "Otherwise, try the following:"
+        options = [f"{prefix}{suffix}", connection_string]
+
+        keys = list(cls.connections.keys())
+
+        if keys:
+            keys_ = ",".join(repr(k) for k in keys)
+            options.append(
+                f"Pass a connection key (one of: {keys_})"
+                f"\n    Example: %sql {keys[0]!r}"
+            )
+
+        if env_var:
+            options.append("Set the environment variable $DATABASE_URL")
+
+        if len(options) >= 3:
+            options.insert(-1, "OR")
+
+        options.append(
+            "For technical support: https://ploomber.io/community"
+            "\nDocumentation: https://jupysql.ploomber.io/en/latest/connecting.html"
+        )
+
+        return "\n\n".join(options)
+
+    @classmethod
+    def _error_no_connection(cls):
+        """Error when there isn't any connection"""
+        return UsageError("No active connection." + cls._suggest_fix(env_var=True))
+
+    @classmethod
+    def _error_invalid_connection_info(cls, e, connect_str):
+        return UsageError(
+            "An error happened while creating the connection: "
+            f"{e}.{cls._suggest_fix(env_var=False, connect_str=connect_str)}"
         )
 
     def __init__(self, engine, alias=None):
@@ -79,9 +130,8 @@ class Connection:
                     connect_str,
                     connect_args=connect_args,
                 )
-        except Exception:
-            print(cls.tell_format())
-            raise
+        except Exception as e:
+            raise cls._error_invalid_connection_info(e, connect_str) from e
 
         connection = cls(engine, alias=alias)
         connection.connect_args = connect_args
@@ -91,9 +141,10 @@ class Connection:
     @classmethod
     def set(cls, descriptor, displaycon, connect_args=None, creator=None, alias=None):
         """
-        Sets the current database connection
+        Set the current database connection. This method is called from the magic to
+        determine which connection to use (either use an existing one or open a new one)
         """
-        connect_args = connect_args or connect_args
+        connect_args = connect_args or {}
 
         if descriptor:
             if isinstance(descriptor, Connection):
@@ -116,24 +167,23 @@ class Connection:
                     creator=creator,
                     alias=alias,
                 )
+
         else:
 
             if cls.connections:
                 if displaycon:
+                    # display list of connections
                     print(cls.connection_list())
+            elif os.getenv("DATABASE_URL"):
+                cls.current = Connection.from_connect_str(
+                    connect_str=os.getenv("DATABASE_URL"),
+                    connect_args=connect_args,
+                    creator=creator,
+                    alias=alias,
+                )
             else:
-                if os.getenv("DATABASE_URL"):
-                    cls.current = Connection.from_connect_str(
-                        connect_str=os.getenv("DATABASE_URL"),
-                        connect_args=connect_args,
-                        creator=creator,
-                        alias=alias,
-                    )
-                else:
-                    raise ConnectionError(
-                        "Environment variable $DATABASE_URL "
-                        "not set, and no connect string given."
-                    )
+                raise cls._error_no_connection()
+
         return cls.current
 
     @classmethod
@@ -143,6 +193,7 @@ class Connection:
 
     @classmethod
     def connection_list(cls):
+        """Returns the list of connections, appending '*' to the current one"""
         result = []
         for key in sorted(cls.connections):
             conn = cls.connections[key]
