@@ -6,7 +6,7 @@
 
 * [Feature] Adds `%jupysql`/`%%jupysql` as alias for `%sql`/`%%sql`
 * [Fix] Adds community link to `ValueError` and `TypeError`
-
+* [Doc] Adds tutorial on querying JSON data
 ## 0.5.3 (2023-01-31)
 
 * [Feature] Adds `%sqlcmd tables` ([#76](https://github.com/ploomber/jupysql/issues/76))

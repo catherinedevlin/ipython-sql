@@ -33,6 +33,7 @@ parts:
     - file: howto
     - file: howto/postgres-install
     - file: howto/postgres-connect
+    - file: howto/json
 
   - caption: Community
     chapters:
