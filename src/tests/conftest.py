@@ -50,7 +50,6 @@ def clean_conns():
 
 @pytest.fixture
 def ip_empty():
-
     ip_session = InteractiveShell()
     ip_session.register_magics(SqlMagic)
     ip_session.register_magics(RenderMagic)
