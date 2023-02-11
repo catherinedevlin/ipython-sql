@@ -33,8 +33,10 @@ Get a sample `.csv.` file:
 ```{code-cell} ipython3
 from urllib.request import urlretrieve
 
-_ = urlretrieve("https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv",
-                "penguins.csv")
+_ = urlretrieve(
+    "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv",
+    "penguins.csv",
+)
 ```
 
 ### Query
@@ -85,8 +87,10 @@ Download sample `.parquet` file:
 ```{code-cell} ipython3
 from urllib.request import urlretrieve
 
-_ = urlretrieve("https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2021-01.parquet",
-                "yellow_tripdata_2021-01.parquet")
+_ = urlretrieve(
+    "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2021-01.parquet",
+    "yellow_tripdata_2021-01.parquet",
+)
 ```
 
 ### Query
@@ -135,12 +139,11 @@ If you have a large SQlite database, you can use DuckDB to perform analytical qu
 ```{code-cell} ipython3
 import urllib.request
 from pathlib import Path
-from sqlite3 import connect
 
 # download sample database
-if not Path('my.db').is_file():
-    url = "https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite"
-    urllib.request.urlretrieve(url, 'my.db')
+if not Path("my.db").is_file():
+    url = "https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite"  # noqa
+    urllib.request.urlretrieve(url, "my.db")
 ```
 
 We'll use `sqlite_scanner` extension to load a sample SQLite database into DuckDB:
@@ -177,10 +180,10 @@ N_MONTHS = 3
 
 # https://www1.nyc.gov/site/tlc/about/tlc-trip-record-data.page
 for i in range(1, N_MONTHS + 1):
-    filename = f'yellow_tripdata_2021-{str(i).zfill(2)}.parquet'
+    filename = f"yellow_tripdata_2021-{str(i).zfill(2)}.parquet"
     if not Path(filename).is_file():
-        print(f'Downloading: {filename}')
-        url = f'https://d37ci6vzurychx.cloudfront.net/trip-data/{filename}'
+        print(f"Downloading: {filename}")
+        url = f"https://d37ci6vzurychx.cloudfront.net/trip-data/{filename}"
         urllib.request.urlretrieve(url, filename)
 ```
 

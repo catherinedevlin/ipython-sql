@@ -128,7 +128,7 @@ Bind variables (bind parameters) can be used in the "named" (:x) style.
 The variable names used should be defined in the local namespace.
 
 ```{code-cell} ipython3
-name = 'Python'
+name = "Python"
 ```
 
 ```{code-cell} ipython3

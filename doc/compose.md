@@ -4,7 +4,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.0
+    jupytext_version: 1.14.4
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -24,23 +24,25 @@ pip install jupysql matplotlib
 *New in version 0.4.3*
 
 ```{note}
-This is a beta feature, please [join our community](https://ploomber.io/community) and let us know how we can improve it!
+This is a beta feature, please [join our community](https://ploomber.io/community) and
+let us know how we can improve it!
 ```
 
-JupySQL allows you to break queries into multiple cells, simplifying the process of building large queries.
+JupySQL allows you to break queries into multiple cells, simplifying the process of
+building large queries.
 
-As an example, we are using a sales database from a record store. We'll find the artists that have produced the largest number of Rock and Metal songs.
+As an example, we are using a sales database from a record store. We'll find the
+artists that have produced the largest number of Rock and Metal songs.
 
 Let's load some data:
 
 ```{code-cell} ipython3
 import urllib.request
 from pathlib import Path
-from sqlite3 import connect
 
-if not Path('my.db').is_file():
-    url = "https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite"
-    urllib.request.urlretrieve(url, 'my.db')
+if not Path("my.db").is_file():
+    url = "https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite"  # noqa
+    urllib.request.urlretrieve(url, "my.db")
 ```
 
 Initialize the extension and set `autolimit=3` so we only retrieve a few rows.

@@ -6,7 +6,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.0
+    jupytext_version: 1.14.4
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -32,12 +32,12 @@ INSERT INTO writer VALUES ('Bertold', 'Brecht', 1956);
 
 ```{code-cell} ipython3
 result = %sql SELECT * FROM writer
-result.csv(filename='writer.csv')
+result.csv(filename="writer.csv")
 ```
 
 ```{code-cell} ipython3
 import pandas as pd
 
-df = pd.read_csv('writer.csv')
+df = pd.read_csv("writer.csv")
 df
 ```

@@ -35,8 +35,10 @@ from pathlib import Path
 from urllib.request import urlretrieve
 
 if not Path("penguins.csv").is_file():
-    urlretrieve("https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv",
-                "penguins.csv")
+    urlretrieve(
+        "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv",
+        "penguins.csv",
+    )
 ```
 
 ```{code-cell} ipython3
@@ -149,6 +151,6 @@ WHERE body_mass_g IS NOT NULL
 
 ```{code-cell} ipython3
 ax = %sqlplot histogram --table no-nulls --column body_mass_g --with no-nulls
-ax.set_title('Body mass (grams)')
+ax.set_title("Body mass (grams)")
 _ = ax.grid()
 ```

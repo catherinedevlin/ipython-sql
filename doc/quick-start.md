@@ -50,8 +50,10 @@ from pathlib import Path
 from urllib.request import urlretrieve
 
 if not Path("penguins.csv").is_file():
-    urlretrieve("https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv",
-                "penguins.csv")
+    urlretrieve(
+        "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv",
+        "penguins.csv",
+    )
 ```
 
 Start a DuckDB in-memory database:
@@ -74,7 +76,6 @@ For short queries, you can write them in a single line via the `%sql` line magic
 ```
 
 For longer queries, you can break them down into multiple lines using the `%%sql` cell magic:
-
 
 ```{code-cell} ipython3
 %%sql

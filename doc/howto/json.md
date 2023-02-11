@@ -49,10 +49,30 @@ from pathlib import Path
 import json
 
 data = [
-    {"name": "John", "age": 25,  "friends": ["Jake", "Kelly"], "likes": {"pizza": True, "tacos": True}},
-    {"name": "Jake", "age": 20,  "friends": ["John"], "likes": {"pizza": False, "tacos": True}},
-    {"name": "Kelly", "age": 21,  "friends": ["John", "Sam"], "likes": {"pizza": True, "tacos": True}},
-    {"name": "Sam", "age": 22,  "friends": ["Kelly"], "likes": {"pizza": False, "tacos": True}},
+    {
+        "name": "John",
+        "age": 25,
+        "friends": ["Jake", "Kelly"],
+        "likes": {"pizza": True, "tacos": True},
+    },
+    {
+        "name": "Jake",
+        "age": 20,
+        "friends": ["John"],
+        "likes": {"pizza": False, "tacos": True},
+    },
+    {
+        "name": "Kelly",
+        "age": 21,
+        "friends": ["John", "Sam"],
+        "likes": {"pizza": True, "tacos": True},
+    },
+    {
+        "name": "Sam",
+        "age": 22,
+        "friends": ["Kelly"],
+        "likes": {"pizza": False, "tacos": True},
+    },
 ]
 
 lines = ""

@@ -57,7 +57,10 @@ Download some sample data:
 ```{code-cell} ipython3
 from urllib.request import urlretrieve
 
-_ = urlretrieve("https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv", "penguins.csv")
+_ = urlretrieve(
+    "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv",
+    "penguins.csv",
+)
 ```
 
 ### Query
@@ -93,10 +96,13 @@ To register a user-defined function (UDF) when using SQLite, you can use [SQLAlc
 from sqlalchemy import create_engine
 from sqlalchemy import event
 
+
 def mysum(x, y):
     return x + y
 
+
 engine = create_engine("sqlite://")
+
 
 @event.listens_for(engine, "connect")
 def connect(conn, rec):

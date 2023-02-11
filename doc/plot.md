@@ -14,7 +14,8 @@ kernelspec:
 # Plotting
 
 ```{versionadded} 0.5.2
-`%sqlplot` was introduceed in 0.5.2; however, the underlying [Python API](api/python.html#sql-plot) was introduced in 0.4.4
+`%sqlplot` was introduceed in 0.5.2; however, the underlying
+[Python API](api/python.html#sql-plot) was introduced in 0.4.4
 ```
 
 
@@ -38,9 +39,10 @@ In this example, we'll demonstrate this second use case and query a `.parquet` f
 from pathlib import Path
 from urllib.request import urlretrieve
 
+url = "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2021-01.parquet"
+
 if not Path("yellow_tripdata_2021-01.parquet").is_file():
-    urlretrieve("https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2021-01.parquet",
-                "yellow_tripdata_2021-01.parquet")
+    urlretrieve(url, "yellow_tripdata_2021-01.parquet")
 ```
 
 ### Setup

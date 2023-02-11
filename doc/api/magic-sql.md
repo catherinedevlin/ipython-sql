@@ -183,11 +183,13 @@ LIMIT 3
 ```{code-cell} ipython3
 from string import Template
 
-template = Template("""
+template = Template(
+    """
 SELECT *
 FROM my_data
 LIMIT $limit
-""")
+"""
+)
 
 limit_one = template.substitute(limit=1)
 limit_two = template.substitute(limit=2)
@@ -241,11 +243,13 @@ result.csv(filename="my_data.csv")
 from pathlib import Path
 
 # generate sql file
-Path("my-query.sql").write_text("""
+Path("my-query.sql").write_text(
+    """
 SELECT *
 FROM my_data
 LIMIT 3
-""")
+"""
+)
 ```
 
 ```{code-cell} ipython3
