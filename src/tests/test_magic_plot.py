@@ -112,4 +112,6 @@ WHERE x > -1
 
     out = ip.run_cell(cell)
 
-    assert type(out.result).__name__ == "AxesSubplot"
+    # maptlotlib >= 3.7 has Axes but earlier Python
+    # versions are not compatible
+    assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
