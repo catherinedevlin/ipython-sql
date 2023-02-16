@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.5.6dev
+## 0.5.6 (2023-02-16)
 
 * [Feature] Shows missing driver package suggestion message ([#124](https://github.com/ploomber/jupysql/issues/124))
 
