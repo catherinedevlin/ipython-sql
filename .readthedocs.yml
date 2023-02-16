@@ -5,10 +5,6 @@ build:
   tools:
     python: "mambaforge-4.10"
 
-  jobs:
-    pre_build:
-      - "jupyter-book config sphinx doc/"
-
 conda:
   environment: doc/environment.yml
 

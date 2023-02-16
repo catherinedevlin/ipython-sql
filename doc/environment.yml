@@ -17,4 +17,5 @@ dependencies:
     # plot example
     - memory-profiler
     - pyarrow
+    - pkgmt>=0.1.7
     - -e ..
