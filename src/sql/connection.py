@@ -3,7 +3,89 @@ from difflib import get_close_matches
 
 import sqlalchemy
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import NoSuchModuleError
 from IPython.core.error import UsageError
+import difflib
+
+PLOOMBER_SUPPORT_LINK_STR = (
+    "For technical support: https://ploomber.io/community"
+    "\nDocumentation: https://jupysql.ploomber.io/en/latest/connecting.html"
+)
+
+# Check Full List: https://docs.sqlalchemy.org/en/20/dialects
+MISSING_PACKAGE_LIST_EXCEPT_MATCHERS = {
+    # SQLite
+    "sqlite": "sqlite",
+    "pysqlcipher3": "pysqlcipher3",
+    # DuckDB
+    "duckdb": "duckdb-engine",
+    # MySQL + MariaDB
+    "pymysql": "pymysql",
+    "mysqldb": "mysqlclient",
+    "mariadb": "mariadb",
+    "mysql": "mysql-connector-python",
+    "asyncmy": "asyncmy",
+    "aiomysql": "aiomysql",
+    "cymysql": "cymysql",
+    "pyodbc": "pyodbc",
+    # PostgreSQL
+    "psycopg2": "psycopg2",
+    "psycopg": "psycopg",
+    "pg8000": "pg8000",
+    "asyncpg": "asyncpg",
+    "psycopg2cffi": "psycopg2cffi",
+    # Oracle
+    "cx_oracle": "cx_oracle",
+    "oracledb": "oracledb",
+    # MSSQL
+    "pyodbc": "pyodbc",
+    "pymssql": "pymssql",
+}
+
+
+def extract_module_name_from_ModuleNotFoundError(e):
+    return e.name
+
+
+def extract_module_name_from_NoSuchModuleError(e):
+    return str(e).split(":")[-1].split(".")[-1]
+
+
+"""
+When there is ModuleNotFoundError or NoSuchModuleError case
+Three types of suggestions will be shown when the missing module name is:
+1. Excepted in the pre-defined map, suggest the user to install the driver pkg
+2. Closely matched to the pre-defined map, suggest the user to type correct driver name
+3. Not found in the pre-defined map, suggest user to use valid driver pkg
+"""
+
+
+def get_missing_package_suggestion_str(e):
+    suggestion_prefix = "To fix it, "
+    module_name = None
+    if isinstance(e, ModuleNotFoundError):
+        module_name = extract_module_name_from_ModuleNotFoundError(e)
+    elif isinstance(e, NoSuchModuleError):
+        module_name = extract_module_name_from_NoSuchModuleError(e)
+
+    module_name = module_name.lower()
+    # Excepted
+    for matcher, suggested_package in MISSING_PACKAGE_LIST_EXCEPT_MATCHERS.items():
+        if matcher == module_name:
+            return suggestion_prefix + "try to install package: " + suggested_package
+    # Closely matched
+    close_matches = difflib.get_close_matches(
+        module_name, MISSING_PACKAGE_LIST_EXCEPT_MATCHERS.keys()
+    )
+    if close_matches:
+        return "Perhaps you meant to use driver the dialect: \"{}\"".format(
+            close_matches[0]
+        )
+    # Not found
+    return (
+        suggestion_prefix + "make sure you are using correct driver name:\n"
+        "Ref: https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls"
+    )
 
 
 def rough_dict_get(dct, sought, default=None):
@@ -15,7 +97,7 @@ def rough_dict_get(dct, sought, default=None):
     """
 
     sought = sought.split("@")
-    for (key, val) in dct.items():
+    for key, val in dct.items():
         if not any(s.lower() not in key.lower() for s in sought):
             return val
     return default
@@ -35,6 +117,16 @@ class Connection:
 
     # all connections
     connections = {}
+
+    @classmethod
+    def _suggest_fix_no_module_found(module_name):
+        DEFAULT_PREFIX = "\n\n"
+
+        prefix = DEFAULT_PREFIX
+        suffix = "To fix it:"
+        suggest_str = "Install X package and try again"
+        options = [f"{prefix}{suffix}", suggest_str]
+        return "\n\n".join(options)
 
     @classmethod
     def _suggest_fix(cls, env_var, connect_str=None):
@@ -82,10 +174,7 @@ class Connection:
         if len(options) >= 3:
             options.insert(-1, "OR")
 
-        options.append(
-            "For technical support: https://ploomber.io/community"
-            "\nDocumentation: https://jupysql.ploomber.io/en/latest/connecting.html"
-        )
+        options.append(PLOOMBER_SUPPORT_LINK_STR)
 
         return "\n\n".join(options)
 
@@ -100,6 +189,10 @@ class Connection:
             "An error happened while creating the connection: "
             f"{e}.{cls._suggest_fix(env_var=False, connect_str=connect_str)}"
         )
+
+    @classmethod
+    def _error_module_not_found(cls, e):
+        return ModuleNotFoundError("test")
 
     def __init__(self, engine, alias=None):
         self.dialect = engine.url.get_dialect()
@@ -130,6 +223,17 @@ class Connection:
                     connect_str,
                     connect_args=connect_args,
                 )
+        except (ModuleNotFoundError, NoSuchModuleError) as e:
+            suggestion_str = get_missing_package_suggestion_str(e)
+            raise UsageError(
+                "\n\n".join(
+                    [
+                        str(e),
+                        suggestion_str,
+                        PLOOMBER_SUPPORT_LINK_STR,
+                    ]
+                )
+            ) from e
         except Exception as e:
             raise cls._error_invalid_connection_info(e, connect_str) from e
 
@@ -169,7 +273,6 @@ class Connection:
                 )
 
         else:
-
             if cls.connections:
                 if displaycon:
                     # display list of connections

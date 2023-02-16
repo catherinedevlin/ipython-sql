@@ -489,12 +489,10 @@ def test_error_on_invalid_connection_string(ip_empty, clean_conns):
 
 
 invalid_connection_string_format = """\
-An error happened while creating the connection: Can't load plugin: sqlalchemy.dialects:something.
+Can't load plugin: sqlalchemy.dialects:something
 
-To fix it:
-
-Pass a valid connection string:
-    Example: %sql postgresql://username:password@hostname/dbname
+To fix it, make sure you are using correct driver name:
+Ref: https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls
 
 For technical support: https://ploomber.io/community
 Documentation: https://jupysql.ploomber.io/en/latest/connecting.html
@@ -509,17 +507,10 @@ def test_error_on_invalid_connection_string_format(ip_empty, clean_conns):
 
 
 invalid_connection_string_existing_conns = """
-An error happened while creating the connection: Can't load plugin: sqlalchemy.dialects:something.
+Can't load plugin: sqlalchemy.dialects:something
 
-To fix it:
-
-Pass a valid connection string:
-    Example: %sql postgresql://username:password@hostname/dbname
-
-OR
-
-Pass a connection key (one of: 'sqlite://')
-    Example: %sql 'sqlite://'
+To fix it, make sure you are using correct driver name:
+Ref: https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls
 
 For technical support: https://ploomber.io/community
 Documentation: https://jupysql.ploomber.io/en/latest/connecting.html
@@ -535,19 +526,9 @@ def test_error_on_invalid_connection_string_with_existing_conns(ip_empty, clean_
 
 
 invalid_connection_string_with_possible_typo = """
-An error happened while creating the connection: Can't load plugin: sqlalchemy.dialects:sqlit.
+Can't load plugin: sqlalchemy.dialects:sqlit
 
-Perhaps you meant to use the existing connection: %sql 'sqlite://'?
-
-Otherwise, try the following:
-
-Pass a valid connection string:
-    Example: %sql postgresql://username:password@hostname/dbname
-
-OR
-
-Pass a connection key (one of: 'sqlite://')
-    Example: %sql 'sqlite://'
+Perhaps you meant to use driver the dialect: "sqlite"
 
 For technical support: https://ploomber.io/community
 Documentation: https://jupysql.ploomber.io/en/latest/connecting.html

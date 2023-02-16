@@ -1,10 +1,9 @@
 import sys
-from unittest.mock import Mock
-
+from unittest.mock import Mock, patch
 import pytest
 from sqlalchemy.engine import Engine
-
 from sql.connection import Connection
+from IPython.core.error import UsageError
 
 
 @pytest.fixture
@@ -35,3 +34,52 @@ def test_alias(cleanup):
     Connection.from_connect_str("sqlite://", alias="some-alias")
 
     assert list(Connection.connections) == ["some-alias"]
+
+
+# Mock the missing package
+# Ref: https://stackoverflow.com/a/28361013
+def test_missing_duckdb_dependencies(cleanup, monkeypatch):
+    with patch.dict(sys.modules):
+        sys.modules["duckdb"] = None
+        sys.modules["duckdb-engine"] = None
+
+        with pytest.raises(UsageError) as error:
+            Connection.from_connect_str("duckdb://")
+        assert "try to install package: duckdb-engine" + str(error.value)
+
+
+@pytest.mark.parametrize(
+    "missing_pkg, except_missing_pkg_suggestion, connect_str",
+    [
+        # MySQL + MariaDB
+        ["pymysql", "pymysql", "mysql+pymysql://"],
+        ["mysqlclient", "mysqlclient", "mysql+mysqldb://"],
+        ["mariadb", "mariadb", "mariadb+mariadbconnector://"],
+        ["mysql-connector-python", "mysql-connector-python", "mysql+mysqlconnector://"],
+        ["asyncmy", "asyncmy", "mysql+asyncmy://"],
+        ["aiomysql", "aiomysql", "mysql+aiomysql://"],
+        ["cymysql", "cymysql", "mysql+cymysql://"],
+        ["pyodbc", "pyodbc", "mysql+pyodbc://"],
+        # PostgreSQL
+        ["psycopg2", "psycopg2", "postgresql+psycopg2://"],
+        ["psycopg", "psycopg", "postgresql+psycopg://"],
+        ["pg8000", "pg8000", "postgresql+pg8000://"],
+        ["asyncpg", "asyncpg", "postgresql+asyncpg://"],
+        ["psycopg2cffi", "psycopg2cffi", "postgresql+psycopg2cffi://"],
+        # Oracle
+        ["cx_oracle", "cx_oracle", "oracle+cx_oracle://"],
+        ["oracledb", "oracledb", "oracle+oracledb://"],
+        # MSSQL
+        ["pyodbc", "pyodbc", "mssql+pyodbc://"],
+        ["pymssql", "pymssql", "mssql+pymssql://"],
+    ],
+)
+def test_missing_driver(
+    missing_pkg, except_missing_pkg_suggestion, connect_str, monkeypatch
+):
+    with patch.dict(sys.modules):
+        sys.modules[missing_pkg] = None
+        with pytest.raises(UsageError) as error:
+            Connection.from_connect_str(connect_str)
+
+        assert "try to install package: " + missing_pkg in str(error.value)

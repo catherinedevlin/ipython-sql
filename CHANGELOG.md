@@ -2,6 +2,8 @@
 
 ## 0.5.6dev
 
+* [Feature] Shows missing driver package suggestion message ([#124](https://github.com/ploomber/jupysql/issues/124))
+
 ## 0.5.5 (2023-02-08)
 
 * [Fix] Clearer error message on connection failure ([#120](https://github.com/ploomber/jupysql/issues/120))
