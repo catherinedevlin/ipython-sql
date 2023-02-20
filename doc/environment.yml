@@ -18,4 +18,6 @@ dependencies:
     - memory-profiler
     - pyarrow
     - pkgmt>=0.1.7
+    # convert to polars example
+    - polars
     - -e ..

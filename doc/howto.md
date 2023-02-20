@@ -80,6 +80,24 @@ GROUP BY species
 ORDER BY count DESC
 ```
 
+## Convert to `polars.DataFrame`
+
+```{code-cell} ipython3
+%%sql results <<
+SELECT species, COUNT(*) AS count
+FROM penguins.csv
+GROUP BY species
+ORDER BY count DESC
+```
+
+```{code-cell} ipython3
+import polars as pl
+```
+
+```{code-cell} ipython3
+pl.DataFrame((tuple(row) for row in results), schema=results.keys)
+```
+
 ## Register SQLite UDF
 
 To register a user-defined function (UDF) when using SQLite, you can use [SQLAlchemy's `@event.listens_for`](https://docs.sqlalchemy.org/en/14/dialects/sqlite.html#user-defined-functions) and SQLite's [`create_function`](https://docs.python.org/3/library/sqlite3.html#sqlite3.Connection.create_function):
