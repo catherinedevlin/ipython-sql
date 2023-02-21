@@ -1,10 +1,10 @@
-## Install PostgreSQL client
+# Install PostgreSQL client
 
 To connect to a PostgreSQL database from Python, you need a client library. We recommend using `psycopg2`, but there are others like `pg8000`, and `asyncpg`. JupySQL supports the [following connectors.](https://docs.sqlalchemy.org/en/14/dialects/postgresql.html#dialect-postgresql)
 
 +++
 
-### Installing `psycopg2`
+## Installing `psycopg2`
 
 The simplest way to install `psycopg2` is with the following command:
 

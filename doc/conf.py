@@ -83,6 +83,6 @@ plot_html_show_formats = False
 plot_html_show_source_link = False
 plot_include_source = True
 pygments_style = "sphinx"
-suppress_warnings = ["myst.domains"]
+suppress_warnings = ['misc.highlighting_failure']
 use_jupyterbook_latex = True
 use_multitoc_numbering = True

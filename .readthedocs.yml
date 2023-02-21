@@ -10,4 +10,4 @@ conda:
 
 sphinx:
   builder: html
-  fail_on_warning: false
+  fail_on_warning: true

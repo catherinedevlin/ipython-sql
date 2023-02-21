@@ -31,7 +31,7 @@ If your data is stored in a data warehouse such as Snowflake, Redshift, or BigQu
 
 If you have large `.csv` or `.parquet` files, plotting them locally is challenging. You might not have enough memory in your laptop. Furthermore, as you transform your data, those transformed datasets will consume memory, making it even more challenging. With JupySQL, loading, aggregating, and summarizing is performed in DuckDB, an embedded SQL engine; allowing you to plot larger-than-memory datasets from your laptop.
 
-### Download data
+## Download data
 
 In this example, we'll demonstrate this second use case and query a `.parquet` file using DuckDB. However, the same code applies for plotting data stored in a database or data warehoouse such as Snowflake, Redshift, BigQuery, PostgreSQL, etc.
 
@@ -45,7 +45,7 @@ if not Path("yellow_tripdata_2021-01.parquet").is_file():
     urlretrieve(url, "yellow_tripdata_2021-01.parquet")
 ```
 
-### Setup
+## Setup
 
 ```{note}
 `%sqlplot` requires `matplotlib`: `pip install matplotlib` and this example requires
@@ -68,7 +68,7 @@ We'll be using a sample dataset that contains historical taxi data from NYC:
 
 +++
 
-### Data preview
+## Data preview
 
 ```{code-cell} ipython3
 %%sql
