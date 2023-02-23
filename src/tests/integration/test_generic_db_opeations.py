@@ -1,5 +1,7 @@
 import shutil
 import pytest
+from sql.telemetry import telemetry
+from unittest.mock import ANY, Mock
 
 
 @pytest.fixture(autouse=True)
@@ -9,6 +11,13 @@ def run_around_tests(tmpdir_factory):
     yield my_tmpdir
     # Destory tmp folder
     shutil.rmtree(str(my_tmpdir))
+
+
+@pytest.fixture
+def mock_log_api(monkeypatch):
+    mock_log_api = Mock()
+    monkeypatch.setattr(telemetry, "log_api", mock_log_api)
+    yield mock_log_api
 
 
 # Query
@@ -100,3 +109,34 @@ def test_close_and_connect(
     # Connect
     ip_with_dynamic_db.run_cell("%sql " + database_url + " --alias " + conn_alias)
     assert get_connection_count(ip_with_dynamic_db) == 1
+
+
+# Telemetry
+# Test - Number of active connection
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db, excepted_dialect, excepted_driver",
+    [
+        ("ip_with_postgreSQL", "postgresql", "psycopg2"),
+        ("ip_with_mySQL", "mysql", "pymysql"),
+        ("ip_with_mariaDB", "mysql", "pymysql"),
+        ("ip_with_SQLite", "sqlite", "pysqlite"),
+        ("ip_with_duckDB", "duckdb", "duckdb_engine"),
+    ],
+)
+def test_telemetry_execute_command_has_connection_info(
+    ip_with_dynamic_db, excepted_dialect, excepted_driver, mock_log_api, request
+):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+
+    mock_log_api.assert_called_with(
+        action="jupysql-execute-success",
+        total_runtime=ANY,
+        metadata={
+            "argv": ANY,
+            "connection_info": {
+                "dialect": excepted_dialect,
+                "driver": excepted_driver,
+                "server_version_info": ANY,
+            },
+        },
+    )

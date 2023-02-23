@@ -336,3 +336,15 @@ class Connection:
 
     def close(self):
         self.__class__._close(self)
+
+    def _get_curr_connection_info(self):
+        """Returns the dialect, driver, and database server version info"""
+        if not self.current:
+            return None
+
+        engine = self.current.metadata.bind
+        return {
+            "dialect": getattr(engine.dialect, "name", None),
+            "driver": getattr(engine.dialect, "driver", None),
+            "server_version_info": getattr(engine.dialect, "server_version_info", None),
+        }

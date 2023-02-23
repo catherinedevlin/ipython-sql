@@ -9,7 +9,7 @@ from io import StringIO
 import prettytable
 import sqlalchemy
 import sqlparse
-
+import sql.connection
 from .column_guesser import ColumnGuesserMixin
 
 try:
@@ -166,12 +166,15 @@ class ResultSet(list, ColumnGuesserMixin):
         for row in self:
             yield dict(zip(self.keys, row))
 
-    @telemetry.log_call("data-frame")
-    def DataFrame(self):
+    @telemetry.log_call("data-frame", payload=True)
+    def DataFrame(self, payload):
         "Returns a Pandas DataFrame instance built from the result set."
         import pandas as pd
 
         frame = pd.DataFrame(self, columns=(self and self.keys) or [])
+        payload[
+            "connection_info"
+        ] = sql.connection.Connection.current._get_curr_connection_info()
         return frame
 
     @telemetry.log_call("pie")

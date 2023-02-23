@@ -191,8 +191,7 @@ class SqlMagic(Magics, Configurable):
         type=str,
         help="Assign an alias to the connection",
     )
-    @telemetry.log_call("execute")
-    def execute(self, line="", cell="", local_ns={}):
+    def execute(self, line="", cell="", local_ns=None):
         """
         Runs SQL statement against a database, specified by
         SQLAlchemy connect string.
@@ -218,6 +217,16 @@ class SqlMagic(Magics, Configurable):
           sqlite://
           mysql+pymysql://me:mypw@localhost/mydb
 
+        """
+        return self._execute(line=line, cell=cell, local_ns=local_ns)
+
+    @telemetry.log_call("execute", payload=True)
+    def _execute(self, payload, line, cell, local_ns):
+        """
+        This function implements the cell logic; we create this private
+        method so we can control how the function is called. Otherwise,
+        decorating ``SqlMagic.execute`` will break when adding the ``@log_call``
+        decorator with ``payload=True``
         """
         # line is the text after the magic, cell is the cell's body
 
@@ -275,7 +284,7 @@ class SqlMagic(Magics, Configurable):
             creator=args.creator,
             alias=args.alias,
         )
-
+        payload["connection_info"] = conn._get_curr_connection_info()
         if args.persist:
             return self._persist_dataframe(
                 command.sql, conn, user_ns, append=False, index=not args.no_index

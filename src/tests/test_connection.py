@@ -36,6 +36,15 @@ def test_alias(cleanup):
     assert list(Connection.connections) == ["some-alias"]
 
 
+def test_get_curr_connection_info(mock_postgres):
+    conn = Connection.from_connect_str("postgresql://user:topsecret@somedomain.com/db")
+    assert conn._get_curr_connection_info() == {
+        "dialect": "postgresql",
+        "driver": "psycopg2",
+        "server_version_info": None,
+    }
+
+
 # Mock the missing package
 # Ref: https://stackoverflow.com/a/28361013
 def test_missing_duckdb_dependencies(cleanup, monkeypatch):
