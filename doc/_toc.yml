@@ -41,3 +41,4 @@ parts:
     - file: community/support
     - file: community/projects
     - file: community/credits
+    - file: community/developer-guide
