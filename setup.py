@@ -13,7 +13,7 @@ version = "0.5.0"
 install_requires = [
     "prettytable",
     "ipython",
-    "sqlalchemy",
+    "sqlalchemy>=2.0",
     "sqlparse",
     "six",
     "ipython-genutils",
@@ -33,7 +33,6 @@ setup(
         "Topic :: Database",
         "Topic :: Database :: Front-Ends",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 2",
     ],
     keywords="database ipython postgresql mysql",
     author="Catherine Devlin",

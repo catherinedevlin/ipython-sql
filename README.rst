@@ -426,6 +426,7 @@ Credits
 - vkk800 for ``--file``
 - Jens Albrecht for MySQL DatabaseError bugfix
 - meihkv for connection-closing bugfix
+- Abhinav C for SQLAlchemy 2.0 compatibility
 
 .. _Distribute: http://pypi.python.org/pypi/distribute
 .. _Buildout: http://www.buildout.org/

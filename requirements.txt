@@ -1,6 +1,6 @@
 prettytable
 ipython
-sqlalchemy
+sqlalchemy>=2.0
 sqlparse
 six
 ipython-genutils
