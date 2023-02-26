@@ -37,7 +37,7 @@ def ip():
 
 def test_memory_db(ip):
     assert runsql(ip, "SELECT * FROM test;")[0][0] == 1
-    assert runsql(ip, "SELECT * FROM test;")[1]["name"] == "bar"
+    assert runsql(ip, "SELECT * FROM test;")[1].name == "bar"
 
 
 def test_html(ip):

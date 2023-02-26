@@ -10,7 +10,7 @@ def connection_from_dsn_section(section, config):
     parser = CP.ConfigParser()
     parser.read(config.dsn_filename)
     cfg_dict = dict(parser.items(section))
-    return str(URL(**cfg_dict))
+    return URL.create(**cfg_dict)
 
 
 def _connection_string(s, config):

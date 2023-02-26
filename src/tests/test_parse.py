@@ -110,9 +110,9 @@ class DummyConfig:
 
 def test_connection_from_dsn_section():
     result = connection_from_dsn_section(section="DB_CONFIG_1", config=DummyConfig())
-    assert result == "postgres://goesto11:seentheelephant@my.remote.host:5432/pgmain"
+    assert str(result) == "postgres://goesto11:***@my.remote.host:5432/pgmain"
     result = connection_from_dsn_section(section="DB_CONFIG_2", config=DummyConfig())
-    assert result == "mysql://thefin:fishputsfishonthetable@127.0.0.1/dolfin"
+    assert str(result) == "mysql://thefin:***@127.0.0.1/dolfin"
 
 
 class Bunch:
