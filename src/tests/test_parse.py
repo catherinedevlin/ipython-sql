@@ -1,8 +1,5 @@
-import json
 import os
 from pathlib import Path
-
-from six.moves import configparser
 
 from sql.parse import connection_from_dsn_section, parse, without_sql_comment
 
@@ -112,11 +109,10 @@ class DummyConfig:
 
 
 def test_connection_from_dsn_section():
-
     result = connection_from_dsn_section(section="DB_CONFIG_1", config=DummyConfig())
-    assert result == "postgres://goesto11:seentheelephant@my.remote.host:5432/pgmain"
+    assert str(result) == "postgres://goesto11:***@my.remote.host:5432/pgmain"
     result = connection_from_dsn_section(section="DB_CONFIG_2", config=DummyConfig())
-    assert result == "mysql://thefin:fishputsfishonthetable@127.0.0.1/dolfin"
+    assert str(result) == "mysql://thefin:***@127.0.0.1/dolfin"
 
 
 class Bunch:
@@ -143,54 +139,46 @@ parser_stub = ParserStub()
 
 
 def test_without_sql_comment_plain():
-
     line = "SELECT * FROM author"
     assert without_sql_comment(parser=parser_stub, line=line) == line
 
 
 def test_without_sql_comment_with_arg():
-
     line = "--file moo.txt --persist SELECT * FROM author"
     assert without_sql_comment(parser=parser_stub, line=line) == line
 
 
 def test_without_sql_comment_with_comment():
-
     line = "SELECT * FROM author -- uff da"
     expected = "SELECT * FROM author"
     assert without_sql_comment(parser=parser_stub, line=line) == expected
 
 
 def test_without_sql_comment_with_arg_and_comment():
-
     line = "--file moo.txt --persist SELECT * FROM author -- uff da"
     expected = "--file moo.txt --persist SELECT * FROM author"
     assert without_sql_comment(parser=parser_stub, line=line) == expected
 
 
 def test_without_sql_comment_unspaced_comment():
-
     line = "SELECT * FROM author --uff da"
     expected = "SELECT * FROM author"
     assert without_sql_comment(parser=parser_stub, line=line) == expected
 
 
 def test_without_sql_comment_dashes_in_string():
-
     line = "SELECT '--very --confusing' FROM author -- uff da"
     expected = "SELECT '--very --confusing' FROM author"
     assert without_sql_comment(parser=parser_stub, line=line) == expected
 
 
 def test_without_sql_comment_with_arg_and_leading_comment():
-
     line = "--file moo.txt --persist --comment, not arg"
     expected = "--file moo.txt --persist"
     assert without_sql_comment(parser=parser_stub, line=line) == expected
 
 
 def test_without_sql_persist():
-
     line = "--persist my_table --uff da"
     expected = "--persist my_table"
     assert without_sql_comment(parser=parser_stub, line=line) == expected

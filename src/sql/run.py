@@ -3,6 +3,7 @@ import csv
 import operator
 import os.path
 import re
+import traceback
 from functools import reduce
 
 import prettytable
@@ -103,21 +104,16 @@ class ResultSet(list, ColumnGuesserMixin):
     Can access rows listwise, or by string value of leftmost column.
     """
 
-    def __init__(self, sqlaproxy, sql, config):
-        self.keys = sqlaproxy.keys()
-        self.sql = sql
+    def __init__(self, sqlaproxy, config):
         self.config = config
-        self.limit = config.autolimit
-        style_name = config.style
-        self.style = prettytable.__dict__[style_name.upper()]
         if sqlaproxy.returns_rows:
-            if self.limit:
-                list.__init__(self, sqlaproxy.fetchmany(size=self.limit))
+            self.keys = sqlaproxy.keys()
+            if config.autolimit:
+                list.__init__(self, sqlaproxy.fetchmany(size=config.autolimit))
             else:
                 list.__init__(self, sqlaproxy.fetchall())
             self.field_names = unduplicate_field_names(self.keys)
-            self.pretty = PrettyTable(self.field_names, style=self.style)
-            # self.pretty.set_style(self.style)
+            self.pretty = PrettyTable(self.field_names, style=prettytable.__dict__[config.style.upper()])
         else:
             list.__init__(self, [])
             self.pretty = None
@@ -163,12 +159,12 @@ class ResultSet(list, ColumnGuesserMixin):
         return dict(zip(self.keys, zip(*self)))
 
     def dicts(self):
-        "Iterator yielding a dict for each row"
+        """Iterator yielding a dict for each row"""
         for row in self:
             yield dict(zip(self.keys, row))
 
     def DataFrame(self):
-        "Returns a Pandas DataFrame instance built from the result set."
+        """Returns a Pandas DataFrame instance built from the result set."""
         import pandas as pd
 
         frame = pd.DataFrame(self, columns=(self and self.keys) or [])
@@ -315,7 +311,7 @@ class FakeResultProxy(object):
         self.returns_rows = True
 
     def from_list(self, source_list):
-        "Simulates SQLA ResultProxy from a list."
+        """Simulates SQLA ResultProxy from a list."""
 
         self.fetchall = lambda: source_list
         self.rowcount = len(source_list)
@@ -323,7 +319,7 @@ class FakeResultProxy(object):
         def fetchmany(size):
             pos = 0
             while pos < len(source_list):
-                yield source_list[pos : pos + size]
+                yield source_list[pos: pos + size]
                 pos += size
 
         self.fetchmany = fetchmany
@@ -344,9 +340,13 @@ def _commit(conn, config):
 
     if _should_commit:
         try:
-            conn.session.execute("commit")
+            conn.internal_connection.commit()
         except sqlalchemy.exc.OperationalError:
             pass  # not all engines can commit
+        except Exception as ex:
+            conn.internal_connection.rollback()
+            print(traceback.format_exc())
+            raise ex
 
 
 def run(conn, sql, config, user_namespace):
@@ -356,22 +356,22 @@ def run(conn, sql, config, user_namespace):
             if first_word == "begin":
                 raise Exception("ipython_sql does not support transactions")
             if first_word.startswith("\\") and \
-                    ("postgres" in str(conn.dialect) or \
-                    "redshift" in str(conn.dialect)):
+                ("postgres" in str(conn.dialect) or
+                 "redshift" in str(conn.dialect)):
                 if not PGSpecial:
                     raise ImportError("pgspecial not installed")
                 pgspecial = PGSpecial()
                 _, cur, headers, _ = pgspecial.execute(
-                    conn.session.connection.cursor(), statement
+                    conn.internal_connection.connection.cursor(), statement
                 )[0]
                 result = FakeResultProxy(cur, headers)
             else:
                 txt = sqlalchemy.sql.text(statement)
-                result = conn.session.execute(txt, user_namespace)
+                result = conn.internal_connection.execute(txt, user_namespace)
             _commit(conn=conn, config=config)
             if result and config.feedback:
                 print(interpret_rowcount(result.rowcount))
-        resultset = ResultSet(result, statement, config)
+        resultset = ResultSet(result, config)
         if config.autopandas:
             return resultset.DataFrame()
         else:

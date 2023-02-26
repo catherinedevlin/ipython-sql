@@ -1,10 +1,7 @@
 import itertools
-import json
-import re
 import shlex
 from os.path import expandvars
 
-import six
 from six.moves import configparser as CP
 from sqlalchemy.engine.url import URL
 
@@ -13,11 +10,10 @@ def connection_from_dsn_section(section, config):
     parser = CP.ConfigParser()
     parser.read(config.dsn_filename)
     cfg_dict = dict(parser.items(section))
-    return str(URL(**cfg_dict))
+    return URL.create(**cfg_dict)
 
 
 def _connection_string(s, config):
-
     s = expandvars(s)  # for environment variables
     if "@" in s or "://" in s:
         return s

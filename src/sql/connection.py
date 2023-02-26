@@ -1,5 +1,5 @@
 import os
-import re
+import traceback
 
 import sqlalchemy
 
@@ -45,20 +45,21 @@ class Connection(object):
                 engine = sqlalchemy.create_engine(
                     connect_str, connect_args=connect_args
                 )
-        except:  # TODO: bare except; but what's an ArgumentError?
+        except Exception as ex:  # TODO: bare except; but what's an ArgumentError?
+            print(traceback.format_exc())
             print(self.tell_format())
             raise
+        self.url = engine.url
         self.dialect = engine.url.get_dialect()
-        self.metadata = sqlalchemy.MetaData(bind=engine)
         self.name = self.assign_name(engine)
-        self.session = engine.connect()
-        self.connections[repr(self.metadata.bind.url)] = self
+        self.internal_connection = engine.connect()
+        self.connections[repr(self.url)] = self
         self.connect_args = connect_args
         Connection.current = self
 
     @classmethod
     def set(cls, descriptor, displaycon, connect_args={}, creator=None):
-        "Sets the current database connection"
+        """Sets the current database connection"""
 
         if descriptor:
             if isinstance(descriptor, Connection):
@@ -94,16 +95,16 @@ class Connection(object):
         for key in sorted(cls.connections):
             engine_url = cls.connections[
                 key
-            ].metadata.bind.url  # type: sqlalchemy.engine.url.URL
+            ].url  # type: sqlalchemy.engine.url.URL
             if cls.connections[key] == cls.current:
                 template = " * {}"
             else:
                 template = "   {}"
             result.append(template.format(engine_url.__repr__()))
         return "\n".join(result)
-    
+
     @classmethod
-    def _close(cls, descriptor):
+    def close(cls, descriptor):
         if isinstance(descriptor, Connection):
             conn = descriptor
         else:
@@ -115,8 +116,5 @@ class Connection(object):
                 "Could not close connection because it was not found amongst these: %s"
                 % str(cls.connections.keys())
             )
-        cls.connections.pop(str(conn.metadata.bind.url))
-        conn.session.close()
-
-    def close(self):
-        self.__class__._close(self)
+        cls.connections.pop(str(conn.url))
+        conn.internal_connection.close()
