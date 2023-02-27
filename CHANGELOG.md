@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.6.1dev
+
 ## 0.6.0 (2023-02-27)
 
 * [API Change] Drops support for old versions of IPython (removed imports from `IPython.utils.traitlets`)
