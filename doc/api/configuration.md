@@ -138,6 +138,24 @@ df = %sql SELECT * FROM languages
 type(df)
 ```
 
+## `autopolars`
+
+Default: `False`
+
+Return Polars DataFrames instead of regular result sets.
+
+```{code-cell} ipython3
+%config SqlMagic.autopolars = False
+res = %sql SELECT * FROM languages
+type(res)
+```
+
+```{code-cell} ipython3
+%config SqlMagic.autopolars = True
+df = %sql SELECT * FROM languages
+type(df)
+```
+
 ## `feedback`
 
 Default: `True`

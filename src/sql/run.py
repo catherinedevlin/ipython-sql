@@ -177,6 +177,14 @@ class ResultSet(list, ColumnGuesserMixin):
         ] = sql.connection.Connection.current._get_curr_connection_info()
         return frame
 
+    @telemetry.log_call("polars-data-frame")
+    def PolarsDataFrame(self):
+        "Returns a Polars DataFrame instance built from the result set."
+        import polars as pl
+
+        frame = pl.DataFrame((tuple(row) for row in self), schema=self.keys)
+        return frame
+
     @telemetry.log_call("pie")
     def pie(self, key_word_sep=" ", title=None, **kwargs):
         """Generates a pylab pie chart from the result set.
@@ -400,6 +408,8 @@ def run(conn, sql, config, user_namespace):
         resultset = ResultSet(result, statement, config)
         if config.autopandas:
             return resultset.DataFrame()
+        elif config.autopolars:
+            return resultset.PolarsDataFrame()
         else:
             return resultset
         # returning only last result, intentionally

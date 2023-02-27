@@ -11,6 +11,7 @@ from IPython.core.error import UsageError
 
 from sql.connection import Connection
 from sql.magic import SqlMagic
+from sql.run import ResultSet
 from conftest import runsql
 
 
@@ -247,6 +248,42 @@ def test_autopandas(ip):
     assert not dframe.empty
     assert dframe.ndim == 2
     assert dframe.name[0] == "foo"
+
+
+def test_autopolars(ip):
+    ip.run_line_magic("config", "SqlMagic.autopolars = True")
+    dframe = runsql(ip, "SELECT * FROM test;")
+
+    import polars as pl
+    assert type(dframe) == pl.DataFrame
+    assert not dframe.is_empty()
+    assert len(dframe.shape) == 2
+    assert dframe['name'][0] == "foo"
+
+
+def test_mutex_autopolars_autopandas(ip):
+    dframe = runsql(ip, "SELECT * FROM test;")
+    assert type(dframe) == ResultSet
+
+    import polars as pl
+    ip.run_line_magic("config", "SqlMagic.autopolars = True")
+    dframe = runsql(ip, "SELECT * FROM test;")
+    assert type(dframe) == pl.DataFrame
+
+    import pandas as pd
+    ip.run_line_magic("config", "SqlMagic.autopandas = True")
+    dframe = runsql(ip, "SELECT * FROM test;")
+    assert type(dframe) == pd.DataFrame
+
+    # Test that re-enabling autopolars works
+    ip.run_line_magic("config", "SqlMagic.autopolars = True")
+    dframe = runsql(ip, "SELECT * FROM test;")
+    assert type(dframe) == pl.DataFrame
+
+    # Disabling autopolars at this point should result in the default behavior
+    ip.run_line_magic("config", "SqlMagic.autopolars = False")
+    dframe = runsql(ip, "SELECT * FROM test;")
+    assert type(dframe) == ResultSet
 
 
 def test_csv(ip):

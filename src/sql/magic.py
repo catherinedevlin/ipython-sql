@@ -19,12 +19,9 @@ from sql.command import SQLCommand
 from sql.magic_plot import SqlPlotMagic
 from sql.magic_cmd import SqlCmdMagic
 
-try:
-    from traitlets.config.configurable import Configurable
-    from traitlets import Bool, Int, Unicode
-except ImportError:
-    from IPython.config.configurable import Configurable
-    from IPython.utils.traitlets import Bool, Int, Unicode
+from traitlets.config.configurable import Configurable
+from traitlets import Bool, Int, Unicode, observe
+
 try:
     from pandas.core.frame import DataFrame, Series
 except ImportError:
@@ -98,6 +95,11 @@ class SqlMagic(Magics, Configurable):
         config=True,
         help="Return Pandas DataFrames instead of regular result sets",
     )
+    autopolars = Bool(
+        False,
+        config=True,
+        help="Return Polars DataFrames instead of regular result sets",
+    )
     column_local_vars = Bool(
         False, config=True, help="Return data into local variables from column names"
     )
@@ -122,6 +124,16 @@ class SqlMagic(Magics, Configurable):
 
         # Add ourself to the list of module configurable via %config
         self.shell.configurables.append(self)
+
+    @observe("autopandas", "autopolars")
+    def _mutex_autopandas_autopolars(self, change):
+        # When enabling autopandas or autopolars, automatically disable the
+        # other one in case it was enabled and print a warning
+        if change["new"]:
+            other = "autopolars" if change["name"] == "autopandas" else "autopandas"
+            if getattr(self, other):
+                setattr(self, other, False)
+                print(f"Disabled '{other}' since '{change['name']}' was enabled.")
 
     @needs_local_scope
     @line_magic("sql")
@@ -317,7 +329,7 @@ class SqlMagic(Magics, Configurable):
                 # Instead of returning values, set variables directly in the
                 # users namespace. Variable names given by column names
 
-                if self.autopandas:
+                if self.autopandas or self.autopolars:
                     keys = result.keys()
                 else:
                     keys = result.keys
