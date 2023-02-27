@@ -37,6 +37,7 @@ parts:
 
   - caption: Community
     chapters:
+    - file: community/vs
     - file: community/coc
     - file: community/support
     - file: community/projects
