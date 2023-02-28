@@ -12,6 +12,7 @@ import sqlparse
 import sql.connection
 from .column_guesser import ColumnGuesserMixin
 import traceback
+
 try:
     from pgspecial.main import PGSpecial
 except ImportError:
@@ -101,7 +102,7 @@ class ResultSet(list, ColumnGuesserMixin):
     Can access rows listwise, or by string value of leftmost column.
     """
 
-    def __init__(self, sqlaproxy, sql, config):
+    def __init__(self, sqlaproxy, config):
         self.keys = sqlaproxy.keys()
         self.sql = sql
         self.config = config
@@ -109,12 +110,13 @@ class ResultSet(list, ColumnGuesserMixin):
         style_name = config.style
         self.style = prettytable.__dict__[style_name.upper()]
         if sqlaproxy.returns_rows:
-            if self.limit:
-                list.__init__(self, sqlaproxy.fetchmany(size=self.limit))
+            self.keys = sqlaproxy.keys()
+            if config.autolimit:
+                list.__init__(self, sqlaproxy.fetchmany(size=config.autolimit))
             else:
                 list.__init__(self, sqlaproxy.fetchall())
             self.field_names = unduplicate_field_names(self.keys)
-            self.pretty = PrettyTable(self.field_names, style=self.style)
+            self.pretty = PrettyTable(self.field_names, style=prettytable.__dict__[config.style.upper()])
             # self.pretty.set_style(self.style)
         else:
             list.__init__(self, [])
@@ -394,7 +396,7 @@ def run(conn, sql, config, user_namespace):
             if first_word == "begin":
                 raise Exception("ipython_sql does not support transactions")
             if first_word.startswith("\\") and (
-                "postgres" in str(conn.dialect) or "redshift" in str(conn.dialect)
+                (("postgres" in str(conn.dialect)) or ("redshift" in str(conn.dialect)))
             ):
                 if not PGSpecial:
                     raise ImportError("pgspecial not installed")
@@ -409,7 +411,8 @@ def run(conn, sql, config, user_namespace):
             _commit(conn=conn, config=config)
             if result and config.feedback:
                 print(interpret_rowcount(result.rowcount))
-        resultset = ResultSet(result, statement, config)
+
+        resultset = ResultSet(result, config)
         if config.autopandas:
             return resultset.DataFrame()
         elif config.autopolars:
