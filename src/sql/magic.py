@@ -116,7 +116,6 @@ class SqlMagic(Magics, Configurable):
 
     @telemetry.log_call("init")
     def __init__(self, shell):
-
         self._store = store
 
         Configurable.__init__(self, config=shell.config)
@@ -257,11 +256,10 @@ class SqlMagic(Magics, Configurable):
         command = SQLCommand(self, user_ns, line, cell)
         # args.line: contains the line after the magic with all options removed
         args = command.args
-
         if args.connections:
             return sql.connection.Connection.connections
         elif args.close:
-            return sql.connection.Connection._close(args.close)
+            return sql.connection.Connection.close(args.close)
 
         connect_arg = command.connection
 
@@ -320,7 +318,6 @@ class SqlMagic(Magics, Configurable):
 
         try:
             result = sql.run.run(conn, command.sql, self, user_ns)
-
             if (
                 result is not None
                 and not isinstance(result, str)
@@ -344,7 +341,6 @@ class SqlMagic(Magics, Configurable):
 
                 return None
             else:
-
                 if command.result_var:
                     self.shell.user_ns.update({command.result_var: result})
                     return None
@@ -387,7 +383,7 @@ class SqlMagic(Magics, Configurable):
 
         if_exists = "append" if append else "fail"
 
-        frame.to_sql(table_name, conn.session.engine, if_exists=if_exists, index=index)
+        frame.to_sql(table_name, conn.internal_connection.engine, if_exists=if_exists, index=index)
         return "Persisted %s" % table_name
 
 

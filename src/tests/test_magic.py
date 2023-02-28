@@ -255,10 +255,11 @@ def test_autopolars(ip):
     dframe = runsql(ip, "SELECT * FROM test;")
 
     import polars as pl
+
     assert type(dframe) == pl.DataFrame
     assert not dframe.is_empty()
     assert len(dframe.shape) == 2
-    assert dframe['name'][0] == "foo"
+    assert dframe["name"][0] == "foo"
 
 
 def test_mutex_autopolars_autopandas(ip):
@@ -266,11 +267,13 @@ def test_mutex_autopolars_autopandas(ip):
     assert type(dframe) == ResultSet
 
     import polars as pl
+
     ip.run_line_magic("config", "SqlMagic.autopolars = True")
     dframe = runsql(ip, "SELECT * FROM test;")
     assert type(dframe) == pl.DataFrame
 
     import pandas as pd
+
     ip.run_line_magic("config", "SqlMagic.autopandas = True")
     dframe = runsql(ip, "SELECT * FROM test;")
     assert type(dframe) == pd.DataFrame

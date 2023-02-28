@@ -5,6 +5,7 @@ import sqlalchemy
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import NoSuchModuleError
 from IPython.core.error import UsageError
+import traceback
 import difflib
 
 PLOOMBER_SUPPORT_LINK_STR = (
@@ -78,7 +79,7 @@ def get_missing_package_suggestion_str(e):
         module_name, MISSING_PACKAGE_LIST_EXCEPT_MATCHERS.keys()
     )
     if close_matches:
-        return "Perhaps you meant to use driver the dialect: \"{}\"".format(
+        return 'Perhaps you meant to use driver the dialect: "{}"'.format(
             close_matches[0]
         )
     # Not found
@@ -195,11 +196,11 @@ class Connection:
         return ModuleNotFoundError("test")
 
     def __init__(self, engine, alias=None):
-        self.dialect = engine.url.get_dialect()
-        self.metadata = sqlalchemy.MetaData(bind=engine)
+        self.url = engine.url
+        self.dialect = self.url.get_dialect()
         self.name = self.assign_name(engine)
-        self.session = engine.connect()
-        self.connections[alias or repr(self.metadata.bind.url)] = self
+        self.internal_connection = engine.connect()
+        self.connections[repr(self.url)] = self
         self.connect_args = None
         self.alias = alias
         Connection.current = self
@@ -300,7 +301,7 @@ class Connection:
         result = []
         for key in sorted(cls.connections):
             conn = cls.connections[key]
-            engine_url = conn.metadata.bind.url  # type: sqlalchemy.engine.url.URL
+            engine_url = conn.url # type: sqlalchemy.engine.url.URL
 
             prefix = "* " if conn == cls.current else "  "
 
@@ -314,7 +315,7 @@ class Connection:
         return "\n".join(result)
 
     @classmethod
-    def _close(cls, descriptor):
+    def close(cls, descriptor):
         if isinstance(descriptor, Connection):
             conn = descriptor
         else:
@@ -330,19 +331,14 @@ class Connection:
         if descriptor in cls.connections:
             cls.connections.pop(descriptor)
         else:
-            cls.connections.pop(str(conn.metadata.bind.url))
-
-        conn.session.close()
-
-    def close(self):
-        self.__class__._close(self)
+            cls.connections.pop(str(conn.url))
+            conn.internal_connection.close()
 
     def _get_curr_connection_info(self):
         """Returns the dialect, driver, and database server version info"""
         if not self.current:
             return None
-
-        engine = self.current.metadata.bind
+        engine = self.current
         return {
             "dialect": getattr(engine.dialect, "name", None),
             "driver": getattr(engine.dialect, "driver", None),

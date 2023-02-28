@@ -11,7 +11,7 @@ import sqlalchemy
 import sqlparse
 import sql.connection
 from .column_guesser import ColumnGuesserMixin
-
+import traceback
 try:
     from pgspecial.main import PGSpecial
 except ImportError:
@@ -378,9 +378,13 @@ def _commit(conn, config):
 
     if _should_commit:
         try:
-            conn.session.execute("commit")
+            conn.internal_connection.commit()
         except sqlalchemy.exc.OperationalError:
             pass  # not all engines can commit
+        except Exception as ex:
+            conn.internal_connection.rollback()
+            print(traceback.format_exc())
+            raise ex
 
 
 def run(conn, sql, config, user_namespace):
@@ -396,12 +400,12 @@ def run(conn, sql, config, user_namespace):
                     raise ImportError("pgspecial not installed")
                 pgspecial = PGSpecial()
                 _, cur, headers, _ = pgspecial.execute(
-                    conn.session.connection.cursor(), statement
+                    conn.internal_connection.connection.cursor(), statement
                 )[0]
                 result = FakeResultProxy(cur, headers)
             else:
                 txt = sqlalchemy.sql.text(statement)
-                result = conn.session.execute(txt, user_namespace)
+                result = conn.internal_connection.execute(txt, user_namespace)
             _commit(conn=conn, config=config)
             if result and config.feedback:
                 print(interpret_rowcount(result.rowcount))

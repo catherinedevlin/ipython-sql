@@ -12,5 +12,4 @@ urllib.request.urlretrieve(
 )
 
 conn = duckdb.connect(database=":memory:")
-
 plot.histogram("iris.csv", "petal width", bins=50, conn=conn)
