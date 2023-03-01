@@ -10,7 +10,7 @@ dependencies:
   - pandas
   - pip
   - pip:
-    - jupyter-book
+    - jupyter-book<0.14
     # duckdb example
     - duckdb
     - duckdb-engine
