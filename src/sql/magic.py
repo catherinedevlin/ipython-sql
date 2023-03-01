@@ -116,7 +116,6 @@ class SqlMagic(Magics, Configurable):
 
     @telemetry.log_call("init")
     def __init__(self, shell):
-
         self._store = store
 
         Configurable.__init__(self, config=shell.config)
@@ -296,7 +295,9 @@ class SqlMagic(Magics, Configurable):
             creator=args.creator,
             alias=args.alias,
         )
-        payload["connection_info"] = conn._get_curr_connection_info()
+        payload[
+            "connection_info"
+        ] = sql.connection.Connection._get_curr_connection_info()
         if args.persist:
             return self._persist_dataframe(
                 command.sql, conn, user_ns, append=False, index=not args.no_index
@@ -344,7 +345,6 @@ class SqlMagic(Magics, Configurable):
 
                 return None
             else:
-
                 if command.result_var:
                     self.shell.user_ns.update({command.result_var: result})
                     return None
