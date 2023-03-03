@@ -7,3 +7,4 @@ JupySQL is an actively maintained fork of [ipython-sql](https://github.com/cathe
 If you're migrating from `ipython-sql` to JupySQL, these are the differences (it most cases, no code changes are needed):
 
 - Since `0.6` JupySQL no longer supports old versions of IPython
+- Variable expansion is being replaced from `{variable}`, `${variable}` to `{{variable}}`

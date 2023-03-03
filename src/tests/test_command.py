@@ -170,7 +170,47 @@ def test_parse_sql_when_passing_engine(ip, sql_magic, tmp_empty, line):
     assert cmd.sql_original == sql_expected
 
 
-def test_variable_substitution_cell_magic(ip, sql_magic):
+def test_variable_substitution_legacy_warning_message_dollar_prefix(
+    ip, sql_magic, capsys
+):
+    with pytest.warns(FutureWarning):
+        ip.user_global_ns["limit_number"] = 1
+        ip.run_cell_magic(
+            "sql",
+            "",
+            """
+            SELECT * FROM author LIMIT $limit_number
+            """,
+        )
+
+
+def test_variable_substitution_legacy_warning_message_single_curly(
+    ip, sql_magic, capsys
+):
+    with pytest.warns(FutureWarning):
+        ip.user_global_ns["limit_number"] = 1
+        ip.run_cell_magic(
+            "sql",
+            "",
+            """
+            SELECT * FROM author LIMIT {limit_number}
+            """,
+        )
+
+
+def test_variable_substitution_legacy_warning_message_colon(ip, sql_magic, capsys):
+    with pytest.warns(FutureWarning):
+        ip.user_global_ns["limit_number"] = 1
+        ip.run_cell_magic(
+            "sql",
+            "",
+            """
+            SELECT * FROM author LIMIT :limit_number
+            """,
+        )
+
+
+def test_variable_substitution_legacy_dollar_prefix_cell_magic(ip, sql_magic):
     ip.user_global_ns["username"] = "some-user"
 
     cmd = SQLCommand(
@@ -181,3 +221,44 @@ def test_variable_substitution_cell_magic(ip, sql_magic):
     )
 
     assert cmd.parsed["sql"] == "\nGRANT CONNECT ON DATABASE postgres TO some-user;"
+
+
+def test_variable_substitution_legacy_single_curly_cell_magic(ip, sql_magic):
+    ip.user_global_ns["username"] = "some-user"
+
+    cmd = SQLCommand(
+        sql_magic,
+        ip.user_ns,
+        line="",
+        cell="GRANT CONNECT ON DATABASE postgres TO {username};",
+    )
+
+    assert cmd.parsed["sql"] == "\nGRANT CONNECT ON DATABASE postgres TO some-user;"
+
+
+def test_variable_substitution_double_curly_cell_magic(ip, sql_magic):
+    ip.user_global_ns["username"] = "some-user"
+
+    cmd = SQLCommand(
+        sql_magic,
+        ip.user_ns,
+        line="",
+        cell="GRANT CONNECT ON DATABASE postgres TO {{username}};",
+    )
+
+    print("cmd.parsed['sql']", cmd.parsed["sql"])
+    assert cmd.parsed["sql"] == "\nGRANT CONNECT ON DATABASE postgres TO some-user;"
+
+
+def test_variable_substitution_double_curly_line_magic(ip, sql_magic):
+    ip.user_global_ns["limit_number"] = 5
+    ip.user_global_ns["column_name"] = "first_name"
+    cmd = SQLCommand(
+        sql_magic,
+        ip.user_ns,
+        line="SELECT {{column_name}} FROM author LIMIT {{limit_number}};",
+        cell="",
+    )
+
+    # print ("cmd.parsed['sql']", cmd.parsed["sql"])
+    assert cmd.parsed["sql"] == "SELECT first_name FROM author LIMIT 5;\n"
