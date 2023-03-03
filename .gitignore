@@ -1,3 +1,4 @@
+.virtual_documents
 *.jsonl
 *.db
 *.csv

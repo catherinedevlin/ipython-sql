@@ -20,6 +20,7 @@ parts:
       - file: integrations/duckdb
       - file: integrations/pandas
       - file: integrations/mindsdb
+      - file: integrations/mssql
 
   - caption: API Reference
     chapters:

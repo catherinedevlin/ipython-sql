@@ -15,7 +15,11 @@ comments_config = {"hypothesis": False, "utterances": False}
 copyright = "2023"
 exclude_patterns = ["**.ipynb_checkpoints", ".DS_Store", "Thumbs.db", "_build"]
 execution_allow_errors = False
-execution_excludepatterns = ["howto/*-connect.ipynb", "integrations/mindsdb.ipynb"]
+execution_excludepatterns = [
+    "howto/*-connect.ipynb",
+    "integrations/mssql.ipynb",
+    "integrations/mindsdb.ipynb",
+]
 execution_in_temp = False
 execution_show_tb = True
 execution_timeout = 90
@@ -83,6 +87,6 @@ plot_html_show_formats = False
 plot_html_show_source_link = False
 plot_include_source = True
 pygments_style = "sphinx"
-suppress_warnings = ['misc.highlighting_failure']
+suppress_warnings = ["misc.highlighting_failure"]
 use_jupyterbook_latex = True
 use_multitoc_numbering = True
