@@ -13,9 +13,9 @@ kernelspec:
   name: python3
 ---
 
-# Pandas integration
+# Polars integration
 
-If you have installed [`pandas`](http://pandas.pydata.org/), you can use a result set's `.DataFrame()` method.
+If you have installed [`polars`](https://www.pola.rs/), you can use a result set's `.PolarsDataFrame()` method.
 
 Let's create some sample data:
 
@@ -30,18 +30,18 @@ INSERT INTO writer VALUES ('William', 'Shakespeare', 1616);
 INSERT INTO writer VALUES ('Bertold', 'Brecht', 1956);
 ```
 
-## Convert to `pandas.DataFrame`
+## Convert to `polars.DataFrame`
 
 +++
 
-Query the sample data and convert to `pandas.DataFrame`:
+Query the sample data and convert to `polars.DataFrame`:
 
 ```{code-cell} ipython3
 result = %sql SELECT * FROM writer WHERE year_of_death > 1900
 ```
 
 ```{code-cell} ipython3
-df = result.DataFrame()
+df = result.PolarsDataFrame()
 type(df)
 ```
 
@@ -57,36 +57,17 @@ SELECT * FROM writer WHERE year_of_death > 1900
 ```
 
 ```{code-cell} ipython3
-result.DataFrame()
+result.PolarsDataFrame()
 ```
 
 ## Convert automatically
 
 ```{code-cell} ipython3
-%config SqlMagic.autopandas = True
+%config SqlMagic.autopolars = True
 df = %sql SELECT * FROM writer
 type(df)
 ```
 
 ```{code-cell} ipython3
 df
-```
-
-## Uploading a dataframe to the database
-
-+++
-
-The `--persist` argument, with the name of a  DataFrame object in memory, 
-will create a table name in the database from the named DataFrame.   Or use `--append` to add rows to an existing  table by that name.
-
-```{code-cell} ipython3
-%sql --persist df
-```
-
-```{code-cell} ipython3
-%sql SELECT * FROM df;
-```
-
-```{code-cell} ipython3
-
 ```

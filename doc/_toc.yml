@@ -19,6 +19,7 @@ parts:
     chapters:
       - file: integrations/duckdb
       - file: integrations/pandas
+      - file: integrations/polars
       - file: integrations/mindsdb
       - file: integrations/mssql
 
