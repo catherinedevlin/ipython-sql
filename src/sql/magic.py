@@ -249,6 +249,9 @@ class SqlMagic(Magics, Configurable):
         # %%sql {line}
         # {cell}
 
+        if local_ns is None:
+            local_ns = {}
+
         # save globals and locals so they can be referenced in bind vars
         user_ns = self.shell.user_ns.copy()
         user_ns.update(local_ns)

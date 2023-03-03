@@ -101,21 +101,19 @@ class ResultSet(list, ColumnGuesserMixin):
     Can access rows listwise, or by string value of leftmost column.
     """
 
-    def __init__(self, sqlaproxy, sql, config):
-        self.keys = sqlaproxy.keys()
-        self.sql = sql
+    def __init__(self, sqlaproxy, config):
         self.config = config
-        self.limit = config.autolimit
-        style_name = config.style
-        self.style = prettytable.__dict__[style_name.upper()]
+        self.keys = {}
         if sqlaproxy.returns_rows:
-            if self.limit:
-                list.__init__(self, sqlaproxy.fetchmany(size=self.limit))
+            self.keys = sqlaproxy.keys()
+            if config.autolimit:
+                list.__init__(self, sqlaproxy.fetchmany(size=config.autolimit))
             else:
                 list.__init__(self, sqlaproxy.fetchall())
             self.field_names = unduplicate_field_names(self.keys)
-            self.pretty = PrettyTable(self.field_names, style=self.style)
-            # self.pretty.set_style(self.style)
+            self.pretty = PrettyTable(
+                self.field_names, style=prettytable.__dict__[config.style.upper()]
+            )
         else:
             list.__init__(self, [])
             self.pretty = None
@@ -405,7 +403,7 @@ def run(conn, sql, config, user_namespace):
             _commit(conn=conn, config=config)
             if result and config.feedback:
                 print(interpret_rowcount(result.rowcount))
-        resultset = ResultSet(result, statement, config)
+        resultset = ResultSet(result, config)
         if config.autopandas:
             return resultset.DataFrame()
         elif config.autopolars:

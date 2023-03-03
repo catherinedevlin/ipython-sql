@@ -28,16 +28,19 @@ class ColumnGuesserMixin(object):
     pie: ... y
     """
 
+    def __init__(self):
+        self.keys = None
+
     def _build_columns(self):
         self.columns = [Column() for col in self.keys]
         for row in self:
-            for (col_idx, col_val) in enumerate(row):
+            for col_idx, col_val in enumerate(row):
                 col = self.columns[col_idx]
                 col.append(col_val)
                 if (col_val is not None) and (not is_quantity(col_val)):
                     col.is_quantity = False
 
-        for (idx, key_name) in enumerate(self.keys):
+        for idx, key_name in enumerate(self.keys):
             self.columns[idx].name = key_name
 
         self.x = Column()

@@ -15,7 +15,6 @@ def connection_from_dsn_section(section, config):
 
 
 def _connection_string(s, config):
-
     s = expandvars(s)  # for environment variables
     if "@" in s or "://" in s:
         return s

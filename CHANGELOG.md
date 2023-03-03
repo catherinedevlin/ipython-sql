@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## 0.6.1dev
+* [Fix] Adds support for prettytable 2.0
 
 ## 0.6.0 (2023-02-27)
 
