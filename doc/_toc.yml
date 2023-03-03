@@ -35,6 +35,7 @@ parts:
     - file: howto/postgres-install
     - file: howto/postgres-connect
     - file: howto/json
+    - file: howto/syntax-highlighting
 
   - caption: Community
     chapters:
