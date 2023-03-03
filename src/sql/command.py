@@ -111,6 +111,10 @@ class SQLCommand:
         has_SQLAlchemy_var_expand = re.search("(?<!://):[^/]+", line) or ":" in cell
         if parsed_line != line or parsed_cell != cell or has_SQLAlchemy_var_expand:
             self.is_legacy_var_expand_parsed = True
-            warnings.warn("Please aware the variable substition. Use {{a}} instead"
-                          , FutureWarning)
+            warnings.warn(
+                "Variable substitution with $var and {var} has been "
+                "deprecated and will be removed in a future version. "
+                "Use {{var}} instead.",
+                FutureWarning,
+            )
         return parsed_line, parsed_cell

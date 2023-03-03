@@ -1,14 +1,13 @@
 # CHANGELOG
 
 ## 0.6.1dev
-* [Fix] Adds support for prettytable 2.0
+* [Fix] Adds support for newer versions of prettytable
+* [Feature] Support new variable substitution using `{{variable}}` format ([#137](https://github.com/ploomber/jupysql/pull/137))
 
 ## 0.6.0 (2023-02-27)
 
 * [API Change] Drops support for old versions of IPython (removed imports from `IPython.utils.traitlets`)
 * [Feature] Adds `%%config SqlMagic.autopolars = True` ([#138](https://github.com/ploomber/jupysql/issues/138))
-
-* [Feature] Support new variable substitution as {{a}} format ([#137](https://github.com/ploomber/jupysql/pull/137))
 
 ## 0.5.6 (2023-02-16)
 
