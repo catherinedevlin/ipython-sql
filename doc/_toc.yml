@@ -23,6 +23,7 @@ parts:
       - file: integrations/mysql
       - file: integrations/mssql
       - file: integrations/mariadb
+      - file: integrations/clickhouse
       - file: integrations/mindsdb
 
   - caption: API Reference
