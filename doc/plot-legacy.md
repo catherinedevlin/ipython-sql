@@ -11,6 +11,10 @@ kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
+html_meta:
+  description lang=en: Create line, bar and pie charts from SQL queries in a Jupyter notebook using JupySQL
+  keywords: jupyter, sql, jupysql, plotting, matplotlib
+  property=og:locale: en_US
 ---
 
 # Plotting (legacy API)

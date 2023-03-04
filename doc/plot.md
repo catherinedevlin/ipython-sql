@@ -9,6 +9,10 @@ kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
+html_meta:
+  description lang=en: Create visualizations for large-scale datasets in a Jupyter notebook using JupySQL
+  keywords: jupyter, sql, jupysql, plotting, warehouse, duckdb
+  property=og:locale: en_US
 ---
 
 # Plotting
