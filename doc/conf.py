@@ -71,7 +71,6 @@ html_theme_options = {
     "use_edit_page_button": False,
     "use_issues_button": True,
 }
-html_title = "JupySQL"
 nb_execution_cache_path = ""
 nb_execution_mode = "cache"
 latex_engine = "pdflatex"
