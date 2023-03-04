@@ -18,6 +18,7 @@ execution_allow_errors = False
 execution_excludepatterns = [
     "howto/*-connect.ipynb",
     "integrations/mssql.ipynb",
+    "integrations/mysql.ipynb",
     "integrations/mindsdb.ipynb",
 ]
 execution_in_temp = False
