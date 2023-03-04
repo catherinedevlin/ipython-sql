@@ -11,10 +11,11 @@ kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
-html_meta:
-  description lang=en: "Quickstart for JupySQL: a package to run SQL in Jupyter"
-  keywords: jupyter, sql, jupysql
-  property=og:locale: en_US
+myst:
+  html_meta:
+    description lang=en: "Quickstart for JupySQL: a package to run SQL in Jupyter"
+    keywords: jupyter, sql, jupysql
+    property=og:locale: en_US
 ---
 
 # Quick Start
@@ -68,7 +69,7 @@ Start a DuckDB in-memory database:
 
 ```{tip}
 You can create as many connections as you want. Pass an `--alias {alias}` to easily
-[switch them or close](howto.html#switch-connections) them.
+[switch them or close](howto.md#switch-connections) them.
 ```
 
 ## Querying

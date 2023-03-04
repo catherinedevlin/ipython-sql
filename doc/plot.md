@@ -9,17 +9,18 @@ kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
-html_meta:
-  description lang=en: Create visualizations for large-scale datasets in a Jupyter notebook using JupySQL
-  keywords: jupyter, sql, jupysql, plotting, warehouse, duckdb
-  property=og:locale: en_US
+myst:
+  html_meta:
+    description lang=en: Create visualizations for large-scale datasets in a Jupyter notebook using JupySQL
+    keywords: jupyter, sql, jupysql, plotting, warehouse, duckdb
+    property=og:locale: en_US
 ---
 
 # Plotting
 
 ```{versionadded} 0.5.2
-`%sqlplot` was introduceed in 0.5.2; however, the underlying
-[Python API](api/python.html#sql-plot) was introduced in 0.4.4
+`%sqlplot` was introduced in 0.5.2; however, the underlying
+[Python API](api/python) was introduced in 0.4.4
 ```
 
 

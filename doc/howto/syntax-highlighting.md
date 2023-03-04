@@ -9,10 +9,11 @@ kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
-html_meta:
-  description lang=en: Enable SQL syntax highlighting in JupyterLab
-  keywords: jupyter, jupyterlab, sql
-  property=og:locale: en_US
+myst:
+  html_meta:
+    description lang=en: Enable SQL syntax highlighting in JupyterLab
+    keywords: jupyter, jupyterlab, sql
+    property=og:locale: en_US
 ---
 
 # SQL syntax highlighting

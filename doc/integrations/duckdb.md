@@ -9,10 +9,11 @@ kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
-html_meta:
-  description lang=en: Use DuckDB from Jupyter using JupySQL
-  keywords: jupyter, sql, jupysql, duckdb, plotting
-  property=og:locale: en_US
+myst:
+  html_meta:
+    description lang=en: Use DuckDB from Jupyter using JupySQL
+    keywords: jupyter, sql, jupysql, duckdb, plotting
+    property=og:locale: en_US
 ---
 
 # DuckDB integration

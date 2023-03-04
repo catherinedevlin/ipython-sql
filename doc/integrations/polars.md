@@ -11,10 +11,11 @@ kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
-html_meta:
-  description lang=en: Convert outputs from SQL queries to polars data frames using JupySQL
-  keywords: jupyter, sql, jupysql, polars
-  property=og:locale: en_US
+myst:
+  html_meta:
+    description lang=en: Convert outputs from SQL queries to polars data frames using JupySQL
+    keywords: jupyter, sql, jupysql, polars
+    property=og:locale: en_US
 ---
 
 # Polars integration

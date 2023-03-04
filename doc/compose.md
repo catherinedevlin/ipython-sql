@@ -9,10 +9,11 @@ kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
-html_meta:
-  description lang=en: "Use JupySQL to organize large SQL queries in a Jupyter notebook"
-  keywords: "jupyter, sql, jupysql"
-  property=og:locale: "en_US"
+myst:
+  html_meta:
+    description lang=en: "Use JupySQL to organize large SQL queries in a Jupyter notebook"
+    keywords: "jupyter, sql, jupysql"
+    property=og:locale: "en_US"
 ---
 
 # Organizing large queries

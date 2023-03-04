@@ -14,8 +14,8 @@ author = "Ploomber"
 comments_config = {"hypothesis": False, "utterances": False}
 copyright = "2023"
 exclude_patterns = ["**.ipynb_checkpoints", ".DS_Store", "Thumbs.db", "_build"]
-execution_allow_errors = False
-execution_excludepatterns = [
+nb_execution_allow_errors = False
+nb_execution_excludepatterns = [
     "howto/*-connect.ipynb",
     "integrations/mssql.ipynb",
     "integrations/mysql.ipynb",
@@ -23,9 +23,9 @@ execution_excludepatterns = [
     "integrations/clickhouse.ipynb",
     "integrations/mindsdb.ipynb",
 ]
-execution_in_temp = False
-execution_show_tb = True
-execution_timeout = 90
+nb_execution_in_temp = True
+nb_execution_show_tb = True
+nb_execution_timeout = 90
 extensions = [
     "sphinx_togglebutton",
     "sphinx_copybutton",
@@ -62,19 +62,18 @@ html_theme_options = {
     "path_to_docs": "doc",
     "repository_url": repository_url,
     "repository_branch": repository_branch,
-    "google_analytics_id": "G-JBZ8NNQSLN",
-    "extra_navbar": 'Join us on <a href="https://ploomber.io/community/">Slack!</a>',
-    "extra_footer": "",
+    "analytics": {"google_analytics_id": "G-JBZ8NNQSLN"},
     "home_page_in_toc": True,
-    "announcement": "To launch any tutorial in JupyterLab, \
-        click on the 🚀 button below!",
+    "announcement": ("To launch a tutorial, click on the 🚀 button "
+                     "below! Join us on "
+                     "<a href='https://ploomber.io/community/'>Slack!</a>"),
     "use_repository_button": True,
     "use_edit_page_button": False,
     "use_issues_button": True,
 }
 html_title = "JupySQL"
-jupyter_cache = ""
-jupyter_execute_notebooks = "force"
+nb_execution_cache_path = ""
+nb_execution_mode = "cache"
 latex_engine = "pdflatex"
 myst_enable_extensions = [
     "colon_fence",
@@ -84,6 +83,9 @@ myst_enable_extensions = [
     "tasklist",
 ]
 myst_url_schemes = ["mailto", "http", "https"]
+# https://myst-parser.readthedocs.io/en/latest/syntax/optional.html#auto-generated-header-anchors
+myst_heading_anchors = 2
+
 nb_output_stderr = "show"
 numfig = True
 plot_html_show_formats = False

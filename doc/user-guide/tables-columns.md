@@ -9,10 +9,11 @@ kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
-html_meta:
-  description lang=en: List tables and columns from your database in Jupyter via JupySQL
-  keywords: jupyter, sql, jupysql
-  property=og:locale: en_US
+myst:
+  html_meta:
+    description lang=en: List tables and columns from your database in Jupyter via JupySQL
+    keywords: jupyter, sql, jupysql
+    property=og:locale: en_US
 ---
 
 # List tables and columns
@@ -26,6 +27,7 @@ With JupySQL, you can quickly explore what tables are available in your database
 +++
 
 ## Setup
+
 
 ```{code-cell} ipython3
 %load_ext sql

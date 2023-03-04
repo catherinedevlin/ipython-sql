@@ -11,10 +11,11 @@ kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
-html_meta:
-  description lang=en: "Export results from a SQL query to a CSV file from Jupyter"
-  keywords: "jupyter, sql, jupysql, csv"
-  property=og:locale: "en_US"
+myst:
+  html_meta:
+    description lang=en: "Export results from a SQL query to a CSV file from Jupyter"
+    keywords: "jupyter, sql, jupysql, csv"
+    property=og:locale: "en_US"
 ---
 
 # Export to CSV
