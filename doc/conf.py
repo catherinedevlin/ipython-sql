@@ -19,6 +19,7 @@ execution_excludepatterns = [
     "howto/*-connect.ipynb",
     "integrations/mssql.ipynb",
     "integrations/mysql.ipynb",
+    "integrations/mariadb.ipynb",
     "integrations/mindsdb.ipynb",
 ]
 execution_in_temp = False

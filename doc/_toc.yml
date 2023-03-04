@@ -22,6 +22,7 @@ parts:
       - file: integrations/polars
       - file: integrations/mysql
       - file: integrations/mssql
+      - file: integrations/mariadb
       - file: integrations/mindsdb
 
   - caption: API Reference
