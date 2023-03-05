@@ -1,5 +1,6 @@
 import shutil
 import pytest
+import warnings
 from sql.telemetry import telemetry
 from unittest.mock import ANY, Mock
 
@@ -106,8 +107,11 @@ def test_close_and_connect(
     # Disconnect
     ip_with_dynamic_db.run_cell("%sql -x " + conn_alias)
     assert get_connection_count(ip_with_dynamic_db) == 0
-    # Connect
-    ip_with_dynamic_db.run_cell("%sql " + database_url + " --alias " + conn_alias)
+    # Connect, also check there is no error on re-connecting
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        ip_with_dynamic_db.run_cell("%sql " + database_url + " --alias " + conn_alias)
+
     assert get_connection_count(ip_with_dynamic_db) == 1
 
 

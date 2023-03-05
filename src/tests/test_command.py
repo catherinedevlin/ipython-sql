@@ -14,11 +14,11 @@ def sql_magic(ip):
 @pytest.mark.parametrize(
     "line, cell, parsed_sql, parsed_connection, parsed_result_var",
     [
-        ("something --no-execute", "", "something\n", "", None),
+        ("something --no-execute", "", "something", "", None),
         ("sqlite://", "", "", "sqlite://", None),
-        ("SELECT * FROM TABLE", "", "SELECT * FROM TABLE\n", "", None),
+        ("SELECT * FROM TABLE", "", "SELECT * FROM TABLE", "", None),
         ("SELECT * FROM", "TABLE", "SELECT * FROM\nTABLE", "", None),
-        ("my_var << SELECT * FROM table", "", "SELECT * FROM table\n", "", "my_var"),
+        ("my_var << SELECT * FROM table", "", "SELECT * FROM table", "", "my_var"),
         ("my_var << SELECT *", "FROM table", "SELECT *\nFROM table", "", "my_var"),
         ("[db]", "", "", "sqlite://", None),
     ],
@@ -104,13 +104,13 @@ def test_parsed_sql_when_using_file(ip, sql_magic, tmp_empty):
     assert cmd.parsed == {
         "connection": "",
         "result_var": None,
-        "sql": "SELECT * FROM author\n\n",
-        "sql_original": "SELECT * FROM author\n\n",
+        "sql": "SELECT * FROM author\n",
+        "sql_original": "SELECT * FROM author\n",
     }
 
     assert cmd.connection == ""
-    assert cmd.sql == "SELECT * FROM author\n\n"
-    assert cmd.sql_original == "SELECT * FROM author\n\n"
+    assert cmd.sql == "SELECT * FROM author\n"
+    assert cmd.sql_original == "SELECT * FROM author\n"
 
 
 def test_args(ip, sql_magic):
@@ -220,7 +220,7 @@ def test_variable_substitution_legacy_dollar_prefix_cell_magic(ip, sql_magic):
         cell="GRANT CONNECT ON DATABASE postgres TO $username;",
     )
 
-    assert cmd.parsed["sql"] == "\nGRANT CONNECT ON DATABASE postgres TO some-user;"
+    assert cmd.parsed["sql"] == "GRANT CONNECT ON DATABASE postgres TO some-user;"
 
 
 def test_variable_substitution_legacy_single_curly_cell_magic(ip, sql_magic):
@@ -261,4 +261,4 @@ def test_variable_substitution_double_curly_line_magic(ip, sql_magic):
     )
 
     # print ("cmd.parsed['sql']", cmd.parsed["sql"])
-    assert cmd.parsed["sql"] == "SELECT first_name FROM author LIMIT 5;\n"
+    assert cmd.parsed["sql"] == "SELECT first_name FROM author LIMIT 5;"

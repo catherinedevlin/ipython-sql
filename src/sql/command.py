@@ -1,4 +1,3 @@
-import re
 import warnings
 from IPython.core.magic_arguments import parse_argstring
 from jinja2 import Template
@@ -22,8 +21,6 @@ class SQLCommand:
     """
 
     def __init__(self, magic, user_ns, line, cell) -> None:
-        # Support for the variable substition in the SQL clause
-        line, cell = self._var_expand(magic, user_ns, line, cell)
         self.args = parse.magic_args(magic.execute, line)
         # self.args.line (everything that appears after %sql/%%sql in the first line)
         # is splited in tokens (delimited by spaces), this checks if we have one arg
@@ -53,7 +50,9 @@ class SQLCommand:
 
         self.parsed = parse.parse(self.command_text, magic)
 
-        self.parsed["sql_original"] = self.parsed["sql"]
+        self.parsed["sql_original"] = self.parsed["sql"] = self._var_expand(
+            self.parsed["sql"], user_ns, magic
+        )
 
         if add_conn:
             self.parsed["connection"] = user_ns[self.args.line[0]]
@@ -89,32 +88,19 @@ class SQLCommand:
         """Returns the result_var"""
         return self.parsed["result_var"]
 
-    def _var_expand(self, magic, user_ns, line, cell):
-        """
-        Support for the variable substition in the SQL clause
-        For now, we have enabled two ways:
-        1. Latest format, {{a}}, we use jinja2 to parse the string with {{a}} format
-        2. Legacy format, {a}, $a, and :a format.
+    def _var_expand(self, sql, user_ns, magic):
+        sql = Template(sql).render(user_ns)
+        parsed_sql = magic.shell.var_expand(sql, depth=2)
 
-        We will deprecate the legacy format feature in next major version
-        """
-        self.is_legacy_var_expand_parsed = False
-        # Latest format parsing
-        # TODO: support --param and --use-global logic here
-        # Ref: https://github.com/ploomber/jupysql/issues/93
-        line = Template(line).render(user_ns)
-        cell = Template(cell).render(user_ns)
-        # Legacy format parsing
-        parsed_cell = magic.shell.var_expand(cell, depth=2)
-        parsed_line = magic.shell.var_expand(line, depth=2)
-        # Exclusive the string with "://", but has :variable
-        has_SQLAlchemy_var_expand = re.search("(?<!://):[^/]+", line) or ":" in cell
-        if parsed_line != line or parsed_cell != cell or has_SQLAlchemy_var_expand:
-            self.is_legacy_var_expand_parsed = True
+        has_SQLAlchemy_var_expand = ":" in sql
+        # parsed_sql != sql: detect if using IPython fashion - {a} or $a
+        # has_SQLAlchemy_var_expand: detect if using Sqlalchemy fashion - :a
+        if parsed_sql != sql or has_SQLAlchemy_var_expand:
             warnings.warn(
                 "Variable substitution with $var and {var} has been "
                 "deprecated and will be removed in a future version. "
                 "Use {{var}} instead.",
                 FutureWarning,
             )
-        return parsed_line, parsed_cell
+
+        return parsed_sql
