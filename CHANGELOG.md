@@ -1,8 +1,8 @@
 # CHANGELOG
 
-## 0.6.2dev
+## 0.6.2 (2023-03-05)
 
-* [Fix] Deprecation warning incorrectly displayed #213
+* [Fix] Deprecation warning incorrectly displayed [#213](https://github.com/ploomber/jupysql/issues/213)
 
 ## 0.6.1 (2023-03-02)
 
