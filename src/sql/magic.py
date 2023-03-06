@@ -258,7 +258,7 @@ class SqlMagic(Magics, Configurable):
         # save globals and locals so they can be referenced in bind vars
         user_ns = self.shell.user_ns.copy()
         user_ns.update(local_ns)
-
+        print((user_ns))
         command = SQLCommand(self, user_ns, line, cell)
         # args.line: contains the line after the magic with all options removed
         args = command.args

@@ -18,7 +18,8 @@ except ImportError:
 
 
 from sql import inspect
-
+import sql.run
+from sql.command import SQLCommand
 
 class CmdParser(argparse.ArgumentParser):
     def exit(self, status=0, message=None):
@@ -35,38 +36,27 @@ class SqlCmdMagic(Magics, Configurable):
 
     @line_magic("sqlcmd")
     @magic_arguments()
-    @argument("line", default="", type=str, help="Command name")
-    def execute(self, line="", cell="", local_ns=None):
+    @argument("within", default="", type=str, help="Command name")
+    @argument("table", default="", type=str, help="Command name")
+    @argument("column", default="", type=str, help="Command name")
+    def execute(self, line="", cell="", local_ns={}):
         """
         Command
         """
         split = arg_split(line)
         cmd_name, others = split[0].strip(), split[1:]
 
-        if cmd_name == "tables":
-            parser = CmdParser()
+        if cmd_name == "test":
+            if local_ns is None:
+                local_ns = {}
 
-            parser.add_argument(
-                "-s", "--schema", type=str, help="Schema name", required=False
-            )
+            user_ns = self.shell.user_ns.copy()
+            user_ns.update(local_ns)
+            #command = SQLCommand(self, user_ns, line, cell)
 
-            args = parser.parse_args(others)
-
-            return inspect.get_table_names(schema=args.schema)
-        elif cmd_name == "columns":
-            parser = CmdParser()
-
-            parser.add_argument(
-                "-t", "--table", type=str, help="Table name", required=True
-            )
-            parser.add_argument(
-                "-s", "--schema", type=str, help="Schema name", required=False
-            )
-
-            args = parser.parse_args(others)
-            return inspect.get_columns(name=args.table, schema=args.schema)
         else:
             raise UsageError(
                 f"%sqlcmd has no command: {cmd_name!r}. "
                 "Valid commands are: 'tables', 'columns'"
             )
+        #
