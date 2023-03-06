@@ -95,12 +95,15 @@ class SQLCommand:
         has_SQLAlchemy_var_expand = ":" in sql
         # parsed_sql != sql: detect if using IPython fashion - {a} or $a
         # has_SQLAlchemy_var_expand: detect if using Sqlalchemy fashion - :a
+
+        msg = (
+            "Variable substitution with $var and {var} has been "
+            "deprecated and will be removed in a future version. "
+            "Use {{var}} instead. To remove this, see: "
+            "https://jupysql.ploomber.io/en/latest/howto.html#ignore-deprecation-warnings"  # noqa
+        )
+
         if parsed_sql != sql or has_SQLAlchemy_var_expand:
-            warnings.warn(
-                "Variable substitution with $var and {var} has been "
-                "deprecated and will be removed in a future version. "
-                "Use {{var}} instead.",
-                FutureWarning,
-            )
+            warnings.warn(msg, FutureWarning)
 
         return parsed_sql
