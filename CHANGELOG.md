@@ -1,6 +1,7 @@
 # CHANGELOG
 
-## 0.6.3dev
+## 0.6.3 (2023-03-06)
+
 * [Fix] Displaying variable substitution warning only when the variable to expand exists in the user's namespace
 
 ## 0.6.2 (2023-03-05)
