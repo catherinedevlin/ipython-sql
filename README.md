@@ -21,6 +21,10 @@
 
 Run SQL in Jupyter/IPython via a `%sql` and `%%sql` magics.
 
+<p align="center">
+  <a href="https://binder.ploomber.io/v2/gh/ploomber/jupysql/master?urlpath=lab/tree/doc/quick-start.md"> <img src="_static/get-started.svg" alt="Get Started"> </a>
+</p>
+
 ## Features
 
 - [Pandas integration](https://jupysql.ploomber.io/en/latest/integrations/pandas.html)
