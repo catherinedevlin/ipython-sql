@@ -92,8 +92,9 @@ class SQLCommand:
         sql = Template(sql).render(user_ns)
         parsed_sql = magic.shell.var_expand(sql, depth=2)
 
-        has_SQLAlchemy_var_expand = any((':' + ns_var_key in sql
-                                         for ns_var_key in user_ns.keys()))
+        has_SQLAlchemy_var_expand = ":" in sql and any(
+            (":" + ns_var_key in sql for ns_var_key in user_ns.keys())
+        )
         # has_SQLAlchemy_var_expand: detect if using Sqlalchemy fashion - :a
 
         msg = (
