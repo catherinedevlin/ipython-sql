@@ -33,6 +33,7 @@ jobs:
       - name: Install dependencies
         run: |
 
+          pip install git+https://github.com/Mause/duckdb_engine/tree/v0.7.0-rc1
           pip install .
           # check package is importable
           python -c "import sql"

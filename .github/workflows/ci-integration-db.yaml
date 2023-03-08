@@ -57,6 +57,7 @@ jobs:
       - name: Install dependencies
         run: |
 
+          pip install git+pip install git+https://github.com/Mause/duckdb_engine/tree/v0.7.0-rc1
           # Install required package for integration testing
           pip install pandas pyarrow duckdb duckdb-engine
           # Install postgreSQL driver
