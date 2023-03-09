@@ -7,7 +7,7 @@
 ## 0.6.3 (2023-03-06)
 
 * [Fix] Displaying variable substitution warning only when the variable to expand exists in the user's namespace
-
+* [Fix] Adds support for SQL Alchemy 2.0
 ## 0.6.2 (2023-03-05)
 
 * [Fix] Deprecation warning incorrectly displayed [#213](https://github.com/ploomber/jupysql/issues/213)

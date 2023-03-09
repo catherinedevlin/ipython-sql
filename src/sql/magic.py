@@ -266,7 +266,7 @@ class SqlMagic(Magics, Configurable):
         if args.connections:
             return sql.connection.Connection.connections
         elif args.close:
-            return sql.connection.Connection._close(args.close)
+            return sql.connection.Connection.close(args.close)
 
         connect_arg = command.connection
 
