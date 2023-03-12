@@ -272,3 +272,48 @@ some_engine = create_engine(
 %sql some_engine
 ```
 
+## Listing Tables
+
+This section demonstrates how to list tables from both the `.csv` and `.parquet` files introduced in the previous sections.
+
+### Listing tables from a `.csv` file
+
+The data from the `.csv` file must first be registered as a table in order for the table to be listed.
+
+```{code-cell} ipython3
+%%sql
+CREATE TABLE penguins AS SELECT * FROM penguins.csv
+```
+
+The cell above allows the data to now be listed as a table from the following code:
+
+```{code-cell} ipython3
+%sqlcmd tables
+```
+
+### Listing tables from a `.parquet` file
+
+Identically, to list the data from a `.parquet` file as a table, the data must first be registered as a table.
+
+```{code-cell} ipython3
+%%sql
+CREATE TABLE tripdata AS SELECT * FROM "yellow_tripdata_2021-01.parquet"
+```
+
+The data is now able to be listed as a table from the following code:
+
+```{code-cell} ipython3
+%sqlcmd tables
+```
+
+## Listing Columns
+
+After either registering the data from the`.csv` or `.parquet` files as a table, their respective columns can now be listed with the following code:
+
+```{code-cell} ipython3
+%sqlcmd columns -t penguins
+```
+
+```{code-cell} ipython3
+%sqlcmd columns -t tripdata
+```
