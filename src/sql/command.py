@@ -90,6 +90,7 @@ class SQLCommand:
 
     def _var_expand(self, sql, user_ns, magic):
         sql = Template(sql).render(user_ns)
+
         parsed_sql = magic.shell.var_expand(sql, depth=2)
 
         has_SQLAlchemy_var_expand = ":" in sql and any(

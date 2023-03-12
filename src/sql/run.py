@@ -403,6 +403,7 @@ def run(conn, sql, config, user_namespace):
             _commit(conn=conn, config=config)
             if result and config.feedback:
                 print(interpret_rowcount(result.rowcount))
+
         resultset = ResultSet(result, config)
         if config.autopandas:
             return resultset.DataFrame()
