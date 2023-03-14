@@ -2,6 +2,8 @@
 
 ## 0.6.5dev
 
+* [Fix] Addresses enable AUTOCOMMIT config issue in PostgreSQL (#90)
+
 ## 0.6.4 (2023-03-12)
 
 * [Fix] Adds support for SQL Alchemy 2.0
@@ -24,8 +26,6 @@
 
 * [API Change] Drops support for old versions of IPython (removed imports from `IPython.utils.traitlets`)
 * [Feature] Adds `%%config SqlMagic.autopolars = True` ([#138](https://github.com/ploomber/jupysql/issues/138))
-
-* [Fix] Addresses enable AUTOCOMMIT config issue in PostgreSQL #90
 
 ## 0.5.6 (2023-02-16)
 
