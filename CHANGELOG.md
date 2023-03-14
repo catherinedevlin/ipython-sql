@@ -25,6 +25,8 @@
 * [API Change] Drops support for old versions of IPython (removed imports from `IPython.utils.traitlets`)
 * [Feature] Adds `%%config SqlMagic.autopolars = True` ([#138](https://github.com/ploomber/jupysql/issues/138))
 
+* [Fix] Addresses enable AUTOCOMMIT config issue in PostgreSQL #90
+
 ## 0.5.6 (2023-02-16)
 
 * [Feature] Shows missing driver package suggestion message ([#124](https://github.com/ploomber/jupysql/issues/124))

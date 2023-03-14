@@ -367,24 +367,29 @@ _COMMIT_BLACKLIST_DIALECTS = (
 )
 
 
-def _commit(conn, config):
+def _commit(conn, config, manual_commit):
     """Issues a commit, if appropriate for current config and dialect"""
 
-    _should_commit = config.autocommit and all(
-        dialect not in str(conn.dialect) for dialect in _COMMIT_BLACKLIST_DIALECTS
+    _should_commit = (
+        config.autocommit
+        and all(
+            dialect not in str(conn.dialect) for dialect in _COMMIT_BLACKLIST_DIALECTS
+        )
+        and manual_commit
     )
 
     if _should_commit:
         try:
             conn.session.execute("commit")
         except sqlalchemy.exc.OperationalError:
-            pass  # not all engines can commit
+            print("The database does not support the COMMIT command")
 
 
 def run(conn, sql, config, user_namespace):
     if sql.strip():
         for statement in sqlparse.split(sql):
             first_word = sql.strip().split()[0].lower()
+            manual_commit = False
             if first_word == "begin":
                 raise Exception("ipython_sql does not support transactions")
             if first_word.startswith("\\") and (
@@ -399,8 +404,21 @@ def run(conn, sql, config, user_namespace):
                 result = FakeResultProxy(cur, headers)
             else:
                 txt = sqlalchemy.sql.text(statement)
+                if config.autocommit:
+                    try:
+                        conn.session.execution_options(isolation_level="AUTOCOMMIT")
+                    except Exception as e:
+                        print(
+                            "The database driver doesn't support "
+                            "such AUTOCOMMIT execution option\n"
+                            "Perhaps you can try running a manual COMMIT command\n\n"
+                            "Message from the database driver: \n\tException:",
+                            e,
+                            "\n",
+                        )
+                        manual_commit = True
                 result = conn.session.execute(txt, user_namespace)
-            _commit(conn=conn, config=config)
+            _commit(conn=conn, config=config, manual_commit=manual_commit)
             if result and config.feedback:
                 print(interpret_rowcount(result.rowcount))
 
