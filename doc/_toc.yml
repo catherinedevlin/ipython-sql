@@ -42,6 +42,10 @@ parts:
     - file: howto/json
     - file: howto/syntax-highlighting
 
+  - caption: Tutorials
+    chapters:
+    - file: tutorials/duckdb-github
+
   - caption: Community
     chapters:
     - file: community/vs

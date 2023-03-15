@@ -2,6 +2,7 @@
 
 ## 0.6.5dev
 
+* [Doc] User guide on querying Github API with DuckDB and JupySQL
 * [Fix] Addresses enable AUTOCOMMIT config issue in PostgreSQL (#90)
 
 ## 0.6.4 (2023-03-12)
