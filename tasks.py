@@ -1,3 +1,4 @@
+import platform
 from invoke import task
 
 
@@ -14,11 +15,11 @@ def setup(c, version=None, doc=False):
         env_name += "-doc"
 
     c.run(f"conda create --name {env_name} python={version} --yes")
-    c.run(
-        'eval "$(conda shell.bash hook)" '
-        f"&& conda activate {env_name} "
-        "&& pip install --editable .[dev]"
-    )
+    if platform.system() == "Windows":
+        conda_hook = "conda shell.bash hook "
+    else:
+        conda_hook = 'eval "$(conda shell.bash hook)" '
+    c.run(f"{conda_hook} && conda activate {env_name} && pip install --editable .[dev]")
 
     if doc:
         c.run(
