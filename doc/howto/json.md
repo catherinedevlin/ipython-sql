@@ -29,7 +29,7 @@ First, let's install the required dependencies:
 # this cell won't be visible in the docs
 from pathlib import Path
 
-paths = ["people.jsonl", "people.csv"]
+paths = ["people.json", "people.jsonl", "people.csv"]
 
 for path in paths:
     path = Path(path)
@@ -45,9 +45,9 @@ for path in paths:
 %pip install jupysql duckdb duckdb-engine rich --quiet
 ```
 
-Now, let's generate some data. Note that DuckDB expects your data to contain *one JSON object per line*; this format is called [JSON Lines](https://jsonlines.org/), and it often comes with the `.json`, `.jsonl.gz`, or `.jsonl.bz2` extension.
+Now, let's generate some data.
 
-Our sample data contains four rows:
+We'll write it in typical JSON format as well as [JSON Lines](https://jsonlines.org/). JSON Lines, or newline-delimited JSON, is a structured file format in which each individual line is a valid JSON object, separated by a newline character (`/n`). Our sample data contains four rows:
 
 ```{code-cell} ipython3
 from pathlib import Path
@@ -79,7 +79,18 @@ data = [
         "likes": {"pizza": False, "tacos": True},
     },
 ]
+```
 
+Next, let's dump our json data into a `.json` file:
+
+```{code-cell} ipython3
+_ = Path("people.json").write_text(json.dumps(data))
+print(data)
+```
+
+We should also produce a `.jsonl` file. Due to its newline-delimited nature, we will need to format our data in a way such that each object in our data array is separated by `/n`.
+
+```{code-cell} ipython3
 lines = ""
 
 for d in data:
@@ -110,12 +121,36 @@ Read the JSON data:
 ```{code-cell} ipython3
 %%sql
 SELECT *
-FROM read_json_objects('people.jsonl')
+FROM read_json_auto('people.json')
 ```
 
 ## Extract fields
 
-Extract fields from each JSON record:
+Extract fields from a JSON record. Keep in mind when using `read_json_auto`, arrays are 1-indexed (start at 1 rather than 0):
+
+```{code-cell} ipython3
+%%sql
+SELECT 
+    name, 
+    friends[1] AS first_friend, 
+    likes.pizza AS likes_pizza, 
+    likes.tacos AS likes_tacos
+FROM read_json_auto('people.json')
+```
+
+[JSON lines](https://jsonlines.org/) format is also supported:
+
+```{code-cell} ipython3
+%%sql
+SELECT 
+    name, 
+    friends[1] AS first_friend, 
+    likes.pizza AS likes_pizza, 
+    likes.tacos AS likes_tacos
+FROM read_json_auto('people.jsonl')
+```
+
+We can also use `read_json_objects` and format our queries differently. In this case, arrays are zero-indexed:
 
 ```{code-cell} ipython3
 %%sql
@@ -123,7 +158,7 @@ SELECT
     json ->> '$.name' AS name,
     json ->> '$.friends[0]' AS first_friend,
     json ->> '$.likes.pizza' AS likes_pizza,
-    json ->> '$.likes.tacos' AS likes_tacos,
+    json ->> '$.likes.tacos' AS likes_tacos
 FROM read_json_objects('people.jsonl')
 ```
 
@@ -170,18 +205,35 @@ print_json(row.schema_likes)
 You can use JupySQL's `--save` feature to store a SQL snippet so you can keep your queries succint:
 
 ```{code-cell} ipython3
-%%sql --save clean_data
-SELECT
+%%sql --save clean_data_json
+SELECT 
+    name, 
+    friends[1] AS first_friend, 
+    likes.pizza AS likes_pizza, 
+    likes.tacos AS likes_tacos
+FROM read_json_auto('people.json')
+```
+
+```{code-cell} ipython3
+%%sql --with clean_data_json
+SELECT * FROM clean_data_json
+```
+
+Or using our `.jsonl` file:
+
+```{code-cell} ipython3
+%%sql --save clean_data_jsonl
+SELECT 
     json ->> '$.name' AS name,
     json ->> '$.friends[0]' AS first_friend,
     json ->> '$.likes.pizza' AS likes_pizza,
-    json ->> '$.likes.tacos' AS likes_tacos,
+    json ->> '$.likes.tacos' AS likes_tacos
 FROM read_json_objects('people.jsonl')
 ```
 
 ```{code-cell} ipython3
-%%sql --with clean_data
-SELECT * FROM clean_data
+%%sql --with clean_data_jsonl
+SELECT * FROM clean_data_jsonl
 ```
 
 ## Export to CSV
@@ -195,12 +247,12 @@ To export to CSV:
 ```{code-cell} ipython3
 %%sql
 COPY (
-    SELECT
-    json ->> '$.name' AS name,
-    json ->> '$.friends[0]' AS first_friend,
-    json ->> '$.likes.pizza' AS likes_pizza,
-    json ->> '$.likes.tacos' AS likes_tacos,
-    FROM read_json_objects('people.jsonl')
+    SELECT 
+    name, 
+    friends[1] AS first_friend, 
+    likes.pizza AS likes_pizza, 
+    likes.tacos AS likes_tacos
+    FROM read_json_auto('people.json')
 )
 
 TO 'people.csv' (HEADER, DELIMITER ',');

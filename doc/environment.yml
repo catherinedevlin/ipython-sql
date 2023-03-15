@@ -12,7 +12,7 @@ dependencies:
   - pip:
     - jupyter-book
     # duckdb example
-    - duckdb
+    - duckdb>=0.7.1
     - duckdb-engine
     # plot example
     - memory-profiler
