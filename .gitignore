@@ -1,4 +1,5 @@
 .virtual_documents
+.DS_Store
 *.jsonl
 *.json
 *.db
