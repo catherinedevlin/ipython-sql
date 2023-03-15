@@ -16,7 +16,7 @@ myst:
     property=og:locale: en_US
 ---
 
-# Template
+# Parameterizing SQL queries
 
 ## Variable Expansion as `{{variable}}`
 
