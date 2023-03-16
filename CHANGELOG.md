@@ -1,11 +1,14 @@
 # CHANGELOG
 
-## 0.6.5dev
+## 0.6.5 (2023-03-15)
 
+* [Feature] Displaying warning when passing a identifier with hyphens to `--save` or `--with`
+* [Fix] Addresses enable AUTOCOMMIT config issue in PostgreSQL ([#90](https://github.com/ploomber/jupysql/issues/90))
 * [Doc] User guide on querying Github API with DuckDB and JupySQL
-* [Fix] Addresses enable AUTOCOMMIT config issue in PostgreSQL (#90)
 
 ## 0.6.4 (2023-03-12)
+
+**Note:** This release has been yanked due to an error when using it with SQLAlchemy 2
 
 * [Fix] Adds support for SQL Alchemy 2.0
 * [Doc] Summary section on jupysql vs ipython-sql
