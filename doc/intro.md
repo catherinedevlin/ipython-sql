@@ -127,38 +127,6 @@ result['richard2']
 Results can also be retrieved as an iterator of dictionaries (``result.dicts()``)
 or a single dictionary with a tuple of scalar values per key (``result.dict()``)
 
-## Variable substitution 
-
-```{versionchanged} 0.5.7
-This is a legacy API that's kept for backwards compatibility.
-```
-
-Bind variables (bind parameters) can be used in the "named" (:x) style.
-The variable names used should be defined in the local namespace.
-
-```{code-cell} ipython3
-name = "Python"
-```
-
-```{code-cell} ipython3
-%sql select * from languages where name = :name
-```
-
-```{code-cell} ipython3
-%sql select * from languages where name = '{name}';
-```
-
-Alternately, ``$variable_name`` or ``{variable_name}`` can be 
-used to inject variables from the local namespace into the SQL 
-statement before it is formed and passed to the SQL engine.
-(Using ``$`` and ``{}`` together, as in ``${variable_name}``, 
-is not supported.)
-
-Bind variables are passed through to the SQL engine and can only 
-be used to replace strings passed to SQL.  ``$`` and ``{}`` are 
-substituted before passing to SQL and can be used to form SQL 
-statements dynamically.
-
 ## Assignment
 
 Ordinary IPython assignment works for single-line `%sql` queries:

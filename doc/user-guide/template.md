@@ -50,7 +50,7 @@ dynamic_column = "island, sex"
 
 Note that variables will be fetched from the local namespace into the SQL statement.
 
-Please aware that we also support the `$variable` or `{variable_name}` way, but those will be deprecated in future version, [see more](https://jupysql.ploomber.io/en/latest/intro.html?highlight=variable#variable-substitution).
+Two way to expand `$variable` or `{variable_name}` has been deprecated in current and all future versions, [see more](https://jupysql.ploomber.io/en/latest/intro.html?highlight=variable#variable-substitution).
 
 ```{code-cell} ipython3
 

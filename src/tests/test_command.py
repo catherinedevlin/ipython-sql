@@ -1,5 +1,4 @@
 from pathlib import Path
-import warnings
 
 import pytest
 from sqlalchemy import create_engine
@@ -169,83 +168,6 @@ def test_parse_sql_when_passing_engine(ip, sql_magic, tmp_empty, line):
     assert cmd.connection is engine
     assert cmd.sql == sql_expected
     assert cmd.sql_original == sql_expected
-
-
-def test_variable_substitution_legacy_warning_message_dollar_prefix(
-    ip, sql_magic, capsys
-):
-    with pytest.warns(FutureWarning):
-        ip.user_global_ns["limit_number"] = 1
-        ip.run_cell_magic(
-            "sql",
-            "",
-            """
-            SELECT * FROM author LIMIT $limit_number
-            """,
-        )
-
-
-def test_variable_substitution_legacy_warning_message_single_curly(
-    ip, sql_magic, capsys
-):
-    with pytest.warns(FutureWarning):
-        ip.user_global_ns["limit_number"] = 1
-        ip.run_cell_magic(
-            "sql",
-            "",
-            """
-            SELECT * FROM author LIMIT {limit_number}
-            """,
-        )
-
-
-def test_variable_substitution_legacy_warning_message_colon(ip, sql_magic, capsys):
-    with pytest.warns(FutureWarning):
-        ip.user_global_ns["limit_number"] = 1
-        ip.run_cell_magic(
-            "sql",
-            "",
-            """
-            SELECT * FROM author LIMIT :limit_number
-            """,
-        )
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        ip.user_global_ns["limit_number"] = 1
-        ip.run_cell_magic(
-            "sql",
-            "",
-            """
-            SELECT * FROM author WHERE last_name = 'Something with : inside'
-            """,
-        )
-
-
-def test_variable_substitution_legacy_dollar_prefix_cell_magic(ip, sql_magic):
-    ip.user_global_ns["username"] = "some-user"
-
-    cmd = SQLCommand(
-        sql_magic,
-        ip.user_ns,
-        line="",
-        cell="GRANT CONNECT ON DATABASE postgres TO $username;",
-    )
-
-    assert cmd.parsed["sql"] == "GRANT CONNECT ON DATABASE postgres TO some-user;"
-
-
-def test_variable_substitution_legacy_single_curly_cell_magic(ip, sql_magic):
-    ip.user_global_ns["username"] = "some-user"
-
-    cmd = SQLCommand(
-        sql_magic,
-        ip.user_ns,
-        line="",
-        cell="GRANT CONNECT ON DATABASE postgres TO {username};",
-    )
-
-    assert cmd.parsed["sql"] == "\nGRANT CONNECT ON DATABASE postgres TO some-user;"
 
 
 def test_variable_substitution_double_curly_cell_magic(ip, sql_magic):

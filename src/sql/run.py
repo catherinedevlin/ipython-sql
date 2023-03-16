@@ -386,7 +386,7 @@ def _commit(conn, config, manual_commit):
             print("The database does not support the COMMIT command")
 
 
-def run(conn, sql, config, user_namespace):
+def run(conn, sql, config):
     if sql.strip():
         for statement in sqlparse.split(sql):
             first_word = sql.strip().split()[0].lower()
@@ -417,7 +417,7 @@ def run(conn, sql, config, user_namespace):
                             f"Exception:  {e}\n",  # noqa: F841
                         )
                         manual_commit = True
-                result = conn.session.execute(txt, user_namespace)
+                result = conn.session.execute(txt)
             _commit(conn=conn, config=config, manual_commit=manual_commit)
             if result and config.feedback:
                 print(interpret_rowcount(result.rowcount))

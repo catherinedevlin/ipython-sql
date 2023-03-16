@@ -1,4 +1,3 @@
-import warnings
 from IPython.core.magic_arguments import parse_argstring
 from jinja2 import Template
 
@@ -89,23 +88,4 @@ class SQLCommand:
         return self.parsed["result_var"]
 
     def _var_expand(self, sql, user_ns, magic):
-        sql = Template(sql).render(user_ns)
-
-        parsed_sql = magic.shell.var_expand(sql, depth=2)
-
-        has_SQLAlchemy_var_expand = ":" in sql and any(
-            (":" + ns_var_key in sql for ns_var_key in user_ns.keys())
-        )
-        # has_SQLAlchemy_var_expand: detect if using Sqlalchemy fashion - :a
-
-        msg = (
-            "Variable substitution with $var and {var} has been "
-            "deprecated and will be removed in a future version. "
-            "Use {{var}} instead. To remove this, see: "
-            "https://jupysql.ploomber.io/en/latest/howto.html#ignore-deprecation-warnings"  # noqa
-        )
-
-        if parsed_sql != sql or has_SQLAlchemy_var_expand:
-            warnings.warn(msg, FutureWarning)
-
-        return parsed_sql
+        return Template(sql).render(user_ns)

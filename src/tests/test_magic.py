@@ -238,7 +238,7 @@ def test_userns_not_changed(ip):
 
 def test_bind_vars(ip):
     ip.user_global_ns["x"] = 22
-    result = runsql(ip, "SELECT :x")
+    result = runsql(ip, "SELECT {{x}}")
     assert result[0][0] == 22
 
 
@@ -351,28 +351,28 @@ def test_dicts(ip):
 
 def test_bracket_var_substitution(ip):
     ip.user_global_ns["col"] = "first_name"
-    assert runsql(ip, "SELECT * FROM author" " WHERE {col} = 'William' ")[0] == (
+    assert runsql(ip, "SELECT * FROM author" " WHERE {{col}} = 'William' ")[0] == (
         "William",
         "Shakespeare",
         1616,
     )
 
     ip.user_global_ns["col"] = "last_name"
-    result = runsql(ip, "SELECT * FROM author" " WHERE {col} = 'William' ")
+    result = runsql(ip, "SELECT * FROM author" " WHERE {{col}} = 'William' ")
     assert not result
 
 
 # the next two tests had the same name, so I added a _2 to the second one
 def test_multiline_bracket_var_substitution(ip):
     ip.user_global_ns["col"] = "first_name"
-    assert runsql(ip, "SELECT * FROM author\n" " WHERE {col} = 'William' ")[0] == (
+    assert runsql(ip, "SELECT * FROM author\n" " WHERE {{col}} = 'William' ")[0] == (
         "William",
         "Shakespeare",
         1616,
     )
 
     ip.user_global_ns["col"] = "last_name"
-    result = runsql(ip, "SELECT * FROM author" " WHERE {col} = 'William' ")
+    result = runsql(ip, "SELECT * FROM author" " WHERE {{col}} = 'William' ")
     assert not result
 
 
@@ -383,7 +383,7 @@ def test_multiline_bracket_var_substitution_2(ip):
         "",
         """
         sqlite:// SELECT * FROM author
-        WHERE {col} = 'William'
+        WHERE {{col}} = 'William'
         """,
     )
     assert ("William", "Shakespeare", 1616) in result
@@ -394,7 +394,7 @@ def test_multiline_bracket_var_substitution_2(ip):
         "",
         """
         sqlite:// SELECT * FROM author
-        WHERE {col} = 'William'
+        WHERE {{col}} = 'William'
         """,
     )
     assert not result
@@ -590,16 +590,3 @@ def test_jupysql_alias():
         "line": {"jupysql": "execute", "sql": "execute"},
         "cell": {"jupysql": "execute", "sql": "execute"},
     }
-
-
-@pytest.mark.xfail(reason="will be fixed once we deprecate the $name parametrization")
-def test_columns_with_dollar_sign(ip_empty):
-    ip_empty.run_cell("%sql sqlite://")
-    result = ip_empty.run_cell(
-        """
-    %sql SELECT $2 FROM (VALUES (1, 'one'), (2, 'two'), (3, 'three'))"""
-    )
-
-    html = result.result._repr_html_()
-
-    assert "$2" in html
