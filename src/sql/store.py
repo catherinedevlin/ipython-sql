@@ -1,6 +1,7 @@
 from typing import Iterator, Iterable
 from collections.abc import MutableMapping
 from ploomber_core.exceptions import modify_exceptions
+import warnings
 
 from jinja2 import Template
 
@@ -80,6 +81,15 @@ class SQLQuery:
         self._store = store
         self._query = query
         self._with_ = with_ or []
+
+        if any("-" in x for x in self._with_):
+            warnings.warn(
+                "Using hyphens will be deprecated soon, "
+                "please use "
+                + ", ".join(self._with_).replace("-", "_")
+                + " instead for the with argument.",
+                FutureWarning,
+            )
 
     def __str__(self) -> str:
         with_all = _get_dependencies(self._store, self._with_)
