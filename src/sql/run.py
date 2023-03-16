@@ -18,6 +18,7 @@ except ImportError:
     PGSpecial = None
 
 from sql.telemetry import telemetry
+import logging
 
 
 def unduplicate_field_names(field_names):
@@ -408,13 +409,12 @@ def run(conn, sql, config, user_namespace):
                     try:
                         conn.session.execution_options(isolation_level="AUTOCOMMIT")
                     except Exception as e:
-                        print(
-                            "The database driver doesn't support "
-                            "such AUTOCOMMIT execution option\n"
-                            "Perhaps you can try running a manual COMMIT command\n\n"
-                            "Message from the database driver: \n\tException:",
-                            e,
-                            "\n",
+                        logging.debug(
+                            f"The database driver doesn't support such "
+                            f"AUTOCOMMIT execution option"
+                            f"\nPerhaps you can try running a manual COMMIT command"
+                            f"\nMessage from the database driver\n\t"
+                            f"Exception:  {e}\n",  # noqa: F841
                         )
                         manual_commit = True
                 result = conn.session.execute(txt, user_namespace)
