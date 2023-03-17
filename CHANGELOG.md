@@ -1,6 +1,10 @@
 # CHANGELOG
 
-## 0.6.6dev
+## 0.6.7dev
+
+## 0.6.6 (2023-03-16)
+
+* [Fix] Pinning SQLAlchemy 1.x
 
 ## 0.6.5 (2023-03-15)
 
