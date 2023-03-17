@@ -1,6 +1,8 @@
 # CHANGELOG
 
-## 0.6.7dev
+## 0.7.0dev
+
+* [API Change] Deprecates old SQL parametrization: `$var`, `:var`, and `{var}` in favor of `{{var}}`
 
 ## 0.6.6 (2023-03-16)
 
