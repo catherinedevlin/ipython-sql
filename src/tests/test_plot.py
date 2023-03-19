@@ -50,7 +50,7 @@ def test_boxplot_stats(chinook_db):
     con.execute("LOAD 'sqlite_scanner';")
     con.execute(f"CALL sqlite_attach({chinook_db!r});")
 
-    res = con.execute("SELECT * FROM Invoice")
+    res = con.execute(sqlalchemy.sql.text("SELECT * FROM Invoice"))
     X = res.df().Total
     expected = cbook.boxplot_stats(X)
 
@@ -61,11 +61,11 @@ def test_boxplot_stats(chinook_db):
 
 def test_boxplot_stats_exception(chinook_db):
     con = duckdb.connect(database=":memory:")
-    con.execute("INSTALL 'sqlite_scanner';")
-    con.execute("LOAD 'sqlite_scanner';")
-    con.execute(f"CALL sqlite_attach({chinook_db!r});")
+    con.execute(sqlalchemy.sql.text("INSTALL 'sqlite_scanner';"))
+    con.execute(sqlalchemy.sql.text("LOAD 'sqlite_scanner';"))
+    con.execute(sqlalchemy.sql.text(f"CALL sqlite_attach({chinook_db!r});"))
 
-    res = con.execute("SELECT * FROM Invoice")
+    res = con.execute(sqlalchemy.sql.text("SELECT * FROM Invoice"))
     X = res.df().Total
     cbook.boxplot_stats(X)
     with pytest.raises(

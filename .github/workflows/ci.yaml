@@ -6,7 +6,7 @@ jobs:
   test:
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9, '3.10', '3.11']
+        python-version: [3.7, 3.8, 3.9, "3.10", "3.11"]
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     runs-on: ${{ matrix.os }}
@@ -37,16 +37,16 @@ jobs:
           # check package is importable
           python -c "import sql"
           pip install ".[dev]"
-
+          pip install sqlalchemy -U
 
       - name: Test with pytest
         run: |
           pytest --durations-min=5 --ignore=src/tests/integration
-
+          python -c 'import sqlalchemy; assert sqlalchemy.__version__.split(".")[0] == 2'
   test-sqlalchemy-v1:
     strategy:
       matrix:
-        python-version: ['3.11']
+        python-version: ["3.11"]
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     runs-on: ${{ matrix.os }}
@@ -84,7 +84,7 @@ jobs:
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: Install dependencies
         run: |

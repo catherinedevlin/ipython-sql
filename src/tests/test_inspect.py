@@ -4,21 +4,22 @@ import pytest
 from functools import partial
 
 from sql import inspect, connection
+import sqlalchemy
 
 
 @pytest.fixture
 def sample_db(tmp_empty):
     conn = connection.Connection.from_connect_str("sqlite://")
 
-    conn.session.execute("CREATE TABLE one (x INT, y TEXT)")
-    conn.session.execute("CREATE TABLE another (i INT, j TEXT)")
+    conn.session.execute(sqlalchemy.sql.text("CREATE TABLE one (x INT, y TEXT)"))
+    conn.session.execute(sqlalchemy.sql.text("CREATE TABLE another (i INT, j TEXT)"))
 
     conn_mydb = sqlite3.connect("my.db")
     conn_mydb.execute("CREATE TABLE uno (x INT, y TEXT)")
     conn_mydb.execute("CREATE TABLE dos (i INT, j TEXT)")
     conn_mydb.close()
 
-    conn.session.execute("ATTACH DATABASE 'my.db' AS schema")
+    conn.session.execute(sqlalchemy.sql.text("ATTACH DATABASE 'my.db' AS schema"))
 
 
 @pytest.mark.parametrize(
