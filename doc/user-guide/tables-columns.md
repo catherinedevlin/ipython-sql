@@ -28,7 +28,6 @@ With JupySQL, you can quickly explore what tables are available in your database
 
 ## Setup
 
-
 ```{code-cell} ipython3
 %load_ext sql
 %sql sqlite://
@@ -80,7 +79,7 @@ Use `%sqlcmd columns --table/-t` to get the columns for the given table.
 %sqlcmd columns -t people
 ```
 
-If the table isn't in the defautl schema, pass `--schema/-s`.  Let's create a new table in a new schema:
+If the table isn't in the defautl schema, pass `--schema/-s`. Let's create a new table in a new schema:
 
 ```{code-cell} ipython3
 :tags: [hide-output]
@@ -103,3 +102,17 @@ Get the columns for the table in the newly created schema:
 ```{code-cell} ipython3
 %sqlcmd columns --table numbers --schema some_schema
 ```
+
+## Run Tests on Column
+
+Use `%sqlcmd test` to run tests on your dataset.
+
+For example, to see if all the values in the column birth_year are greater than 100:
+
+```{code-cell} ipython3
+%sqlcmd test --table people --column birth_year --greater 100
+```
+
+Four different comparator commands exist: `greater`, `greater-or-equal`, `less-than`, `less-than-or-equal`, and `no-nulls`.
+
+Command will return True if all tests pass, otherwise an error with sample breaking cases will be printed out.

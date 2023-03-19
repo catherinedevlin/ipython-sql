@@ -13,7 +13,7 @@ def test_auto_commit_mode_on(ip_with_duckDB, caplog):
             "execution option\nPerhaps you can try running a manual "
             "COMMIT command\nMessage from the database driver\n\t"
             "Exception:  'duckdb.DuckDBPyConnection' object has no attribute"
-            " 'set_isolation_level'\n"
+            " 'set_isolation_level'\n",
         )
     ]
 

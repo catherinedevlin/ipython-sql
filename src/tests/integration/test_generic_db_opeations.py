@@ -144,3 +144,48 @@ def test_telemetry_execute_command_has_connection_info(
             },
         },
     )
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        ("ip_with_postgreSQL"),
+        ("ip_with_mySQL"),
+        ("ip_with_mariaDB"),
+        ("ip_with_SQLite"),
+        ("ip_with_duckDB"),
+    ],
+)
+def test_sql_cmd_magic_uno(ip_with_dynamic_db, request):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+
+    result = ip_with_dynamic_db.run_cell(
+        "%sqlcmd test --table numbers --column numbers_elements"
+        " --less-than 5 --greater 1"
+    ).result
+
+    assert len(result) == 2
+    assert "less_than" in result.keys()
+    assert "greater" in result.keys()
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        ("ip_with_postgreSQL"),
+        ("ip_with_mySQL"),
+        ("ip_with_mariaDB"),
+        ("ip_with_SQLite"),
+        ("ip_with_duckDB"),
+    ],
+)
+def test_sql_cmd_magic_dos(ip_with_dynamic_db, request):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+
+    result = ip_with_dynamic_db.run_cell(
+        "%sqlcmd test --table numbers --column numbers_elements" " --greater-or-equal 3"
+    ).result
+
+    assert len(result) == 1
+    assert "greater_or_equal" in result.keys()
+    assert list(result["greater_or_equal"]) == [2, 3]
