@@ -19,16 +19,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Lint with flake8
+      - name: Lint
         run: |
+          python -m pip install --upgrade pip pkgmt
+          pkgmt lint
 
-          python -m pip install --upgrade pip
-          # run flake8 on .py files
-          pip install flake8
-          flake8
-          # run flake8 on notebooks (.ipynb, .md, etc)
-          pip install jupytext nbqa
-          nbqa flake8 .
 
       - name: Install dependencies
         run: |
@@ -59,19 +54,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Lint with flake8
+      - name: Lint
         run: |
-          python -m pip install --upgrade pip
-          # run flake8 on .py files
-          pip install flake8
-          flake8
-          # run flake8 on notebooks (.ipynb, .md, etc)
-          pip install jupytext nbqa
-          nbqa flake8 .
+          python -m pip install --upgrade pip pkgmt
+          pkgmt lint
+
       - name: Install dependencies
         run: |
           pip install "sqlalchemy<2"
           pip install ".[dev]"
+
       - name: Test with pytest
         run: |
           pytest --durations-min=5 --ignore=src/tests/integration
@@ -90,6 +82,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install 'pkgmt[check]'
+
       - name: Check project
         run: |
           pkgmt check

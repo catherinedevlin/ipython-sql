@@ -1,10 +1,11 @@
 ---
 jupytext:
+  notebook_metadata_filter: myst
   text_representation:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.4
+    jupytext_version: 1.14.5
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -18,10 +19,11 @@ myst:
 
 # Analyzing Github Data with JupySQL + DuckDB
 
-JupySQL and DuckDB have many use cases. Here, let's query the Github REST API to run some analysis using these tools. 
+JupySQL and DuckDB have many use cases. Here, let's query the Github REST API to run some analysis using these tools.
 
 ```{code-cell} ipython3
 :tags: [remove-cell]
+
 from pathlib import Path
 
 paths = ["jupyterdata.json", "jupyterdata.csv"]
@@ -36,6 +38,7 @@ for path in paths:
 
 ```{code-cell} ipython3
 :tags: [hide-output]
+
 %pip install jupysql duckdb duckdb-engine rich --quiet
 ```
 
@@ -49,7 +52,7 @@ import json
 from pathlib import Path
 
 res = requests.get(
-    'https://api.github.com/search/repositories?q=jupyter&sort=stars&order=desc',
+    "https://api.github.com/search/repositories?q=jupyter&sort=stars&order=desc",
 )
 ```
 
@@ -58,7 +61,7 @@ We then parse the information pulled from the API into a JSON format that we can
 ```{code-cell} ipython3
 parsed = res.json()
 
-_ = Path("jupyterdata.json").write_text(json.dumps(parsed['items'], indent=4))
+_ = Path("jupyterdata.json").write_text(json.dumps(parsed["items"], indent=4))
 ```
 
 ## Querying JSON File
@@ -69,16 +72,18 @@ Let's get some information on our first result. Load the extension and start a D
 %load_ext sql
 %sql duckdb://
 ```
+
 Looking at our .json file, we have information on thousands of repositories. To start, let's load information on our results.
 
 ```{code-cell} ipython3
 :tags: [hide-output]
+
 %%sql
 SELECT *
 FROM read_json_auto('jupyterdata.json')
 ```
 
-However, this is a lot of information. After seeing what we're working with, let's pull the name of the repository, the author, the description, and the URL to make things cleaner. Let's also limit our results to the top 5 starred repos. 
+However, this is a lot of information. After seeing what we're working with, let's pull the name of the repository, the author, the description, and the URL to make things cleaner. Let's also limit our results to the top 5 starred repos.
 
 ```{code-cell} ipython3
 %%sql
@@ -130,4 +135,3 @@ SELECT * FROM 'jupyterdata.csv'
 ```
 
 There's no shortage of information that we can pull from this API, so this is just one example. Feel free to give it a try yourself— or explore using JupySQL with another API or `.json` file!
-

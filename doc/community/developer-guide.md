@@ -1,10 +1,11 @@
 ---
 jupytext:
+  notebook_metadata_filter: myst
   text_representation:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.4
+    jupytext_version: 1.14.5
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -35,10 +36,12 @@ So a typical test will look like this:
 
 ```{code-cell} ipython3
 def test_something(ip):
-    ip.run_cell('%sql sqlite://')
-    result = ip.run_cell("""%%sql
+    ip.run_cell("%sql sqlite://")
+    result = ip.run_cell(
+        """%%sql
     SELECT * FROM test
-    """)
+    """
+    )
 
     assert result.success
 ```
@@ -130,5 +133,5 @@ with pytest.raises(ZeroDivisionError) as excinfo:
 ```
 
 ```{code-cell} ipython3
-assert str(excinfo.value) == 'division by zero'
+assert str(excinfo.value) == "division by zero"
 ```

@@ -3,7 +3,8 @@ addopts = "--pdbcls=IPython.terminal.debugger:Pdb"
 
 [tool.pkgmt]
 github = "ploomber/jupysql"
-
+env_name = "jupysql"
+package_name = "sql"
 
 [tool.pkgmt.check_links]
 extensions = ["md", "rst", "py", "ipynb"]

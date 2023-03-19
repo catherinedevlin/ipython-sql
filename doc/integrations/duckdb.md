@@ -1,10 +1,11 @@
 ---
 jupytext:
+  notebook_metadata_filter: myst
   text_representation:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.4
+    jupytext_version: 1.14.5
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -261,10 +262,10 @@ WHERE x > 95
 from sqlalchemy import create_engine
 
 some_engine = create_engine(
-    'duckdb:///:memory:',
+    "duckdb:///:memory:",
     connect_args={
-        'preload_extensions': ['excel'],
-    }
+        "preload_extensions": ["excel"],
+    },
 )
 ```
 

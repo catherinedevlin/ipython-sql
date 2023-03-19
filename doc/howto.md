@@ -1,10 +1,11 @@
 ---
 jupytext:
+  notebook_metadata_filter: myst
   text_representation:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.4
+    jupytext_version: 1.14.5
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -285,8 +286,6 @@ some_engine = create_engine("sqlite:///some.db")
 %sql some_engine
 ```
 
-+++ {"tags": []}
-
 ## Use `%sql`/`%%sql` in Databricks
 
 Databricks uses the same name (`%sql`/`%%sql`) for its SQL magics; however, JupySQL exposes a `%jupysql`/`%%jupysql` alias so you can use both:
@@ -306,12 +305,12 @@ FROM "penguins.csv"
 LIMIT 3
 ```
 
-
 ## Ignore deprecation warnings
 
 We display warnings to let you know when the API will change so you have enough time to update your code, if you want to supress this warnings, add this at the top of your notebook:
 
 ```{code-cell} ipython3
 import warnings
+
 warnings.filterwarnings("ignore", category=FutureWarning)
 ```
