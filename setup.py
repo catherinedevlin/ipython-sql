@@ -24,7 +24,7 @@ install_requires = [
     "sqlglot",
     "jinja2",
     "ploomber-core>=0.2.4",
-    'importlib-metadata;python_version<"3.8"',
+    'importlib-metadata;python_version<"3.8"'
 ]
 
 DEV = [

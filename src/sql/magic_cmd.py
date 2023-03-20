@@ -5,7 +5,7 @@ from IPython.utils.process import arg_split
 from IPython.core.magic import (
     Magics,
     line_magic,
-    magics_class,
+    magics_class
 )
 from IPython.core.magic_arguments import argument, magic_arguments
 from IPython.core.error import UsageError
@@ -38,7 +38,7 @@ class SqlCmdMagic(Magics, Configurable):
     @line_magic("sqlcmd")
     @magic_arguments()
     @argument("line", default="", type=str, help="Command name")
-    def execute(self, line="", cell="", local_ns=None):
+    def execute(self, line="", cell=""):
         """
         Command
         """
@@ -134,9 +134,36 @@ class SqlCmdMagic(Magics, Configurable):
             else:
                 return True
 
+        elif cmd_name == "profile":
+
+            parser = CmdParser()
+            parser.add_argument(
+                "-t", "--table", type=str, help="Table name", required=True
+            )
+
+            parser.add_argument(
+                "-s", "--schema", type=str, help="Schema name", required=False
+            )
+
+            parser.add_argument(
+                "-o", "--output", type=str, help="Store report location", required=False
+            )
+
+            args = parser.parse_args(others)
+
+            report = inspect.get_table_statistics(
+                schema=args.schema, name=args.table
+            )
+
+            if args.output:
+                with open(args.output, "w") as f:
+                    f.write(report._repr_html_())
+
+            return report
+
         raise UsageError(
             f"%sqlcmd has no command: {cmd_name!r}. "
-            "Valid commands are: 'tables', 'columns'"
+            "Valid commands are: 'tables', 'columns', 'profile'"
         )
 
 

@@ -3,6 +3,7 @@ import pytest
 import warnings
 from sql.telemetry import telemetry
 from unittest.mock import ANY, Mock
+import math
 
 
 @pytest.fixture(autouse=True)
@@ -189,3 +190,117 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request):
     assert len(result) == 1
     assert "greater_or_equal" in result.keys()
     assert list(result["greater_or_equal"]) == [2, 3]
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db, table, table_columns, expected",
+    [
+        (
+            "ip_with_postgreSQL",
+            "taxi",
+            ["index", "taxi_driver_name"],
+            {
+                "count": [45, 45],
+                "mean": [22.0, math.nan],
+                "min": [0, "Eric Ken"],
+                "max": [44, "Kevin Kelly"],
+                "unique": [45, 3],
+                "freq": [1, 15],
+                "top": [0, "Eric Ken"],
+                "std": ["1.299e+01", math.nan],
+                "25%": [11.0, math.nan],
+                "50%": [22.0, math.nan],
+                "75%": [33.0, math.nan],
+            },
+        ),
+        pytest.param(
+            "ip_with_mySQL",
+            "taxi",
+            ["taxi_driver_name"],
+            {
+                "count": [45],
+                "mean": [0.0],
+                "min": ["Eric Ken"],
+                "max": ["Kevin Kelly"],
+                "unique": [3],
+                "freq": [15],
+                "top": ["Kevin Kelly"],
+            },
+            marks=pytest.mark.xfail(
+                reason="Need to get column names from table with a different query"
+            ),
+        ),
+        pytest.param(
+            "ip_with_mariaDB",
+            "taxi",
+            ["taxi_driver_name"],
+            {
+                "count": [45],
+                "mean": [0.0],
+                "min": ["Eric Ken"],
+                "max": ["Kevin Kelly"],
+                "unique": [3],
+                "freq": [15],
+                "top": ["Kevin Kelly"],
+            },
+            marks=pytest.mark.xfail(
+                reason="Need to get column names from table with a different query"
+            ),
+        ),
+        (
+            "ip_with_SQLite",
+            "taxi",
+            ["taxi_driver_name"],
+            {
+                "count": [45],
+                "mean": [0.0],
+                "min": ["Eric Ken"],
+                "max": ["Kevin Kelly"],
+                "unique": [3],
+                "freq": [15],
+                "top": ["Kevin Kelly"],
+            },
+        ),
+        (
+            "ip_with_duckDB",
+            "taxi",
+            ["index", "taxi_driver_name"],
+            {
+                "count": [45, 45],
+                "mean": [22.0, math.nan],
+                "min": [0, "Eric Ken"],
+                "max": [44, "Kevin Kelly"],
+                "unique": [45, 3],
+                "freq": [1, 15],
+                "top": [0, "Eric Ken"],
+                "std": ["1.299e+01", math.nan],
+                "25%": [11.0, math.nan],
+                "50%": [22.0, math.nan],
+                "75%": [33.0, math.nan],
+            },
+        ),
+    ],
+)
+def test_profile_query(request, ip_with_dynamic_db, table, table_columns, expected):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+
+    out = ip_with_dynamic_db.run_cell(
+        f"""
+        %sqlcmd profile --table "{table}"
+        """
+    ).result
+
+    stats_table = out._table
+
+    assert len(stats_table.rows) == len(expected)
+
+    for row in stats_table:
+        criteria = row.get_string(fields=[" "], border=False).strip()
+
+        for i, column in enumerate(table_columns):
+            cell_value = row.get_string(
+                fields=[column], border=False, header=False
+            ).strip()
+
+            assert criteria in expected
+            assert cell_value == str(expected[criteria][i])
