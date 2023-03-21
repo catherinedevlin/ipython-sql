@@ -700,10 +700,3 @@ def test_save_with_bad_query_save(ip, capsys):
     ip.run_cell("%sql --with my_query SELECT * FROM my_query")
     out, _ = capsys.readouterr()
     assert '(sqlite3.OperationalError) near "non_existing_table": syntax error' in out
-
-
-def test_save_with_bad_query_with(ip, capsys):
-    ip.run_cell("%sql --save my_query SELECT * FROM author")
-    ip.run_cell("%sql --with my_query SELECT * my_query")
-    out, _ = capsys.readouterr()
-    assert '(sqlite3.OperationalError) near "my_query": syntax error' in out

@@ -1,9 +1,9 @@
 from typing import Iterator, Iterable
 from collections.abc import MutableMapping
 from ploomber_core.exceptions import modify_exceptions
+from sqlglot import parse_one
+from IPython.core.error import UsageError
 import warnings
-
-from jinja2 import Template
 
 
 class SQLStore(MutableMapping):
@@ -58,20 +58,15 @@ class SQLStore(MutableMapping):
 
     @modify_exceptions
     def store(self, key, query, with_=None):
+        if "-" in key:
+            raise UsageError(
+                "Using hyphens in save argument isn't allowed."
+                " Please use dashes(-) instead"
+            )
         if with_ and key in with_:
             raise ValueError(f"Script name ({key!r}) cannot appear in with_ argument")
 
         self._data[key] = SQLQuery(self, query, with_)
-
-
-_template = Template(
-    """\
-WITH{% for name in with_ %} "{{name}}" AS (
-    {{saved[name]._query}}
-){{ "," if not loop.last }}{% endfor %}
-{{query}}
-"""
-)
 
 
 class SQLQuery:
@@ -92,10 +87,14 @@ class SQLQuery:
             )
 
     def __str__(self) -> str:
-        with_all = _get_dependencies(self._store, self._with_)
-        return _template.render(
-            query=self._query, saved=self._store._data, with_=with_all
-        )
+        if self._query:
+            with_all = _get_dependencies(self._store, self._with_)
+            parsed_res = parse_one(self._query)
+            for with_key in with_all:
+                with_query = self._store._data[with_key]._query
+                parsed_res = parsed_res.with_(with_key, with_query)
+            return str(parsed_res.sql())
+        return ""
 
 
 def _get_dependencies(store, keys):

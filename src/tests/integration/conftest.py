@@ -100,7 +100,13 @@ def load_taxi_data(engine):
     df = pd.DataFrame(
         {"taxi_driver_name": ["Eric Ken", "John Smith", "Kevin Kelly"] * 15}
     )
-    df.to_sql(name=table_name, con=engine, chunksize=100_000, if_exists="replace")
+    df.to_sql(name=table_name, con=engine, chunksize=1000, if_exists="replace")
+
+
+def load_plot_data(engine):
+    table_name = "plot_something"
+    df = pd.DataFrame({"x": range(0, 5), "y": range(5, 10)})
+    df.to_sql(name=table_name, con=engine, chunksize=1000, if_exists="replace")
 
 
 def load_numeric_data(engine):
@@ -114,6 +120,7 @@ def setup_postgreSQL():
     engine = create_engine(_get_database_url("postgreSQL"))
     # Load taxi_data
     load_taxi_data(engine)
+    load_plot_data(engine)
     load_numeric_data(engine)
     yield engine
     engine.dispose()
@@ -136,6 +143,7 @@ def setup_mySQL():
     engine = create_engine(_get_database_url("mySQL"))
     # Load taxi_data
     load_taxi_data(engine)
+    load_plot_data(engine)
     load_numeric_data(engine)
     yield engine
     engine.dispose()
@@ -158,6 +166,7 @@ def setup_mariaDB():
     engine = create_engine(_get_database_url("mariaDB"), pool_recycle=1800)
     # Load taxi_data
     load_taxi_data(engine)
+    load_plot_data(engine)
     load_numeric_data(engine)
     yield engine
     engine.dispose()
@@ -180,6 +189,7 @@ def setup_SQLite():
     engine = create_engine(_get_database_url("SQLite"))
     # Load taxi_data
     load_taxi_data(engine)
+    load_plot_data(engine)
     load_numeric_data(engine)
     yield engine
     engine.dispose()
@@ -202,6 +212,7 @@ def setup_duckDB():
     engine = create_engine(_get_database_url("duckDB"))
     # Load taxi_data
     load_taxi_data(engine)
+    load_plot_data(engine)
     load_numeric_data(engine)
     yield engine
     engine.dispose()

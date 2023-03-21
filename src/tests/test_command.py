@@ -1,4 +1,5 @@
 from pathlib import Path
+from IPython.core.error import UsageError
 
 import pytest
 from sqlalchemy import create_engine
@@ -77,11 +78,7 @@ def test_parsed_sql_when_using_with(ip, sql_magic):
         sql_magic, ip.user_ns, line="--with author_one", cell="SELECT * FROM author_one"
     )
 
-    sql = (
-        'WITH "author_one" AS (\n    \n\n        '
-        "SELECT * FROM author LIMIT 1\n        \n)"
-        "\n\nSELECT * FROM author_one"
-    )
+    sql = "WITH author_one AS (SELECT * FROM author LIMIT 1) SELECT * FROM author_one"
 
     sql_original = "\nSELECT * FROM author_one"
 
@@ -194,3 +191,17 @@ def test_variable_substitution_double_curly_line_magic(ip, sql_magic):
     )
 
     assert cmd.parsed["sql"] == "SELECT first_name FROM author LIMIT 5;"
+
+
+def test_with_contains_dash_show_warning_message(ip, sql_magic, capsys):
+    with pytest.raises(UsageError) as error:
+        ip.run_cell_magic(
+            "sql",
+            "--save author-sub",
+            "SELECT last_name FROM author WHERE year_of_death > 1900",
+        )
+
+    assert (
+        "Using hyphens in save argument isn't allowed. Please use dashes(-) instead"
+        == str(error.value)
+    )

@@ -128,26 +128,26 @@ Shortcut: `%sqlplot hist`
 Histogram does not support NULL values, so let's remove them:
 
 ```{code-cell} ipython3
-%%sql --save no-nulls --no-execute
+%%sql --save no_nulls --no-execute
 SELECT *
 FROM penguins.csv
 WHERE body_mass_g IS NOT NULL
 ```
 
 ```{code-cell} ipython3
-%sqlplot histogram --table no-nulls --column body_mass_g --with no-nulls
+%sqlplot histogram --table no_nulls --column body_mass_g --with no_nulls
 ```
 
 ### Number of bins
 
 ```{code-cell} ipython3
-%sqlplot histogram --table no-nulls --column body_mass_g --with no-nulls --bins 100
+%sqlplot histogram --table no_nulls --column body_mass_g --with no_nulls --bins 100
 ```
 
 ### Multiple columns
 
 ```{code-cell} ipython3
-%sqlplot histogram --table no-nulls --column bill_length_mm bill_depth_mm --with no-nulls
+%sqlplot histogram --table no_nulls --column bill_length_mm bill_depth_mm --with no_nulls
 ```
 
 ## Customize plot
@@ -155,7 +155,7 @@ WHERE body_mass_g IS NOT NULL
 `%sqlplot` returns a `matplotlib.Axes` object.
 
 ```{code-cell} ipython3
-ax = %sqlplot histogram --table no-nulls --column body_mass_g --with no-nulls
+ax = %sqlplot histogram --table no_nulls --column body_mass_g --with no_nulls
 ax.set_title("Body mass (grams)")
 _ = ax.grid()
 ```

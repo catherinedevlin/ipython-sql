@@ -93,7 +93,7 @@ LIMIT 3
 ## Saving queries
 
 ```{code-cell} ipython3
-%%sql --save not-nulls --no-execute
+%%sql --save not_nulls --no-execute
 SELECT *
 FROM penguins.csv
 WHERE bill_length_mm IS NOT NULL
@@ -103,11 +103,11 @@ AND bill_depth_mm IS NOT NULL
 ## Plotting
 
 ```{code-cell} ipython3
-%sqlplot boxplot --column bill_length_mm bill_depth_mm --table not-nulls --with not-nulls
+%sqlplot boxplot --column bill_length_mm bill_depth_mm --table not_nulls --with not_nulls
 ```
 
 ```{code-cell} ipython3
-%sqlplot histogram --column bill_length_mm bill_depth_mm --table not-nulls --with not-nulls
+%sqlplot histogram --column bill_length_mm bill_depth_mm --table not_nulls --with not_nulls
 ```
 
 ## `pandas` integration

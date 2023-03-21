@@ -1,6 +1,12 @@
 import pytest
+from sql.connection import Connection
 
 from sql.store import SQLStore
+
+
+@pytest.fixture(autouse=True)
+def setup_no_current_connect(monkeypatch):
+    monkeypatch.setattr(Connection, "current", None)
 
 
 def test_sqlstore_setitem():
@@ -41,16 +47,9 @@ def test_serial(with_):
     result = store.render("SELECT * FROM third", with_=with_)
     assert (
         str(result)
-        == """\
-WITH "first" AS (
-    SELECT * FROM a WHERE x > 10
-), "second" AS (
-    SELECT * FROM first WHERE x > 20
-), "third" AS (
-    SELECT * FROM second WHERE x > 30
-)
-SELECT * FROM third\
-"""
+        == "WITH first AS (SELECT * FROM a WHERE x > 10), "
+        "second AS (SELECT * FROM first WHERE x > 20), "
+        "third AS (SELECT * FROM second WHERE x > 30) SELECT * FROM third"
     )
 
 
@@ -66,18 +65,10 @@ def test_branch_root():
     result = store.render("SELECT * FROM third", with_=["third_a", "first_b"])
     assert (
         str(result)
-        == """\
-WITH "first_a" AS (
-    SELECT * FROM a WHERE x > 10
-), "second_a" AS (
-    SELECT * FROM first_a WHERE x > 20
-), "third_a" AS (
-    SELECT * FROM second_a WHERE x > 30
-), "first_b" AS (
-    SELECT * FROM b WHERE y > 10
-)
-SELECT * FROM third\
-"""
+        == "WITH first_a AS (SELECT * FROM a WHERE x > 10), "
+        "second_a AS (SELECT * FROM first_a WHERE x > 20), "
+        "third_a AS (SELECT * FROM second_a WHERE x > 30), "
+        "first_b AS (SELECT * FROM b WHERE y > 10) SELECT * FROM third"
     )
 
 
@@ -93,18 +84,10 @@ def test_branch_root_reverse_final_with():
     result = store.render("SELECT * FROM third", with_=["first_b", "third_a"])
     assert (
         str(result)
-        == """\
-WITH "first_a" AS (
-    SELECT * FROM a WHERE x > 10
-), "second_a" AS (
-    SELECT * FROM first_a WHERE x > 20
-), "first_b" AS (
-    SELECT * FROM b WHERE y > 10
-), "third_a" AS (
-    SELECT * FROM second_a WHERE x > 30
-)
-SELECT * FROM third\
-"""
+        == "WITH first_a AS (SELECT * FROM a WHERE x > 10), "
+        "second_a AS (SELECT * FROM first_a WHERE x > 20), "
+        "first_b AS (SELECT * FROM b WHERE y > 10), "
+        "third_a AS (SELECT * FROM second_a WHERE x > 30) SELECT * FROM third"
     )
 
 
@@ -119,17 +102,8 @@ def test_branch():
 
     result = store.render("SELECT * FROM third", with_=["first_b", "third_a"])
     assert (
-        str(result)
-        == """\
-WITH "first_a" AS (
-    SELECT * FROM a WHERE x > 10
-), "second_a" AS (
-    SELECT * FROM first_a WHERE x > 20
-), "first_b" AS (
-    SELECT * FROM second_a WHERE y > 10
-), "third_a" AS (
-    SELECT * FROM second_a WHERE x > 30
-)
-SELECT * FROM third\
-"""
+        str(result) == "WITH first_a AS (SELECT * FROM a WHERE x > 10), "
+        "second_a AS (SELECT * FROM first_a WHERE x > 20), "
+        "first_b AS (SELECT * FROM second_a WHERE y > 10), "
+        "third_a AS (SELECT * FROM second_a WHERE x > 30) SELECT * FROM third"
     )

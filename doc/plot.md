@@ -114,16 +114,16 @@ FROM 'yellow_tripdata_2021-01.parquet'
 Now, let's create a query that filters by the 90th percentile. Note that we're using the `--save`, and `--no-execute` functions. This tells JupySQL to store the query, but *skips execution*. We'll reference it in our next plotting call.
 
 ```{code-cell} ipython3
-%%sql --save short-trips --no-execute
+%%sql --save short_trips --no-execute
 SELECT *
 FROM "yellow_tripdata_2021-01.parquet"
 WHERE trip_distance < 6.3
 ```
 
-Now, let's plot again, but this time let's pass `--table short-trips`. Note that this table *doesn't exist*; however, since we're passing the `--with` argument, JupySQL will use the query we defined above:
+Now, let's plot again, but this time let's pass `--table short_trips`. Note that this table *doesn't exist*; however, since we're passing the `--with` argument, JupySQL will use the query we defined above:
 
 ```{code-cell} ipython3
-%sqlplot boxplot --table short-trips --column trip_distance --with short-trips
+%sqlplot boxplot --table short_trips --column trip_distance --with short_trips
 ```
 
 We can see the highest value is a bit over 6, that's expected since we set a 6.3 cutoff value.
@@ -132,10 +132,10 @@ We can see the highest value is a bit over 6, that's expected since we set a 6.3
 
 ## Histogram
 
-To create a histogram, call `%sqlplot histogram`, and pass the name of the table, the column you want to plot, and the number of bins. Similarly to what we did in the [Boxplot](#boxplot) example, we're using `--with short-trips` so JupySQL uses the query we defined and only plots such data subset.
+To create a histogram, call `%sqlplot histogram`, and pass the name of the table, the column you want to plot, and the number of bins. Similarly to what we did in the [Boxplot](#boxplot) example, we're using `--with short_trips` so JupySQL uses the query we defined and only plots such data subset.
 
 ```{code-cell} ipython3
-%sqlplot histogram --table short-trips --column trip_distance --bins 10 --with short-trips
+%sqlplot histogram --table short_trips --column trip_distance --bins 10 --with short_trips
 ```
 
 ## Customize plot
@@ -143,7 +143,7 @@ To create a histogram, call `%sqlplot histogram`, and pass the name of the table
 `%sqlplot` returns a `matplotlib.Axes` object that you can further customize:
 
 ```{code-cell} ipython3
-ax = %sqlplot histogram --table short-trips --column trip_distance --bins 50 --with short-trips
+ax = %sqlplot histogram --table short_trips --column trip_distance --bins 50 --with short_trips
 ax.grid()
 ax.set_title("Trip distance from trips < 6.3")
 _ = ax.set_xlabel("Trip distance")
