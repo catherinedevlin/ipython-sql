@@ -1,4 +1,7 @@
 # JupySQL
+[![CI Linux](https://github.com/ploomber/jupysql/workflows/CI%20Linux/badge.svg)]
+[![CI macOS](https://github.com/ploomber/jupysql/workflows/CI%20macOS/badge.svg)]
+[![CI Windows](https://github.com/ploomber/jupysql/workflows/CI%20Windows/badge.svg)]
 [![PyPI version](https://badge.fury.io/py/jupysql.svg)](https://badge.fury.io/py/jupysql)
 [![Twitter](https://img.shields.io/twitter/follow/edublancas?label=Follow&style=social)](https://twitter.com/intent/user?screen_name=ploomber)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
