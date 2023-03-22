@@ -5,6 +5,7 @@ import os.path
 import re
 from functools import reduce
 from io import StringIO
+import html
 
 import prettytable
 import sqlalchemy
@@ -129,6 +130,8 @@ class ResultSet(list, ColumnGuesserMixin):
         if self.pretty:
             self.pretty.add_rows(self)
             result = self.pretty.get_html_string()
+            # to create clickable links
+            result = html.unescape(result)
             result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
             if self.config.displaylimit and len(self) > self.config.displaylimit:
                 HTML = (
@@ -484,4 +487,10 @@ class PrettyTable(prettytable.PrettyTable):
         else:
             self.row_count = min(len(data), self.displaylimit)
         for row in data[: self.displaylimit]:
-            self.add_row(row)
+            formatted_row = []
+            for cell in row:
+                if isinstance(cell, str) and cell.startswith("http"):
+                    formatted_row.append("<a href={}>{}</a>".format(cell, cell))
+                else:
+                    formatted_row.append(cell)
+            self.add_row(formatted_row)
