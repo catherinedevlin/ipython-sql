@@ -1,7 +1,7 @@
 # JupySQL
-[![CI](https://github.com/ploomber/jupysql/workflows/CI/badge.svg)]
-[![CI Integration Tests](https://github.com/ploomber/jupysql/workflows/CI%20-%20DB%20Integration/badge.svg)]
-[![Broken Links](https://github.com/ploomber/jupysql/workflows/check-for-broken-links/badge.svg)]
+![CI](https://github.com/ploomber/jupysql/workflows/CI/badge.svg)
+![CI Integration Tests](https://github.com/ploomber/jupysql/workflows/CI%20-%20DB%20Integration/badge.svg)
+![Broken Links](https://github.com/ploomber/jupysql/workflows/check-for-broken-links/badge.svg)
 [![PyPI version](https://badge.fury.io/py/jupysql.svg)](https://badge.fury.io/py/jupysql)
 [![Twitter](https://img.shields.io/twitter/follow/edublancas?label=Follow&style=social)](https://twitter.com/intent/user?screen_name=ploomber)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
