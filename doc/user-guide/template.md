@@ -1,5 +1,6 @@
 ---
 jupytext:
+  notebook_metadata_filter: myst
   text_representation:
     extension: .md
     format_name: myst
@@ -17,6 +18,15 @@ myst:
 ---
 
 # Parameterizing SQL queries
+
+```{note}
+This feature will be released in version 0.7, but you can give it a try now!
+
+~~~
+pip uninstall jupysql -y
+pip install git+https://github.com/ploomber/jupysql
+~~~
+```
 
 ## Variable Expansion as `{{variable}}`
 

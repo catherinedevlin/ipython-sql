@@ -1,10 +1,11 @@
 ---
 jupytext:
+  notebook_metadata_filter: myst
   text_representation:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.4
+    jupytext_version: 1.14.5
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -12,6 +13,17 @@ kernelspec:
 ---
 
 # Data profiling
+
+
+```{note}
+This feature will be released in version 0.7, but you can give it a try now!
+
+~~~
+pip uninstall jupysql -y
+pip install git+https://github.com/ploomber/jupysql
+~~~
+```
+
 
 When dealing with a new dataset, it's crucial for practitioners to have a comprehensive understanding of the data in a timely manner. This involves exploring and summarizing the dataset efficiently to extract valuable insights. However, this can be a time-consuming process. Fortunately, `%sqlcmd profile` offers an easy way to generate statistics and descriptive information, enabling practitioners to quickly gain a deeper understanding of the dataset.
 
@@ -78,7 +90,6 @@ if not Path("example.db").is_file():
     url = "https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite"  # noqa
     urllib.request.urlretrieve(url, "example.db")
 ```
-
 
 ```{code-cell} ipython3
 :tags: [hide-output]
