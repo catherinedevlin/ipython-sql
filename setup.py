@@ -42,6 +42,8 @@ DEV = [
     # sql.plot module tests
     "matplotlib",
     "black",
+    "dockerctx",
+    "docker",
     # for %%sql --interact
     "ipywidgets",
 ]
