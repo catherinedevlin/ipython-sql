@@ -1,5 +1,6 @@
 from sql import plot
 from sql.ggplot.geom.geom import geom
+from sql.telemetry import telemetry
 
 
 class geom_boxplot(geom):
@@ -10,6 +11,7 @@ class geom_boxplot(geom):
     def __init__(self):
         pass
 
+    @telemetry.log_call("ggplot-boxplot")
     def draw(self, gg, ax=None):
         plot.boxplot(
             table=gg.table,

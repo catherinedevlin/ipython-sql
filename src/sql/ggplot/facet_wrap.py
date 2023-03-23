@@ -2,6 +2,7 @@ from jinja2 import Template
 import math
 import sql.connection
 from sql.store import store
+from sql.telemetry import telemetry
 
 
 def _run_query(query, with_=None, conn=None):
@@ -44,7 +45,7 @@ class facet_wrap(facet):
     facet : str
         Column to groupby and plot on different panels.
     """
-
+    @telemetry.log_call("facet-wrap-init")
     def __init__(self, facet: str, legend=True):
         self.facet = facet
         self.legend = legend

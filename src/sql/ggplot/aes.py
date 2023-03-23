@@ -1,3 +1,5 @@
+from sql.telemetry import telemetry
+
 
 class aes():
     """
@@ -15,6 +17,7 @@ class aes():
         The edge color of a shape
     """
 
+    @telemetry.log_call("aes-init")
     def __init__(self,
                  x=None,
                  fill=None,
