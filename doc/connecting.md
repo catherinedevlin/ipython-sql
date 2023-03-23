@@ -62,7 +62,7 @@ a flag with (-a|--connection_arguments)the connection string as a JSON string. S
 
 Check out our guide for connecting to a database:
 
-- [PostgreSQL](howto/postgres-connect)
+- [PostgreSQL](integrations/postgres-connect)
 
 +++
 

@@ -16,7 +16,7 @@ copyright = "2023"
 exclude_patterns = ["**.ipynb_checkpoints", ".DS_Store", "Thumbs.db", "_build"]
 nb_execution_allow_errors = False
 nb_execution_excludepatterns = [
-    "howto/*-connect.ipynb",
+    "integrations/*-connect.ipynb",
     "integrations/mssql.ipynb",
     "integrations/mysql.ipynb",
     "integrations/mariadb.ipynb",

@@ -188,16 +188,3 @@ CREATE TABLE more_points (x, y);
 INSERT INTO more_points VALUES (0, 0);
 INSERT INTO more_points VALUES (1, 1);
 ```
-
-## PostgreSQL features
-
-`psql`-style "backslash" [meta-commands](https://www.postgresql.org/docs/9.6/static/app-psql.html#APP-PSQL-META-COMMANDS) commands (``\d``, ``\dt``, etc.)
-are provided by [PGSpecial](https://pypi.python.org/pypi/pgspecial).  Example:
-
-```python
-%sql \d
-```
-
-```{code-cell} ipython3
-
-```

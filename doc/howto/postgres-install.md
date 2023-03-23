@@ -18,5 +18,13 @@ If you have `conda` installed, it is more reliable to use it:
 conda install psycopg2 -c conda-forge
 ```
 
+## Installing `pgspecial`
+
+Ensure that you are using `pgspecial 1.x`. `pgspecial 2.x` has migrated to `psycopg3` and thus does not yield informative error messages.
+
+```sh
+conda install "pgspecial<2" -c conda-forge
+```
+ 
 
 If you have trouble getting it to work, [message us on Slack.](https://ploomber.io/community)
