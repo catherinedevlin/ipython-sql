@@ -116,6 +116,7 @@ To save the generated report as an HTML file, use the `--output`/`-o` attribute 
 
 ```{code-cell} ipython3
 from IPython.display import HTML
+
 HTML("my-report.html")
 ```
 

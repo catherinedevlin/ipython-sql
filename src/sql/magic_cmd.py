@@ -2,11 +2,7 @@ import sys
 import argparse
 
 from IPython.utils.process import arg_split
-from IPython.core.magic import (
-    Magics,
-    line_magic,
-    magics_class
-)
+from IPython.core.magic import Magics, line_magic, magics_class
 from IPython.core.magic_arguments import argument, magic_arguments
 from IPython.core.error import UsageError
 from sqlglot import select, condition
@@ -135,7 +131,6 @@ class SqlCmdMagic(Magics, Configurable):
                 return True
 
         elif cmd_name == "profile":
-
             parser = CmdParser()
             parser.add_argument(
                 "-t", "--table", type=str, help="Table name", required=True
@@ -151,9 +146,7 @@ class SqlCmdMagic(Magics, Configurable):
 
             args = parser.parse_args(others)
 
-            report = inspect.get_table_statistics(
-                schema=args.schema, name=args.table
-            )
+            report = inspect.get_table_statistics(schema=args.schema, name=args.table)
 
             if args.output:
                 with open(args.output, "w") as f:

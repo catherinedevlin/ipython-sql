@@ -4,6 +4,7 @@ from ploomber_core.exceptions import modify_exceptions
 from sqlglot import parse_one
 from IPython.core.error import UsageError
 import warnings
+import difflib
 
 
 class SQLStore(MutableMapping):
@@ -40,6 +41,16 @@ class SQLStore(MutableMapping):
         self._data[key] = value
 
     def __getitem__(self, key) -> str:
+        if not self._data:
+            raise UsageError("No saved SQL")
+        if key not in self._data:
+            matches = difflib.get_close_matches(key, self._data)
+            error = f'"{key}" is not a valid snippet identifier.'
+            if matches:
+                raise UsageError(error + f' Did you mean "{matches[0]}"?')
+            else:
+                valid = ", ".join(f'"{key}"' for key in self._data.keys())
+                raise UsageError(error + f" Valid identifiers are {valid}.")
         return self._data[key]
 
     def __iter__(self) -> Iterator[str]:

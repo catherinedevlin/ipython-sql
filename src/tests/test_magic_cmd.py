@@ -125,7 +125,6 @@ def test_table_profile(ip, tmp_empty):
 
 
 def test_table_schema_profile(ip, tmp_empty):
-
     with sqlite3.connect("a.db") as conn:
         conn.execute("CREATE TABLE t (n FLOAT)")
         conn.execute("INSERT INTO t VALUES (1)")

@@ -709,7 +709,7 @@ def test_save_with_non_existing_with(ip):
     out = ip.run_cell(
         "%sql --with non_existing_sub_query " "SELECT * FROM non_existing_sub_query"
     )
-    assert isinstance(out.error_in_exec, KeyError)
+    assert isinstance(out.error_in_exec, UsageError)
 
 
 def test_save_with_non_existing_table(ip, capsys):

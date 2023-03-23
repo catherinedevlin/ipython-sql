@@ -122,7 +122,7 @@ class TableDescription(DatabaseInspection):
                     Connection.current,
                     f"""SELECT DISTINCT {column} as top,
                     COUNT({column}) as frequency FROM {table_name}
-                    GROUP BY {column} ORDER BY Count({column}) Desc"""
+                    GROUP BY {column} ORDER BY Count({column}) Desc""",
                 ).fetchall()
 
                 table_stats[column]["freq"] = result_col_freq_values[0][1]
@@ -144,7 +144,7 @@ class TableDescription(DatabaseInspection):
                     COUNT({column}) AS count
                     FROM {table_name}
                     WHERE {column} IS NOT NULL
-                    """
+                    """,
                 ).fetchall()
 
                 table_stats[column]["min"] = result_value_values[0][0]
@@ -164,7 +164,7 @@ class TableDescription(DatabaseInspection):
                                 SELECT AVG({column}) AS avg
                                 FROM {table_name}
                                 WHERE {column} IS NOT NULL
-                                """
+                                """,
                 ).fetchall()
 
                 table_stats[column]["mean"] = float(results_avg[0][0])
@@ -190,7 +190,7 @@ class TableDescription(DatabaseInspection):
                         percentile_disc(0.75) WITHIN GROUP
                         (ORDER BY {column}) as key_75
                     FROM {table_name}
-                    """
+                    """,
                 ).fetchall()
 
                 for i, key in enumerate(special_numeric_keys):
