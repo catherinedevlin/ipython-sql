@@ -16,5 +16,7 @@ flake8 = [
     "--extend-ignore=E402",
     # jupysql notebooks might have "undefined name" errors
     # due to the << operator
-    "--ignore=F821",
+    # W503, W504 ignore line break after/before 
+    # binary operator since they are conflicting 
+    "--ignore=F821, W503, W504",
 ]

@@ -7,18 +7,20 @@ from jinja2 import Template
 
 try:
     import matplotlib.pyplot as plt
+    from matplotlib.colors import Normalize
 except ModuleNotFoundError:
     plt = None
+    Normalize = None
 
 try:
     import numpy as np
 except ModuleNotFoundError:
     np = None
 
-
 from sql.store import store
 import sql.connection
 from sql.telemetry import telemetry
+import warnings
 
 
 def _summary_stats(con, table, column, with_=None):
@@ -194,7 +196,7 @@ def _boxplot_stats(con, table, column, whis=1.5, autorange=False, with_=None):
 # https://github.com/matplotlib/matplotlib/blob/ddc260ce5a53958839c244c0ef0565160aeec174/lib/matplotlib/axes/_axes.py#L3915
 @requires(["matplotlib"])
 @telemetry.log_call("boxplot", payload=True)
-def boxplot(payload, table, column, *, orient="v", with_=None, conn=None):
+def boxplot(payload, table, column, *, orient="v", with_=None, conn=None, ax=None):
     """Plot boxplot
 
     Parameters
@@ -285,9 +287,43 @@ FROM "{{table}}"
     return min_, max_
 
 
+def _are_numeric_values(*values):
+    return all([isinstance(value, (int, float)) for value in values])
+
+
+def _get_bar_width(ax, bins):
+    """
+    Return a single bar width based on number of bins
+    If bins values are str, calculate value based on figure size.
+    """
+
+    if _are_numeric_values(bins[-1], bins[-2]):
+        width = bins[-1] - bins[-2]
+    else:
+        fig = plt.gcf()
+        bbox = ax.get_window_extent()
+        width_inch = bbox.width / fig.dpi
+        width = width_inch / len(bins)
+
+    return width
+
+
 @requires(["matplotlib"])
 @telemetry.log_call("histogram", payload=True)
-def histogram(payload, table, column, bins, with_=None, conn=None):
+def histogram(
+    payload,
+    table,
+    column,
+    bins,
+    with_=None,
+    conn=None,
+    category=None,
+    cmap=None,
+    color=None,
+    edgecolor=None,
+    ax=None,
+    facet=None,
+):
     """Plot histogram
 
     Parameters
@@ -325,23 +361,109 @@ def histogram(payload, table, column, bins, with_=None, conn=None):
 
     .. plot:: ../examples/plot_histogram_many.py
     """
-    ax = plt.gca()
+    ax = ax or plt.gca()
     payload["connection_info"] = sql.connection.Connection._get_curr_connection_info()
-    if isinstance(column, str):
-        bin_, height = _histogram(table, column, bins, with_=with_, conn=conn)
-        ax.bar(bin_, height, align="center", width=bin_[-1] - bin_[-2])
+    if category:
+        if isinstance(column, list):
+            if len(column) > 1:
+                raise ValueError(
+                    f"""Columns given : {column}.
+                    When using a stacked histogram,
+                    please ensure that you specify only one column."""
+                )
+            else:
+                column = " ".join(column)
+
+        if column is None or len(column) == 0:
+            raise ValueError("Column name has not been specified")
+
+        bin_, height, bin_size = _histogram(table, column, bins, with_=with_, conn=conn)
+        width = _get_bar_width(ax, bin_)
+        data = _histogram_stacked(
+            table, column, category, bin_, bin_size, with_=with_, conn=conn, facet=facet
+        )
+        cmap = plt.get_cmap(cmap or "viridis")
+        norm = Normalize(vmin=0, vmax=len(data))
+
+        bottom = np.zeros(len(bin_))
+        for i, values in enumerate(data):
+            values_ = values[1:]
+
+            if isinstance(color, list):
+                color_ = color[0]
+                if len(color) > 1:
+                    warnings.warn(
+                        "If you want to colorize each bar with multiple "
+                        "colors please use cmap attribute instead "
+                        "of 'fill'",
+                        UserWarning,
+                    )
+            else:
+                color_ = color or cmap(norm(i + 1))
+
+            if isinstance(edgecolor, list):
+                edgecolor_ = edgecolor[0]
+            else:
+                edgecolor_ = edgecolor or "None"
+
+            ax.bar(
+                bin_,
+                values_,
+                align="center",
+                label=values[0],
+                width=width,
+                bottom=bottom,
+                edgecolor=edgecolor_,
+                color=color_,
+            )
+            bottom += values_
+
+        ax.set_title(f"Histogram from {table!r}")
+        ax.legend()
+    elif isinstance(column, str):
+        bin_, height, _ = _histogram(
+            table, column, bins, with_=with_, conn=conn, facet=facet
+        )
+        width = _get_bar_width(ax, bin_)
+
+        ax.bar(
+            bin_,
+            height,
+            align="center",
+            width=width,
+            color=color,
+            edgecolor=edgecolor or "None",
+            label=column
+        )
         ax.set_title(f"{column!r} from {table!r}")
         ax.set_xlabel(column)
+
     else:
-        for col in column:
-            bin_, height = _histogram(table, col, bins, with_=with_, conn=conn)
+        for i, col in enumerate(column):
+            bin_, height, _ = _histogram(
+                table, col, bins, with_=with_, conn=conn, facet=facet
+            )
+            width = _get_bar_width(ax, bin_)
+
+            if isinstance(color, list):
+                color_ = color[i]
+            else:
+                color_ = color
+
+            if isinstance(edgecolor, list):
+                edgecolor_ = edgecolor[i]
+            else:
+                edgecolor_ = edgecolor or "None"
+
             ax.bar(
                 bin_,
                 height,
                 align="center",
-                width=bin_[-1] - bin_[-2],
+                width=width,
                 alpha=0.5,
                 label=col,
+                color=color_,
+                edgecolor=edgecolor_,
             )
             ax.set_title(f"Histogram from {table!r}")
             ax.legend()
@@ -352,28 +474,53 @@ def histogram(payload, table, column, bins, with_=None, conn=None):
 
 
 @modify_exceptions
-def _histogram(table, column, bins, with_=None, conn=None):
+def _histogram(table, column, bins, with_=None, conn=None, facet=None):
     """Compute bins and heights"""
     if not conn:
         conn = sql.connection.Connection.current.session
 
     # FIXME: we're computing all the with elements twice
     min_, max_ = _min_max(conn, table, column, with_=with_)
-    range_ = max_ - min_
-    bin_size = range_ / bins
 
-    template = Template(
+    filter_query = f"WHERE {facet['key']} == '{facet['value']}'" if facet else ""
+
+    bin_size = None
+
+    if _are_numeric_values(min_, max_):
+        if not isinstance(bins, int):
+            raise ValueError(
+                f"bins are '{bins}'. Please specify a valid number of bins."
+            )
+
+        range_ = max_ - min_
+        bin_size = range_ / bins
+
+        template = Template(
+            """
+            select
+            floor("{{column}}"/{{bin_size}})*{{bin_size}},
+            count(*) as count
+            from "{{table}}"
+            {{filter_query}}
+            group by 1
+            order by 1;
+            """
+        )
+        query = template.render(
+            table=table, column=column, bin_size=bin_size, filter_query=filter_query
+        )
+    else:
+        template = Template(
+            """
+        select
+            "{{column}}", count ({{column}})
+        from "{{table}}"
+        {{filter_query}}
+        group by 1
+        order by 1;
         """
-select
-  floor("{{column}}"/{{bin_size}})*{{bin_size}},
-  count(*) as count
-from "{{table}}"
-group by 1
-order by 1;
-"""
-    )
-
-    query = template.render(table=table, column=column, bin_size=bin_size)
+        )
+        query = template.render(table=table, column=column, filter_query=filter_query)
 
     if with_:
         query = str(store.render(query, with_=with_))
@@ -385,4 +532,52 @@ order by 1;
     if bin_[0] is None:
         raise ValueError("Data contains NULLs")
 
-    return bin_, height
+    return bin_, height, bin_size
+
+
+@modify_exceptions
+def _histogram_stacked(
+    table, column, category, bins, bin_size, with_=None, conn=None, facet=None,
+):
+    """Compute the corresponding heights of each bin based on the category
+    """
+    if not conn:
+        conn = sql.connection.Connection.current.session
+
+    cases = []
+    for bin in bins:
+        case = f'SUM(CASE WHEN floor = {bin} THEN count ELSE 0 END) AS "{bin}",'
+        cases.append(case)
+
+    cases = " ".join(cases)
+
+    filter_query = f"WHERE {facet['key']} == '{facet['value']}'" if facet else ""
+
+    template = Template(
+        """
+        SELECT {{category}},
+        {{cases}}
+        FROM (
+        SELECT FLOOR("{{column}}"/{{bin_size}})*{{bin_size}} AS floor,
+        {{category}}, COUNT(*) as count
+        FROM "{{table}}"
+        GROUP BY floor, {{category}}
+        {{filter_query}}
+        ) AS subquery
+        GROUP BY {{category}};
+        """
+    )
+    query = template.render(table=table,
+                            column=column,
+                            bin_size=bin_size,
+                            category=category,
+                            filter_query=filter_query,
+                            cases=cases)
+
+    if with_:
+        query = str(store.render(query, with_=with_))
+
+    query = sql.connection.Connection._transpile_query(query)
+    data = conn.execute(query).fetchall()
+
+    return data

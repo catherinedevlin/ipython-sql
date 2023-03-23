@@ -15,7 +15,8 @@ parts:
     - file: plot-legacy
     - file: user-guide/template
     - file: user-guide/data-profiling
-
+    - file: user-guide/ggplot
+    
   - caption: Integrations
     chapters:
       - file: integrations/duckdb
