@@ -1,5 +1,10 @@
 import json
 import re
+
+try:
+    from ipywidgets import interact
+except ModuleNotFoundError:
+    interact = None
 from ploomber_core.exceptions import modify_exceptions
 from IPython.core.magic import (
     Magics,
@@ -20,7 +25,7 @@ from sql.store import store
 from sql.command import SQLCommand
 from sql.magic_plot import SqlPlotMagic
 from sql.magic_cmd import SqlCmdMagic
-
+from ploomber_core.dependencies import check_installed
 
 from traitlets.config.configurable import Configurable
 from traitlets import Bool, Int, Unicode, observe
@@ -32,6 +37,8 @@ except ImportError:
     Series = None
 
 from sql.telemetry import telemetry
+
+SUPPORT_INTERACTIVE_WIDGETS = ["Checkbox", "Text", "IntSlider", ""]
 
 
 @magics_class
@@ -206,6 +213,12 @@ class SqlMagic(Magics, Configurable):
         type=str,
         help="Assign an alias to the connection",
     )
+    @argument(
+        "--interact",
+        type=str,
+        action="append",
+        help="Interactive mode",
+    )
     def execute(self, line="", cell="", local_ns=None):
         """
         Runs SQL statement against a database, specified by
@@ -233,10 +246,17 @@ class SqlMagic(Magics, Configurable):
           mysql+pymysql://me:mypw@localhost/mydb
 
         """
-        return self._execute(line=line, cell=cell, local_ns=local_ns)
+        return self._execute(
+            line=line, cell=cell, local_ns=local_ns, is_interactive_mode=False
+        )
 
     @telemetry.log_call("execute", payload=True)
-    def _execute(self, payload, line, cell, local_ns):
+    def _execute(self, payload, line, cell, local_ns, is_interactive_mode=False):
+        def interactive_execute_wrapper(**kwargs):
+            for key, value in kwargs.items():
+                local_ns[key] = value
+            return self._execute(line, cell, local_ns, is_interactive_mode=True)
+
         """
         This function implements the cell logic; we create this private
         method so we can control how the function is called. Otherwise,
@@ -252,7 +272,6 @@ class SqlMagic(Magics, Configurable):
 
         # %%sql {line}
         # {cell}
-
         if local_ns is None:
             local_ns = {}
 
@@ -264,6 +283,18 @@ class SqlMagic(Magics, Configurable):
         # args.line: contains the line after the magic with all options removed
 
         args = command.args
+        # Create the interactive slider
+        if args.interact and not is_interactive_mode:
+            check_installed(["ipywidgets"], "--interactive argument")
+            interactive_dict = {}
+            for key in args.interact:
+                interactive_dict[key] = local_ns[key]
+            print(
+                "Interactive mode, please interact with below "
+                "widget(s) to control the variable"
+            )
+            interact(interactive_execute_wrapper, **interactive_dict)
+            return
         if args.connections:
             return sql.connection.Connection.connections
         elif args.close:
@@ -317,7 +348,6 @@ class SqlMagic(Magics, Configurable):
 
         if not command.sql:
             return
-
         # store the query if needed
         if args.save:
             if "-" in args.save:
@@ -418,3 +448,6 @@ def load_ipython_extension(ip):
     ip.register_magics(RenderMagic)
     ip.register_magics(SqlPlotMagic)
     ip.register_magics(SqlCmdMagic)
+
+
+# %%

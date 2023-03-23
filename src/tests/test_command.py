@@ -133,6 +133,7 @@ def test_args(ip, sql_magic):
         "append": False,
         "connection_arguments": None,
         "file": None,
+        "interact": None,
         "save": None,
         "with_": ["author_one"],
         "no_execute": False,

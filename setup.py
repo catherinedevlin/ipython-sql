@@ -24,8 +24,8 @@ install_requires = [
     "sqlglot",
     "jinja2",
     "sqlglot>=11.3.7",
-    "ploomber-core>=0.2.4",
-    'importlib-metadata;python_version<"3.8"'
+    "ploomber-core>=0.2.7",
+    'importlib-metadata;python_version<"3.8"',
 ]
 
 DEV = [
@@ -42,6 +42,8 @@ DEV = [
     # sql.plot module tests
     "matplotlib",
     "black",
+    # for %%sql --interact
+    "ipywidgets",
 ]
 
 setup(
