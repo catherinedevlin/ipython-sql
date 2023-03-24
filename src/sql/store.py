@@ -1,7 +1,8 @@
 from typing import Iterator, Iterable
 from collections.abc import MutableMapping
+from jinja2 import Template
 from ploomber_core.exceptions import modify_exceptions
-from sqlglot import parse_one
+import sql
 from IPython.core.error import UsageError
 import warnings
 import difflib
@@ -98,14 +99,29 @@ class SQLQuery:
             )
 
     def __str__(self) -> str:
-        if self._query:
-            with_all = _get_dependencies(self._store, self._with_)
-            parsed_res = parse_one(self._query)
-            for with_key in with_all:
-                with_query = self._store._data[with_key]._query
-                parsed_res = parsed_res.with_(with_key, with_query)
-            return str(parsed_res.sql())
-        return ""
+        with_template = Template(
+            """WITH{% for name in with_ %} "{{name}}" AS ({{saved[name]._query}})\
+{{ "," if not loop.last }}{% endfor %}{{query}}"""
+        )
+        with_template_backtick = Template(
+            """WITH{% for name in with_ %} `{{name}}` AS ({{saved[name]._query}})\
+{{ "," if not loop.last }}{% endfor %}{{query}}"""
+        )
+        # def is_dialect
+        is_use_backtick_template = (
+            sql.connection.Connection._is_curr_dialect_support_backtick()
+        )
+        print("Support :", is_use_backtick_template)
+        with_all = _get_dependencies(self._store, self._with_)
+
+        if is_use_backtick_template:
+            return with_template_backtick.render(
+                query=self._query, saved=self._store._data, with_=with_all
+            )
+        else:
+            return with_template.render(
+                query=self._query, saved=self._store._data, with_=with_all
+            )
 
 
 def _get_dependencies(store, keys):

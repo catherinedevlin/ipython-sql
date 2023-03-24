@@ -365,14 +365,29 @@ class Connection:
         }
 
     @classmethod
-    def _transpile_query(cls, query):
+    def _get_curr_sqlglot_dialect(cls):
         if not cls.current:
-            return query
+            return None
         connection_info = cls._get_curr_connection_info()
+        if not connection_info:
+            return None
+
+        return DIALECT_NAME_SQLALCHEMY_TO_SQLGLOT_MAPPING.get(
+            connection_info["dialect"], connection_info["dialect"]
+        )
+
+    @classmethod
+    def _is_curr_dialect_support_backtick(cls):
+        cur_dialect = cls._get_curr_sqlglot_dialect()
+        if not cur_dialect:
+            return False
+        print("cur_dialect:", cur_dialect)
+        return "`" in sqlglot.Dialect.get_or_raise(cur_dialect).Tokenizer.IDENTIFIERS
+
+    @classmethod
+    def _transpile_query(cls, query):
+        write_dialect = cls._get_curr_sqlglot_dialect()
         try:
-            write_dialect = DIALECT_NAME_SQLALCHEMY_TO_SQLGLOT_MAPPING.get(
-                connection_info["dialect"], connection_info["dialect"]
-            )
             query = sqlglot.parse_one(query).sql(dialect=write_dialect)
         finally:
             return query
