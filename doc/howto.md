@@ -30,19 +30,23 @@ for file in (Path(f) for f in glob("*.db")):
         file.unlink()
 ```
 
++++ {"user_expressions": []}
+
 # How-To
 
 ## Query CSV files with SQL
 
 You can use `JupySQL` and `DuckDB` to query CSV files with SQL in a Jupyter notebook.
 
-+++
++++ {"user_expressions": []}
 
 ### Installation
 
 ```{code-cell} ipython3
 %pip install jupysql duckdb duckdb-engine --quiet
 ```
+
++++ {"user_expressions": []}
 
 ### Setup
 
@@ -52,11 +56,15 @@ Load JupySQL:
 %load_ext sql
 ```
 
++++ {"user_expressions": []}
+
 Create an in-memory DuckDB database:
 
 ```{code-cell} ipython3
 %sql duckdb://
 ```
+
++++ {"user_expressions": []}
 
 Download some sample data:
 
@@ -68,6 +76,8 @@ _ = urlretrieve(
     "penguins.csv",
 )
 ```
+
++++ {"user_expressions": []}
 
 ### Query
 
@@ -85,6 +95,8 @@ FROM penguins.csv
 GROUP BY species
 ORDER BY count DESC
 ```
+
++++ {"user_expressions": []}
 
 ## Convert to `polars.DataFrame`
 
@@ -104,6 +116,8 @@ import polars as pl
 pl.DataFrame((tuple(row) for row in results), schema=results.keys)
 ```
 
++++ {"user_expressions": []}
+
 ## Register SQLite UDF
 
 To register a user-defined function (UDF) when using SQLite, you can use [SQLAlchemy's `@event.listens_for`](https://docs.sqlalchemy.org/en/14/dialects/sqlite.html#user-defined-functions) and SQLite's [`create_function`](https://docs.python.org/3/library/sqlite3.html#sqlite3.Connection.create_function):
@@ -113,6 +127,8 @@ To register a user-defined function (UDF) when using SQLite, you can use [SQLAlc
 ```{code-cell} ipython3
 %pip install jupysql --quiet
 ```
+
++++ {"user_expressions": []}
 
 ### Create engine and register function
 
@@ -133,6 +149,8 @@ def connect(conn, rec):
     conn.create_function(name="MYSUM", narg=2, func=mysum)
 ```
 
++++ {"user_expressions": []}
+
 ### Create connection with existing engine
 
 ```{versionadded} 0.5.1
@@ -147,12 +165,16 @@ Pass existing engines to `%sql`
 %sql engine
 ```
 
++++ {"user_expressions": []}
+
 ## Query
 
 ```{code-cell} ipython3
 %%sql
 SELECT MYSUM(1, 2)
 ```
+
++++ {"user_expressions": []}
 
 ## Connect to a SQLite database with spaces
 
@@ -168,6 +190,8 @@ Currently, due to a limitation in the argument parser, it's not possible to dire
 %load_ext sql
 ```
 
++++ {"user_expressions": []}
+
 ## Connect to db
 
 ```{code-cell} ipython3
@@ -175,6 +199,8 @@ from sqlalchemy import create_engine
 
 engine = create_engine("sqlite:///my database.db")
 ```
+
++++ {"user_expressions": []}
 
 Add some sample data:
 
@@ -193,6 +219,8 @@ _ = pd.DataFrame({"x": range(5)}).to_sql("numbers", engine)
 SELECT * FROM numbers
 ```
 
++++ {"user_expressions": []}
+
 ## Switch connections
 
 ```{versionadded} 0.5.2
@@ -200,6 +228,7 @@ SELECT * FROM numbers
 ```
 
 ```{code-cell} ipython3
+# create two databases with sample data
 from sqlalchemy import create_engine
 import pandas as pd
 
@@ -214,7 +243,9 @@ _ = pd.DataFrame({"x": range(5)}).to_sql("two", engine_two)
 %load_ext sql
 ```
 
-Assign alias to both connections so we can switch them by it:
++++ {"user_expressions": []}
+
+Assign alias to both connections so we can switch them by name:
 
 ```{code-cell} ipython3
 %sql sqlite:///one.db --alias one
@@ -225,18 +256,52 @@ Assign alias to both connections so we can switch them by it:
 %sql
 ```
 
-Pass the alias to use such connection:
++++ {"user_expressions": []}
+
+Pass the alias to make it the current connection:
+
+```{code-cell} ipython3
+%sql one
+```
+
++++ {"user_expressions": []}
+
+```{tip}
+We highly recommend you to create a separate cell (`%sql some_alias`) when switching connections instead of switching and querying in the the same cell.
+```
+
+You can pass an alias and query in the same cell:
 
 ```{code-cell} ipython3
 %%sql one
 SELECT * FROM one
 ```
 
-It becomes the current active connection:
++++ {"user_expressions": []}
+
+However, this isn't supported with the line magic (e.g., `%sql one SELECT * FROM one`).
+
+You can also pass an alias, and assign the output to a variable, but *this is discouraged*:
+
+```{code-cell} ipython3
+%%sql two
+result <<
+SELECT * FROM two
+```
+
+```{code-cell} ipython3
+result
+```
+
++++ {"user_expressions": []}
+
+Once you pass an alias, it becomes the current active connection:
 
 ```{code-cell} ipython3
 %sql
 ```
+
++++ {"user_expressions": []}
 
 Hence, we can skip it in upcoming queries:
 
@@ -244,6 +309,8 @@ Hence, we can skip it in upcoming queries:
 %%sql
 SELECT * FROM one
 ```
+
++++ {"user_expressions": []}
 
 Switch connection:
 
@@ -255,6 +322,8 @@ SELECT * FROM two
 ```{code-cell} ipython3
 %sql
 ```
+
++++ {"user_expressions": []}
 
 Close by passing the alias:
 
@@ -274,6 +343,8 @@ Close by passing the alias:
 %sql -l
 ```
 
++++ {"user_expressions": []}
+
 ## Connect to existing `engine`
 
 Pass the name of the engine:
@@ -285,6 +356,8 @@ some_engine = create_engine("sqlite:///some.db")
 ```{code-cell} ipython3
 %sql some_engine
 ```
+
++++ {"user_expressions": []}
 
 ## Use `%sql`/`%%sql` in Databricks
 
@@ -304,6 +377,8 @@ SELECT *
 FROM "penguins.csv"
 LIMIT 3
 ```
+
++++ {"user_expressions": []}
 
 ## Ignore deprecation warnings
 
