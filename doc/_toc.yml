@@ -48,6 +48,7 @@ parts:
   - caption: Tutorials
     chapters:
     - file: tutorials/duckdb-github
+    - file: tutorials/etl
 
   - caption: Community
     chapters:

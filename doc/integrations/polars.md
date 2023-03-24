@@ -18,7 +18,7 @@ myst:
     property=og:locale: en_US
 ---
 
-# Polars integration
+# Polars
 
 If you have installed [`polars`](https://www.pola.rs/), you can use a result set's `.PolarsDataFrame()` method.
 

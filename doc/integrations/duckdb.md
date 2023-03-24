@@ -17,7 +17,7 @@ myst:
     property=og:locale: en_US
 ---
 
-# DuckDB integration
+# DuckDB
 
 
 JupySQL integrates with DuckDB so you can run SQL queries in a Jupyter notebook. Jump into any section to learn more!

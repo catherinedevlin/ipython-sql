@@ -18,7 +18,7 @@ myst:
     property=og:locale: en_US
 ---
 
-# Pandas integration
+# Pandas
 
 If you have installed [`pandas`](http://pandas.pydata.org/), you can use a result set's `.DataFrame()` method.
 
