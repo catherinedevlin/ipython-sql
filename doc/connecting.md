@@ -47,6 +47,8 @@ Note that an `impala` connection with [`impyla`](https://github.com/cloudera/imp
 %sql impala://hserverhost:port/default?kerberos_service_name=hive&auth_mechanism=GSSAPI
 ```
 
+Additionally, note that autocommit features for `pytds` connections are disabled.
+
 Connection arguments not whitelisted by SQLALchemy can be provided as
 a flag with (-a|--connection_arguments)the connection string as a JSON string. See [SQLAlchemy Args](https://docs.sqlalchemy.org/en/13/core/engines.html#custom-dbapi-args)
 

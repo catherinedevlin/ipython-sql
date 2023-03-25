@@ -5,6 +5,8 @@ import pandas
 import polars
 import pytest
 
+import warnings
+
 from sql.connection import Connection
 from sql.run import (
     run,
@@ -32,6 +34,12 @@ def mock_config():
         feedback = True
 
     return Config
+
+
+@pytest.fixture
+def pytds_conns(mock_conns):
+    mock_conns.dialect = "mssql+pytds"
+    return mock_conns
 
 
 @pytest.fixture
@@ -86,8 +94,20 @@ def test_handle_postgres_special(mock_conns):
 def test_set_autocommit(mock_conns, mock_config, caplog):
     caplog.set_level(logging.DEBUG)
     output = set_autocommit(mock_conns, mock_config)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
     assert "The database driver doesn't support such " in caplog.records[0].msg
     assert output is True
+
+
+def test_pytds_autocommit(pytds_conns, mock_config):
+    with warnings.catch_warnings(record=True) as w:
+        output = set_autocommit(pytds_conns, mock_config)
+        assert (
+            str(w[-1].message)
+            == "Autocommit is not supported for pytds, thus is automatically disabled"
+        )
+        assert output is False
 
 
 def test_select_df_type_is_pandas(monkeypatch, config_pandas, mock_resultset):

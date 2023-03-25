@@ -20,6 +20,7 @@ except ImportError:
 
 from sql.telemetry import telemetry
 import logging
+import warnings
 
 
 def unduplicate_field_names(field_names):
@@ -397,6 +398,11 @@ def is_postgres_or_redshift(dialect):
     return "postgres" in str(dialect) or "redshift" in str(dialect)
 
 
+def is_pytds(dialect):
+    """Checks if driver is pytds"""
+    return "pytds" in str(dialect)
+
+
 def handle_postgres_special(conn, statement):
     """Execute a PostgreSQL special statement using PGSpecial module."""
     if not PGSpecial:
@@ -410,6 +416,11 @@ def handle_postgres_special(conn, statement):
 
 def set_autocommit(conn, config):
     """Sets the autocommit setting for a database connection."""
+    if is_pytds(conn.dialect):
+        warnings.warn(
+            "Autocommit is not supported for pytds, thus is automatically disabled"
+        )
+        return False
     if config.autocommit:
         try:
             conn.session.execution_options(isolation_level="AUTOCOMMIT")
