@@ -33,13 +33,40 @@ class SqlCmdMagic(Magics, Configurable):
 
     @line_magic("sqlcmd")
     @magic_arguments()
-    @argument("line", default="", type=str, help="Command name")
-    def execute(self, line="", cell=""):
+    @argument("line", type=str, help="Command name")
+    def _validate_execute_inputs(self, line):
+        """
+        Function to validate %sqlcmd inputs.
+        Raises UsageError in case of an invalid input, executes command otherwise.
+        """
+
+        AVAILABLE_SQLCMD_COMMANDS = ["tables", "columns", "test", "profile"]
+
+        if line == "":
+            raise UsageError(
+                "Missing argument for %sqlcmd. "
+                "Valid commands are: {}".format(", ".join(AVAILABLE_SQLCMD_COMMANDS))
+            )
+        else:
+            split = arg_split(line)
+            command, others = split[0].strip(), split[1:]
+
+            if command in AVAILABLE_SQLCMD_COMMANDS:
+                return self.execute(command, others)
+            else:
+                raise UsageError(
+                    f"%sqlcmd has no command: {command!r}. "
+                    "Valid commands are: {}".format(
+                        ", ".join(AVAILABLE_SQLCMD_COMMANDS)
+                    )
+                )
+
+    @argument("cmd_name", default="", type=str, help="Command name")
+    @argument("others", default="", type=str, help="Other tags")
+    def execute(self, cmd_name="", others="", cell="", local_ns=None):
         """
         Command
         """
-        split = arg_split(line)
-        cmd_name, others = split[0].strip(), split[1:]
 
         if cmd_name == "tables":
             parser = CmdParser()
@@ -153,11 +180,6 @@ class SqlCmdMagic(Magics, Configurable):
                     f.write(report._repr_html_())
 
             return report
-
-        raise UsageError(
-            f"%sqlcmd has no command: {cmd_name!r}. "
-            "Valid commands are: 'tables', 'columns', 'profile'"
-        )
 
 
 def run_each_individually(args, conn):

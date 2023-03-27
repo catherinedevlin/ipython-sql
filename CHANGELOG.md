@@ -1,6 +1,8 @@
 # CHANGELOG
 
 ## 0.7.0dev
+* [Fix] Fix `%sqlcmd` exception handling (#262)
+* [Doc] Tutorial on ETLs via Jupysql and Github actions
 * [Feature] Adds `%sqlcmd profile` (#66)
 * [API Change] Deprecates old SQL parametrization: `$var`, `:var`, and `{var}` in favor of `{{var}}`
 * [Fix] `--save` + `--with` double quotes syntax error in MySQL ([#145](https://github.com/ploomber/jupysql/issues/145))
