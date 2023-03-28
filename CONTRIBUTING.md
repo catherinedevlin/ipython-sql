@@ -4,3 +4,4 @@ For general information, see [Ploombers' contributing guidelines.](https://githu
 
 
 For specific JupySQL contributing guidelines, see the [Developer guide](https://jupysql.ploomber.io/en/latest/community/developer-guide.html).
+

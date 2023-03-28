@@ -16,7 +16,7 @@ myst:
     property=og:locale: "en_US"
 ---
 
-# Organizing large queries
+# Organizing Large Queries
 
 
 ```{dropdown} Required packages
@@ -33,13 +33,22 @@ This is a beta feature, please [join our community](https://ploomber.io/communit
 let us know how we can improve it!
 ```
 
-JupySQL allows you to break queries into multiple cells, simplifying the process of
-building large queries.
+JupySQL allows you to break queries into multiple cells, simplifying the process of building large queries.
 
-As an example, we are using a sales database from a record store. We'll find the
-artists that have produced the largest number of Rock and Metal songs.
+- **Simplify  and modularize your workflow:** JupySQL simplifies SQL queries and promotes code reusability by breaking down large queries into manageable chunks and enabling the creation of reusable query modules.
+- **Seamless integration:** JupySQL flawlessly combines the power of SQL with the flexibility of Jupyter Notebooks, offering a one-stop solution for all your data analysis needs.
+- **Cross-platform compatibility:** JupySQL supports popular databases like PostgreSQL, MySQL, SQLite, and more, ensuring you can work with any data source.
 
-Let's load some data:
+## Example: record store data
+
+### Goal: 
+
+Using Jupyter notebooks, make a query against an SQLite database table named 'Track' with Rock and Metal song information. Find and show the artists with the most Rock and Metal songs. Show your results in a bar chart.
+
+
+#### Data download and initialization
+
+Download the SQLite database file if it doesn't exist
 
 ```{code-cell} ipython3
 import urllib.request
@@ -50,7 +59,7 @@ if not Path("my.db").is_file():
     urllib.request.urlretrieve(url, "my.db")
 ```
 
-Initialize the extension and set `autolimit=3` so we only retrieve a few rows.
+Initialize the SQL extension and set autolimit=3 to only retrieve a few rows
 
 ```{code-cell} ipython3
 %load_ext sql
@@ -60,14 +69,16 @@ Initialize the extension and set `autolimit=3` so we only retrieve a few rows.
 %config SqlMagic.autolimit = 3
 ```
 
-Let's see the track-level information:
+Query the track-level information from the Track table
 
 ```{code-cell} ipython3
 %%sql sqlite:///my.db
 SELECT * FROM Track
 ```
 
-Let's join track with album and artist to get the artist name and store the query using `--save tracks_with_info`.
+#### Data wrangling
+
+Join the Track, Album, and Artist tables to get the artist name, and save the query as `tracks_with_info`
 
 *Note: `--save` stores the query, not the data*
 
@@ -81,7 +92,7 @@ JOIN Artist ar
 USING (ArtistId)
 ```
 
-Let's subset the genres we are interested in (Rock and Metal) and save the query.
+Filter genres we are interested in (Rock and Metal) and save the query as `genres_fav`
 
 ```{code-cell} ipython3
 %%sql --save genres_fav
@@ -91,7 +102,7 @@ LIKE '%rock%'
 OR Name LIKE '%metal%' 
 ```
 
-Now, join genres and tracks, so we only get Rock and Metal tracks. 
+Join the filtered genres and tracks, so we only get Rock and Metal tracks, and save the query as `track_fav`
 
 Note that we are using `--with`; this will retrieve previously saved queries, and preprend them (using CTEs), then, we save the query in `track_fav` .
 
@@ -103,7 +114,7 @@ JOIN genres_fav
 ON t.GenreId = genres_fav.GenreId
 ```
 
-We can now use `track_fav` (which contains Rock and Metal tracks). Let's find which artists have produced the most tracks (and save the query):
+Use the `track_fav` query to find artists with the most Rock and Metal tracks, and save the query as `top_artist`
 
 ```{code-cell} ipython3
 %%sql --with track_fav --save top_artist
@@ -112,12 +123,16 @@ GROUP BY artist
 ORDER BY COUNT(*) DESC
 ```
 
-Let's retrieve `top_artist` and plot the results:
+#### Data visualization
+
+Once we have the desired results from the query `top_artist`, we can generate a visualization using the bar method
 
 ```{code-cell} ipython3
 top_artist = %sql --with top_artist SELECT * FROM top_artist
 top_artist.bar()
 ```
+
+It looks like Iron Maiden had the highest number of rock and metal songs in the table.
 
 We can render the full query with the `%sqlrender` magic:
 
@@ -130,5 +145,9 @@ We can verify the retrieved query returns the same result:
 
 ```{code-cell} ipython3
 %%sql
-$final
+{{final}}
 ```
+
+## Summary
+
+In the given example, we demonstrated JupySQL's usage as a tool for managing large SQL queries in Jupyter Notebooks. It effectively broke down a complex query into smaller, organized parts, simplifying the process of analyzing a record store's sales database. By using JupySQL, users can easily maintain and reuse their queries, enhancing the overall data analysis experience.
