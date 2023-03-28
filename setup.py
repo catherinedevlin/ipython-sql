@@ -39,6 +39,7 @@ DEV = [
     # tests
     "duckdb",
     "duckdb-engine",
+    "pyodbc",
     # sql.plot module tests
     "matplotlib",
     "black",

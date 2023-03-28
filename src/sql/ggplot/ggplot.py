@@ -24,6 +24,7 @@ class ggplot:
     """
     Create a new ggplot
     """
+
     figure: mpl.figure.Figure
     axs: list
 
@@ -39,7 +40,7 @@ class ggplot:
         self.axs = axs
         self.figure = figure
 
-    def __add__(self, other) -> 'ggplot':
+    def __add__(self, other) -> "ggplot":
         """
         Add to ggplot
         """
@@ -62,21 +63,18 @@ class ggplot:
             _expand_to_multipanel_ax(self.figure, ax_to_clear=self.axs[0])
 
             values, n_rows, n_cols = other.get_facet_values(
-                self.table, other.facet, with_=self.with_)
+                self.table, other.facet, with_=self.with_
+            )
 
             for i, value in enumerate(values):
-                ax_ = self.figure.add_subplot(
-                    n_rows, n_cols, i+1)
-                facet_key_val = {
-                    "key": other.facet,
-                    "value": value[0]
-                }
+                ax_ = self.figure.add_subplot(n_rows, n_cols, i + 1)
+                facet_key_val = {"key": other.facet, "value": value[0]}
                 self.geom.draw(self, ax_, facet_key_val)
                 ax_.set_title(value[0])
-                ax_.tick_params(axis='both', labelsize=7)
-                ax_.legend(prop={'size': 10})
+                ax_.tick_params(axis="both", labelsize=7)
+                ax_.legend(prop={"size": 10})
                 if other.legend is False:
-                    plt.legend('', frameon=False)
+                    plt.legend("", frameon=False)
                 self.axs.append(ax_)
 
         return self.figure

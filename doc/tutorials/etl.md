@@ -255,8 +255,9 @@ AND flipper_length_mm IS NOT NULL AND body_mass_g IS NOT NULL AND sex IS NOT NUL
 ```python
 # Map the species column into classifiers
 transformed_df = transformed_df.DataFrame().dropna()
-transformed_df['mapped_species'] = \
-    transformed_df.species.map({"Adelie": 0, "Chinstrap": 1, "Gentoo": 2})
+transformed_df["mapped_species"] = transformed_df.species.map(
+    {"Adelie": 0, "Chinstrap": 1, "Gentoo": 2}
+)
 transformed_df.drop("species", inplace=True, axis=1)
 ```
 
@@ -291,7 +292,7 @@ Since our use case is using DuckDB locally we can simply save the newly created 
 Run the following step to save the new data as a CSV file:
 
 ```python
-transformed_df.to_csv('transformed_data.csv')
+transformed_df.to_csv("transformed_data.csv")
 ```
 
 We can see a new file called `transformed_data.csv` was created for us.

@@ -6,7 +6,6 @@ from sql.telemetry import telemetry
 
 
 def _run_query(query, with_=None, conn=None):
-
     if not conn:
         conn = sql.connection.Connection.current.session
 
@@ -16,7 +15,7 @@ def _run_query(query, with_=None, conn=None):
     return conn.execute(query).fetchall()
 
 
-class facet():
+class facet:
     def __init__():
         pass
 
@@ -45,6 +44,7 @@ class facet_wrap(facet):
     facet : str
         Column to groupby and plot on different panels.
     """
+
     @telemetry.log_call("facet-wrap-init")
     def __init__(self, facet: str, legend=True):
         self.facet = facet

@@ -1,7 +1,7 @@
 from sql.telemetry import telemetry
 
 
-class aes():
+class aes:
     """
     Aesthetic mappings
 
@@ -18,10 +18,7 @@ class aes():
     """
 
     @telemetry.log_call("aes-init")
-    def __init__(self,
-                 x=None,
-                 fill=None,
-                 color=None):
+    def __init__(self, x=None, fill=None, color=None):
         self.x = x
         self.fill = fill
         self.color = color

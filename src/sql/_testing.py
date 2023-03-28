@@ -37,6 +37,7 @@ databaseConfig = {
             "image": "postgres",
             "ports": {5432: 5432},
         },
+        "query": {},
     },
     "mySQL": {
         "drivername": "mysql+pymysql",
@@ -52,6 +53,7 @@ databaseConfig = {
             "image": "mysql",
             "ports": {3306: 33306},
         },
+        "query": {},
     },
     "mariaDB": {
         "drivername": "mysql+pymysql",
@@ -67,6 +69,7 @@ databaseConfig = {
             "image": "mariadb",
             "ports": {3306: 33309},
         },
+        "query": {},
     },
     "SQLite": {
         "drivername": "sqlite",
@@ -76,6 +79,7 @@ databaseConfig = {
         "host": None,
         "port": None,
         "alias": "SQLiteTest",
+        "query": {},
     },
     "duckDB": {
         "drivername": "duckdb",
@@ -85,6 +89,26 @@ databaseConfig = {
         "host": None,
         "port": None,
         "alias": "duckDBTest",
+        "query": {},
+    },
+    "MSSQL": {
+        "drivername": "mssql+pyodbc",
+        "username": "sa",
+        "password": "Ploomber_App@Root_Password",
+        "database": "master",
+        "host": "localhost",
+        "port": "1433",
+        "query": {
+            "driver": "ODBC Driver 18 for SQL Server",
+            "Encrypt": "yes",
+            "TrustServerCertificate": "yes",
+        },
+        "docker_ct": {
+            "name": "MSSQL",
+            "image": "mcr.microsoft.com/azure-sql-edge",
+            "ports": {1433: 1433},
+        },
+        "alias": "MSSQLTest",
     },
 }
 
@@ -98,6 +122,7 @@ def _get_database_url(database):
         host=databaseConfig[database]["host"],
         port=databaseConfig[database]["port"],
         database=databaseConfig[database]["database"],
+        query=databaseConfig[database]["query"],
     ).render_as_string(hide_password=False)
 
 
@@ -247,10 +272,43 @@ def mariadb(is_bypass_init=False):
             yield container
 
 
+@contextmanager
+def mssql(is_bypass_init=False):
+    if is_bypass_init:
+        yield None
+        return
+    db_config = DatabaseConfigHelper.get_database_config("MSSQL")
+    try:
+        client = docker.from_env(version="auto")
+        curr = client.containers.get(db_config["docker_ct"]["name"])
+        yield curr
+    except errors.NotFound:
+        print("Creating new container: MSSQL")
+        with new_container(
+            new_container_name=db_config["docker_ct"]["name"],
+            image_name=db_config["docker_ct"]["image"],
+            ports=db_config["docker_ct"]["ports"],
+            environment={
+                "MSSQL_DATABASE": db_config["database"],
+                "MSSQL_USER": db_config["username"],
+                "MSSQL_SA_PASSWORD": db_config["password"],
+                "ACCEPT_EULA": "Y",
+            },
+            ready_test=lambda: database_ready(database="MSSQL"),
+            healthcheck={
+                "test": "/opt/mssql-tools/bin/sqlcmd "
+                "-U $DB_USER -P $SA_PASSWORD "
+                "-Q 'select 1' -b -o /dev/null",
+                "timeout": 5000000000,
+            },
+        ) as container:
+            yield container
+
+
 def main():
     print("Starting test containers...")
 
-    with postgres(), mysql(), mariadb():
+    with postgres(), mysql(), mariadb(), mssql():
         print("Press CTRL+C to exit")
         try:
             while True:

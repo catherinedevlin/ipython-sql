@@ -194,3 +194,32 @@ def ip_with_duckDB(ip_empty, setup_duckDB):
     yield ip_empty
     # Disconnect database
     ip_empty.run_cell("%sql -x " + alias)
+
+
+@pytest.fixture(scope="session")
+def setup_MSSQL():
+    with _testing.mssql(is_bypass_init=is_on_github):
+        engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("MSSQL"))
+        # Load taxi_data
+        load_taxi_data(engine)
+        load_plot_data(engine)
+        load_numeric_data(engine)
+        yield engine
+        engine.dispose()
+
+
+@pytest.fixture
+def ip_with_MSSQL(ip_empty, setup_MSSQL):
+    configKey = "MSSQL"
+    alias = _testing.DatabaseConfigHelper.get_database_config(configKey)["alias"]
+
+    # Select database engine
+    ip_empty.run_cell(
+        "%sql "
+        + _testing.DatabaseConfigHelper.get_database_url(configKey)
+        + " --alias "
+        + alias
+    )
+    yield ip_empty
+    # Disconnect database
+    ip_empty.run_cell("%sql -x " + alias)

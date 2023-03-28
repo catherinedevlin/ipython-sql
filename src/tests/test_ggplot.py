@@ -127,8 +127,11 @@ def test_ggplot_geom_histogram_with(short_trips_data):
 )
 def test_ggplot_geom_histogram_edge_color(short_trips_data):
     (
-        ggplot(table="short_trips", with_="short_trips",
-               mapping=aes(x="trip_distance", color="white"))
+        ggplot(
+            table="short_trips",
+            with_="short_trips",
+            mapping=aes(x="trip_distance", color="white"),
+        )
         + geom_histogram(bins=10)
     )
 
@@ -139,8 +142,11 @@ def test_ggplot_geom_histogram_edge_color(short_trips_data):
 )
 def test_ggplot_geom_histogram_fill(short_trips_data):
     (
-        ggplot(table="short_trips", with_="short_trips",
-               mapping=aes(x="trip_distance", fill="red"))
+        ggplot(
+            table="short_trips",
+            with_="short_trips",
+            mapping=aes(x="trip_distance", fill="red"),
+        )
         + geom_histogram(bins=10)
     )
 
@@ -153,8 +159,11 @@ def test_ggplot_geom_histogram_fill(short_trips_data):
 )
 def test_ggplot_geom_histogram_fill_and_color(short_trips_data):
     (
-        ggplot(table="short_trips", with_="short_trips", mapping=aes(
-            x="trip_distance", fill="red", color="#fff"))
+        ggplot(
+            table="short_trips",
+            with_="short_trips",
+            mapping=aes(x="trip_distance", fill="red", color="#fff"),
+        )
         + geom_histogram(bins=10)
     )
 
@@ -344,8 +353,11 @@ def test_facet_wrap_default_no_legend(penguins_no_nulls):
 )
 def test_facet_wrap_custom_fill(penguins_no_nulls):
     (
-        ggplot(table="no_nulls", with_="no_nulls",
-               mapping=aes(x=["bill_depth_mm"], fill=["red"]))
+        ggplot(
+            table="no_nulls",
+            with_="no_nulls",
+            mapping=aes(x=["bill_depth_mm"], fill=["red"]),
+        )
         + geom_histogram(bins=10)
         + facet_wrap("sex")
     )
@@ -359,8 +371,11 @@ def test_facet_wrap_custom_fill(penguins_no_nulls):
 )
 def test_facet_wrap_custom_fill_and_color(penguins_no_nulls):
     (
-        ggplot(table="no_nulls", with_="no_nulls", mapping=aes(
-            x=["bill_depth_mm"], color="#fff", fill=["red"]))
+        ggplot(
+            table="no_nulls",
+            with_="no_nulls",
+            mapping=aes(x=["bill_depth_mm"], color="#fff", fill=["red"]),
+        )
         + geom_histogram(bins=10)
         + facet_wrap("sex")
     )

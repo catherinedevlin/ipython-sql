@@ -18,7 +18,7 @@ class geom_boxplot(geom):
             column=gg.mapping.x,
             conn=gg.conn,
             with_=gg.with_,
-            ax=ax or gg.axs[0]
+            ax=ax or gg.axs[0],
         )
 
         return gg
