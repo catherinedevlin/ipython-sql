@@ -110,6 +110,21 @@ databaseConfig = {
         },
         "alias": "MSSQLTest",
     },
+    "Snowflake": {
+        "drivername": "snowflake",
+        "username": "tony",
+        "password": "Ploomber2",
+        # database/schema
+        "database": "JUPYSQL/TESTING",
+        "host": "lpb17716.us-east-1",
+        "port": None,
+        "alias": "snowflakeTest",
+        "docker_ct": None,
+        "query": {
+            "warehouse": "COMPUTE_WH",
+            "role": "SYSADMIN",
+        },
+    },
 }
 
 

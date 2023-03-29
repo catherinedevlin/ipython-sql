@@ -29,24 +29,30 @@ def run_around_tests(tmpdir_factory):
     shutil.rmtree(str(my_tmpdir))
 
 
-def load_taxi_data(engine):
+def load_taxi_data(engine, index=True):
     table_name = "taxi"
     df = pd.DataFrame(
         {"taxi_driver_name": ["Eric Ken", "John Smith", "Kevin Kelly"] * 15}
     )
-    df.to_sql(name=table_name, con=engine, chunksize=1000, if_exists="replace")
+    df.to_sql(
+        name=table_name, con=engine, chunksize=1000, if_exists="replace", index=index
+    )
 
 
-def load_plot_data(engine):
+def load_plot_data(engine, index=True):
     table_name = "plot_something"
     df = pd.DataFrame({"x": range(0, 5), "y": range(5, 10)})
-    df.to_sql(name=table_name, con=engine, chunksize=1000, if_exists="replace")
+    df.to_sql(
+        name=table_name, con=engine, chunksize=1000, if_exists="replace", index=index
+    )
 
 
-def load_numeric_data(engine):
+def load_numeric_data(engine, index=True):
     table_name = "numbers"
     df = pd.DataFrame({"numbers_elements": [1, 2, 3]})
-    df.to_sql(name=table_name, con=engine, chunksize=100_000, if_exists="replace")
+    df.to_sql(
+        name=table_name, con=engine, chunksize=100_000, if_exists="replace", index=index
+    )
 
 
 @pytest.fixture(scope="session")
@@ -223,3 +229,31 @@ def ip_with_MSSQL(ip_empty, setup_MSSQL):
     yield ip_empty
     # Disconnect database
     ip_empty.run_cell("%sql -x " + alias)
+
+
+@pytest.fixture(scope="session")
+def setup_Snowflake():
+    engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("Snowflake"))
+    engine.connect()
+    # Load pre-defined datasets
+    load_taxi_data(engine, index=False)
+    load_plot_data(engine, index=False)
+    load_numeric_data(engine, index=False)
+    yield engine
+    engine.dispose()
+
+
+@pytest.fixture
+def ip_with_Snowflake(ip_empty, setup_Snowflake):
+    configKey = "Snowflake"
+    config = _testing.DatabaseConfigHelper.get_database_config(configKey)
+    # Select database engine
+    ip_empty.run_cell(
+        "%sql "
+        + _testing.DatabaseConfigHelper.get_database_url(configKey)
+        + " --alias "
+        + config["alias"]
+    )
+    yield ip_empty
+    # Disconnect database
+    ip_empty.run_cell("%sql -x " + config["alias"])

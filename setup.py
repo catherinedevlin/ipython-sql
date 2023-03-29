@@ -47,6 +47,7 @@ DEV = [
     "docker",
     # for %%sql --interact
     "ipywidgets",
+    "snowflake-sqlalchemy",
 ]
 
 setup(
