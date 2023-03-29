@@ -12,6 +12,7 @@
 * [Feature] Adds `ggplot` plotting API (histogram and boxplot)
 * [Fix] Clearer error when using `--with` with snippets that do not exist (#257)
 * [Fix] Pytds now automatically compatible
+* [Doc] SQL keywords autocompletion
 ## 0.6.6 (2023-03-16)
 
 * [Fix] Pinning SQLAlchemy 1.x
