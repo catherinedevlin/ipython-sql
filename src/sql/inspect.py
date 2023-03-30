@@ -5,7 +5,7 @@ from sql.connection import Connection
 from sql.telemetry import telemetry
 import sql.run
 import math
-from sql.util import convert_to_scientific
+from sql import util
 
 
 def _get_inspector(conn):
@@ -51,19 +51,11 @@ class Columns(DatabaseInspection):
     """
 
     def __init__(self, name, schema, conn=None) -> None:
+        util.is_table_exists(name, schema)
+
         inspector = _get_inspector(conn)
 
         columns = inspector.get_columns(name, schema)
-
-        if not columns:
-            if schema:
-                raise ValueError(
-                    f"There is no table with name {name!r} in schema {schema!r}"
-                )
-            else:
-                raise ValueError(
-                    f"There is no table with name {name!r} in the default schema"
-                )
 
         self._table = PrettyTable()
         self._table.field_names = list(columns[0].keys())
@@ -103,6 +95,8 @@ class TableDescription(DatabaseInspection):
     """
 
     def __init__(self, table_name, schema=None) -> None:
+        util.is_table_exists(table_name, schema)
+
         if schema:
             table_name = f"{schema}.{table_name}"
 
@@ -227,7 +221,7 @@ class TableDescription(DatabaseInspection):
                     value = table_stats[column][row]
                 else:
                     value = ""
-                value = convert_to_scientific(value)
+                value = util.convert_to_scientific(value)
                 values.append(value)
 
             self._table.add_row(values)
@@ -257,3 +251,9 @@ def get_table_statistics(name, schema=None):
     and `freq` statistics.
     """
     return TableDescription(name, schema=schema)
+
+
+def get_schema_names(conn=None):
+    """Get list of schema names for a given connection"""
+    inspector = _get_inspector(conn)
+    return inspector.get_schema_names()

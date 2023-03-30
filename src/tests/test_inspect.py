@@ -26,6 +26,7 @@ def sample_db(tmp_empty):
     [
         inspect.get_table_names,
         partial(inspect.get_columns, name="some_name"),
+        inspect.get_schema_names
     ],
 )
 def test_no_active_session(function, monkeypatch):
@@ -107,3 +108,22 @@ def test_nonexistent_table(name, schema, error):
 )
 def test_telemetry(function):
     assert "@telemetry.log_call" in getsource(function)
+
+
+def test_get_schema_names(ip):
+    ip.run_cell(
+        """%%sql sqlite:///my.db
+CREATE TABLE IF NOT EXISTS test_table (id INT)
+"""
+    )
+
+    ip.run_cell(
+        """%%sql
+ATTACH DATABASE 'my.db' AS test_schema
+"""
+    )
+
+    expected_schema_names = ["main", "test_schema"]
+    schema_names = inspect.get_schema_names()
+    for schema in schema_names:
+        assert schema in expected_schema_names

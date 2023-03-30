@@ -376,3 +376,24 @@ class Connection:
             query = sqlglot.parse_one(query).sql(dialect=write_dialect)
         finally:
             return query
+
+    @classmethod
+    def get_curr_identifiers(cls) -> list:
+        """
+        Returns list of identifiers for current connection
+
+        Default identifiers are : ["", '"']
+        """
+        identifiers = ["", '"']
+        try:
+            connection_info = cls._get_curr_connection_info()
+            if connection_info:
+                cur_dialect = connection_info["dialect"]
+                identifiers_ = sqlglot.Dialect.get_or_raise(
+                    cur_dialect).Tokenizer.IDENTIFIERS
+
+                identifiers = [*set(identifiers + identifiers_)]
+        except ValueError:
+            pass
+
+        return identifiers
