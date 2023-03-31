@@ -1,6 +1,7 @@
 ---
 jupyter:
   jupytext:
+    notebook_metadata_filter: myst
     text_representation:
       extension: .md
       format_name: markdown

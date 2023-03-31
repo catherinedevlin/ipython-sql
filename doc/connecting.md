@@ -1,5 +1,6 @@
 ---
 jupytext:
+  notebook_metadata_filter: myst
   cell_metadata_filter: -all
   formats: md:myst
   text_representation:
