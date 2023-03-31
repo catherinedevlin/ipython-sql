@@ -161,6 +161,34 @@ df = %sql SELECT * FROM languages
 type(df)
 ```
 
+## `polars_dataframe_kwargs`
+
+Default: `{}`
+
+Polars [DataFrame constructor](https://pola-rs.github.io/polars/py-polars/html/reference/dataframe/index.html) keyword arguments (e.g. infer_schema_length, nan_to_null, schema_overrides, etc)
+
+```{code-cell} ipython3
+# By default Polars will only look at the first 100 rows to infer schema
+# Disable this limit by setting infer_schema_length to None
+%config SqlMagic.polars_dataframe_kwargs = { "infer_schema_length": None}
+
+# Create a table with 101 rows, last row has a string which will cause the
+# column type to be inferred as a string (rather than crashing polars)
+%sql CREATE TABLE points (x, y);
+insert_stmt = ""
+for _ in range(100):
+    insert_stmt += "INSERT INTO points VALUES (1, 2);"
+%sql {{insert_stmt}}
+%sql INSERT INTO points VALUES (1, "foo");
+
+
+%sql SELECT * FROM points
+```
+To unset:
+```{code-cell} ipython3
+%config SqlMagic.polars_dataframe_kwargs = {}
+```
+
 ## `feedback`
 
 Default: `True`

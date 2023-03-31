@@ -7,6 +7,7 @@ import tempfile
 from textwrap import dedent
 from unittest.mock import patch
 
+import polars as pl
 import pytest
 from sqlalchemy import create_engine
 from IPython.core.error import UsageError
@@ -277,19 +278,46 @@ def test_autopolars(ip):
     ip.run_line_magic("config", "SqlMagic.autopolars = True")
     dframe = runsql(ip, "SELECT * FROM test;")
 
-    import polars as pl
-
     assert type(dframe) == pl.DataFrame
     assert not dframe.is_empty()
     assert len(dframe.shape) == 2
     assert dframe["name"][0] == "foo"
 
 
+def test_autopolars_infer_schema_length(ip):
+    """Test for `SqlMagic.polars_dataframe_kwargs = {"infer_schema_length": None}`
+    Without this config, polars will raise an exception when it cannot infer the
+    correct schema from the first 100 rows.
+    """
+    # Create a table with 100 rows with a NULL value and one row with a non-NULL value
+    ip.run_line_magic("config", "SqlMagic.autopolars = True")
+    sql = ["CREATE TABLE test_autopolars_infer_schema (n INT, name TEXT)"]
+    for i in range(100):
+        sql.append(f"INSERT INTO test_autopolars_infer_schema VALUES ({i}, NULL)")
+    sql.append("INSERT INTO test_autopolars_infer_schema VALUES (100, 'foo')")
+    runsql(ip, sql)
+
+    # By default, this dataset should raise a ComputeError
+    with pytest.raises(pl.exceptions.ComputeError):
+        runsql(ip, "SELECT * FROM test_autopolars_infer_schema;")
+
+    # To avoid this error, pass the `infer_schema_length` argument to polars.DataFrame
+    line_magic = 'SqlMagic.polars_dataframe_kwargs = {"infer_schema_length": None}'
+    ip.run_line_magic("config", line_magic)
+    dframe = runsql(ip, "SELECT * FROM test_autopolars_infer_schema;")
+    assert dframe.schema == {"n": pl.Int64, "name": pl.Utf8}
+
+    # Assert that if we unset the dataframe kwargs, the error is raised again
+    ip.run_line_magic("config", "SqlMagic.polars_dataframe_kwargs = {}")
+    with pytest.raises(pl.exceptions.ComputeError):
+        runsql(ip, "SELECT * FROM test_autopolars_infer_schema;")
+
+    runsql(ip, "DROP TABLE test_autopolars_infer_schema")
+
+
 def test_mutex_autopolars_autopandas(ip):
     dframe = runsql(ip, "SELECT * FROM test;")
     assert type(dframe) == ResultSet
-
-    import polars as pl
 
     ip.run_line_magic("config", "SqlMagic.autopolars = True")
     dframe = runsql(ip, "SELECT * FROM test;")

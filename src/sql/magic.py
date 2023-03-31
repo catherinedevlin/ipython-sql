@@ -28,7 +28,7 @@ from sql.magic_cmd import SqlCmdMagic
 from ploomber_core.dependencies import check_installed
 
 from traitlets.config.configurable import Configurable
-from traitlets import Bool, Int, Unicode, observe
+from traitlets import Bool, Int, Unicode, Dict, observe
 
 try:
     from pandas.core.frame import DataFrame, Series
@@ -109,6 +109,14 @@ class SqlMagic(Magics, Configurable):
         False,
         config=True,
         help="Return Polars DataFrames instead of regular result sets",
+    )
+    polars_dataframe_kwargs = Dict(
+        {},
+        config=True,
+        help=(
+            "Polars DataFrame constructor keyword arguments"
+            "(e.g. infer_schema_length, nan_to_null, schema_overrides, etc)"
+        ),
     )
     column_local_vars = Bool(
         False, config=True, help="Return data into local variables from column names"

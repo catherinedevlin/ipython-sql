@@ -14,6 +14,8 @@
 * [Fix] Clearer error when using `--with` with snippets that do not exist (#257)
 * [Fix] Pytds now automatically compatible
 * [Doc] SQL keywords autocompletion
+* [Feature] Adds `%%config SqlMagic.polars_dataframe_kwargs = {...}`
+* [Fix] Jupysql with autopolars crashes when schema cannot be inferred from the first 100 rows ([#312](https://github.com/ploomber/jupysql/issues/312))
 
 ## 0.6.6 (2023-03-16)
 

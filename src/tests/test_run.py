@@ -32,6 +32,7 @@ def mock_config():
         autopolars = None
         autocommit = True
         feedback = True
+        polars_dataframe_kwargs = {}
 
     return Config
 
