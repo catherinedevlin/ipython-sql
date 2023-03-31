@@ -75,7 +75,7 @@ jobs:
           # Install required package for integration testing
           pip install pandas pyarrow duckdb duckdb-engine
           # Install postgreSQL driver
-          pip install psycopg2-binary pymysql pgspecial
+          pip install psycopg2-binary pymysql 'pgspecial==2.0.1'
 
           # Install MSSQL ODBC 18
           curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
