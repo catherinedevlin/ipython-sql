@@ -3,7 +3,7 @@
 name: changelog-edited
 
 on:
-  pull_request:
+  pull_request_target:
     types: [review_requested]
 
 jobs:
