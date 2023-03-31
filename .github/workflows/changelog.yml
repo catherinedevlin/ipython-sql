@@ -2,7 +2,9 @@
 # if it has been modified, it does nothing.
 name: changelog-edited
 
-on: pull_request
+on:
+  pull_request:
+    types: [review_requested]
 
 jobs:
  changelog-edited:
