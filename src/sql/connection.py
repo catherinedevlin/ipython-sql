@@ -390,7 +390,8 @@ class Connection:
             if connection_info:
                 cur_dialect = connection_info["dialect"]
                 identifiers_ = sqlglot.Dialect.get_or_raise(
-                    cur_dialect).Tokenizer.IDENTIFIERS
+                    cur_dialect
+                ).Tokenizer.IDENTIFIERS
 
                 identifiers = [*set(identifiers + identifiers_)]
         except ValueError:

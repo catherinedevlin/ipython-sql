@@ -26,7 +26,7 @@ def sample_db(tmp_empty):
     [
         inspect.get_table_names,
         partial(inspect.get_columns, name="some_name"),
-        inspect.get_schema_names
+        inspect.get_schema_names,
     ],
 )
 def test_no_active_session(function, monkeypatch):
