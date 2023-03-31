@@ -1,0 +1,60 @@
+# Workflow that prints a message to the PR if the CHANGELOG.md hasn't been modified
+# if it has been modified, it does nothing.
+name: changelog-edited
+
+on: pull_request
+
+jobs:
+ changelog-edited:
+   runs-on: ubuntu-latest
+
+   steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+
+    - name: Check CHANGELOG.md
+      id: check
+      run: |
+        BRANCH_NAME=master
+        git fetch --depth=1 origin $BRANCH_NAME:$BRANCH_NAME
+        CHANGELOG_DIFF=$(git diff "$BRANCH_NAME" CHANGELOG.md)
+
+        # https://stackoverflow.com/a/47498710/709975
+        if [[ -z `echo $CHANGELOG_DIFF` ]]
+        then
+            echo "CHANGELOG.md has **not** been edited..."
+            echo "CHANGELOG_EDITED=0" >> $GITHUB_OUTPUT
+        else
+            echo "CHANGELOG.md has been edited..."
+            echo "CHANGELOG.md diff:"
+            echo -e $CHANGELOG_DIFF
+            echo "CHANGELOG_EDITED=1" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Add comment to PR
+      uses: actions/github-script@v6
+      if: always()
+      with:
+        script: |
+          const changelog_edited = '${{ steps.check.outputs.CHANGELOG_EDITED }}' == '1'
+
+          if (!changelog_edited){
+            const body = `
+            Your PR didn't edit the CHANGELOG.md file. This is ok in some cases, however, ensure that you're following the
+            [CHANGELOG guidelines](https://ploomber-contributing.readthedocs.io/en/latest/contributing/coding.html#changelog)
+            `
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            })
+          } else {
+            console.log("CHANGELOG has been edited...")
+          }

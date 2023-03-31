@@ -1,0 +1,78 @@
+name: bot-format
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+ pkgmt-format:
+   if: contains(github.event.comment.html_url, '/pull/') && contains(github.event.comment.body, '/format') 
+   runs-on: ubuntu-latest
+
+   steps:
+    - uses: xt0rted/pull-request-comment-branch@v2
+      id: comment-branch
+
+    - name: Set latest commit status as pending
+      uses: myrotvorets/set-commit-status-action@master
+      with:
+        sha: ${{ steps.comment-branch.outputs.head_sha }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+        status: pending
+
+    # there's an alternative way to check out:
+    # https://github.com/actions/checkout/issues/331#issuecomment-925405415
+    - name: Checkout PR branch
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ steps.comment-branch.outputs.head_ref }}
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+
+    - name: format
+      run: |
+        python -m pip install --upgrade pip pkgmt
+
+        # https://github.com/actions/checkout/discussions/479#discussioncomment-625461
+        git config user.name 'github-actions[bot]'
+        git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+        pkgmt format
+
+        if [[ -z $(git status -s) ]]
+        then
+          echo "No changes to commit..."
+        else
+          echo "Committing changes..."
+          git add --all
+          git commit -m 'formattting'
+          git push
+        fi
+
+    - name: Set latest commit status as ${{ job.status }}
+      uses: myrotvorets/set-commit-status-action@master
+      if: always()
+      with:
+        sha: ${{ steps.comment-branch.outputs.head_sha }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+        status: ${{ job.status }}
+
+    - name: Add comment to PR
+      uses: actions/github-script@v6
+      if: always()
+      with:
+        script: |
+          const name = '${{ github.workflow   }}';
+          const url = '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}';
+          const success = '${{ job.status }}' === 'success';
+          const body = `${name}: ${success ? 'succeeded ✅' : 'failed ❌'}\n${url}`;
+
+          await github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: body
+          })
