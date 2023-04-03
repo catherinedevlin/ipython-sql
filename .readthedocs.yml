@@ -4,11 +4,17 @@ build:
   os: ubuntu-22.04
   tools:
     python: mambaforge-4.10
+
   jobs:
+    pre_build:
+      - pip install awscli
+      - aws configure set aws_access_key_id ${aws_access_key_id}
+      - aws configure set aws_secret_access_key ${aws_secret_access_key}
+      - aws s3 cp s3://jupysql-build-docs/${READTHEDOCS_VERSION} _readthedocs/.jupyter_cache/ --recursive
     post_build:
       - conda env export --no-build > environment.lock.yml
       - cat environment.lock.yml
-
+      - aws s3 cp _readthedocs/.jupyter_cache/ s3://jupysql-build-docs/${READTHEDOCS_VERSION} --recursive
 
 conda:
   environment: doc/environment.lock.yml
