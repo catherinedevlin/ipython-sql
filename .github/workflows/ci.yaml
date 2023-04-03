@@ -36,7 +36,7 @@ jobs:
 
       - name: Test with pytest
         run: |
-          pytest --durations-min=5 --ignore=src/tests/integration
+          pytest --durations-min=5 -n auto --ignore=src/tests/integration
 
   test-sqlalchemy-v1:
     strategy:
@@ -66,7 +66,7 @@ jobs:
 
       - name: Test with pytest
         run: |
-          pytest --durations-min=5 --ignore=src/tests/integration
+          pytest --durations-min=5 -n auto --ignore=src/tests/integration
 
   # run: pkgmt check
   check:
