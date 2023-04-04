@@ -1,7 +1,8 @@
 from typing import Iterator, Iterable
 from collections.abc import MutableMapping
+from jinja2 import Template
 from ploomber_core.exceptions import modify_exceptions
-from sqlglot import parse_one
+import sql.connection
 from IPython.core.error import UsageError
 import warnings
 import difflib
@@ -98,14 +99,26 @@ class SQLQuery:
             )
 
     def __str__(self) -> str:
-        if self._query:
-            with_all = _get_dependencies(self._store, self._with_)
-            parsed_res = parse_one(self._query)
-            for with_key in with_all:
-                with_query = self._store._data[with_key]._query
-                parsed_res = parsed_res.with_(with_key, with_query)
-            return str(parsed_res.sql())
-        return ""
+        """
+        Since some dialects don't support " (double quote) symbol, we will
+        replace to the ' (backtick) symbol if it's supported
+        """
+        with_clause_template = Template(
+            """WITH{% for name in with_ %} "{{name}}" AS ({{saved[name]._query}})\
+{{ "," if not loop.last }}{% endfor %}{{query}}"""
+        )
+        with_clause_template_backtick = Template(
+            """WITH{% for name in with_ %} `{{name}}` AS ({{saved[name]._query}})\
+{{ "," if not loop.last }}{% endfor %}{{query}}"""
+        )
+        is_use_backtick = sql.connection.Connection.is_use_backtick_template()
+        with_all = _get_dependencies(self._store, self._with_)
+        template = (
+            with_clause_template_backtick if is_use_backtick else with_clause_template
+        )
+        return template.render(
+            query=self._query, saved=self._store._data, with_=with_all
+        )
 
 
 def _get_dependencies(store, keys):

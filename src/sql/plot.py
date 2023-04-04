@@ -246,7 +246,9 @@ def boxplot(payload, table, column, *, orient="v", with_=None, conn=None, ax=Non
     if not conn:
         conn = sql.connection.Connection.current.session
 
-    payload["connection_info"] = sql.connection.Connection._get_curr_connection_info()
+    payload[
+        "connection_info"
+    ] = sql.connection.Connection._get_curr_sqlalchemy_connection_info()
 
     ax = plt.gca()
     vert = orient == "v"
@@ -362,7 +364,9 @@ def histogram(
     .. plot:: ../examples/plot_histogram_many.py
     """
     ax = ax or plt.gca()
-    payload["connection_info"] = sql.connection.Connection._get_curr_connection_info()
+    payload[
+        "connection_info"
+    ] = sql.connection.Connection._get_curr_sqlalchemy_connection_info()
     if category:
         if isinstance(column, list):
             if len(column) > 1:

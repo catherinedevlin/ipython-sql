@@ -44,9 +44,7 @@ MISSING_PACKAGE_LIST_EXCEPT_MATCHERS = {
     "pymssql": "pymssql",
 }
 
-DIALECT_NAME_SQLALCHEMY_TO_SQLGLOT_MAPPING = {
-    "postgresql": "postgres",
-}
+DIALECT_NAME_SQLALCHEMY_TO_SQLGLOT_MAPPING = {"postgresql": "postgres", "mssql": "tsql"}
 
 
 def extract_module_name_from_ModuleNotFoundError(e):
@@ -352,8 +350,16 @@ class Connection:
             conn.session.close()
 
     @classmethod
-    def _get_curr_connection_info(cls):
-        """Returns the dialect, driver, and database server version info"""
+    def _get_curr_sqlalchemy_connection_info(cls):
+        """Get the dialect, driver, and database server version info of current
+        connected dialect
+
+        Returns
+        -------
+        dict
+            The dictionary which contains the SQLAlchemy-based dialect
+            information, or None if there is no current connection.
+        """
         if not cls.current:
             return None
 
@@ -365,14 +371,59 @@ class Connection:
         }
 
     @classmethod
-    def _transpile_query(cls, query):
-        if not cls.current:
-            return query
-        connection_info = cls._get_curr_connection_info()
+    def _get_curr_sqlglot_dialect(cls):
+        """Get the dialect name in sqlglot package scope
+
+        Returns
+        -------
+        str
+            Available dialect in sqlglot package, see more:
+            https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/dialect.py
+        """
+        connection_info = cls._get_curr_sqlalchemy_connection_info()
+        if not connection_info:
+            return None
+
+        return DIALECT_NAME_SQLALCHEMY_TO_SQLGLOT_MAPPING.get(
+            connection_info["dialect"], connection_info["dialect"]
+        )
+
+    @classmethod
+    def is_use_backtick_template(cls):
+        """Get if the dialect support backtick (`) syntax as identifier
+
+        Returns
+        -------
+        bool
+            Indicate if the dialect can use backtick identifier in the SQL clause
+        """
+        cur_dialect = cls._get_curr_sqlglot_dialect()
+        if not cur_dialect:
+            return False
         try:
-            write_dialect = DIALECT_NAME_SQLALCHEMY_TO_SQLGLOT_MAPPING.get(
-                connection_info["dialect"], connection_info["dialect"]
+            return (
+                "`" in sqlglot.Dialect.get_or_raise(cur_dialect).Tokenizer.IDENTIFIERS
             )
+        except (ValueError, AttributeError, TypeError):
+            return False
+
+    @classmethod
+    def _transpile_query(cls, query):
+        """Translate the given SQL clause that's compatible to current connected
+        dialect by sqlglot
+
+        Parameters
+        ----------
+        query : str
+            Original SQL clause
+
+        Returns
+        -------
+        str
+            SQL clause that's compatible to current connected dialect
+        """
+        write_dialect = cls._get_curr_sqlglot_dialect()
+        try:
             query = sqlglot.parse_one(query).sql(dialect=write_dialect)
         finally:
             return query
@@ -386,7 +437,7 @@ class Connection:
         """
         identifiers = ["", '"']
         try:
-            connection_info = cls._get_curr_connection_info()
+            connection_info = cls._get_curr_sqlalchemy_connection_info()
             if connection_info:
                 cur_dialect = connection_info["dialect"]
                 identifiers_ = sqlglot.Dialect.get_or_raise(

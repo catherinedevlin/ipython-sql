@@ -343,7 +343,7 @@ class SqlMagic(Magics, Configurable):
         )
         payload[
             "connection_info"
-        ] = sql.connection.Connection._get_curr_connection_info()
+        ] = sql.connection.Connection._get_curr_sqlalchemy_connection_info()
         if args.persist:
             return self._persist_dataframe(
                 command.sql, conn, user_ns, append=False, index=not args.no_index
