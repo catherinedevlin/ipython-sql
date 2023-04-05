@@ -82,6 +82,6 @@ jobs:
 
           pip install ".[integration]"
       - name: Integration Test
-        run:
+        run: |
           # Run the integration test by pytest marker
           pytest src/tests/integration

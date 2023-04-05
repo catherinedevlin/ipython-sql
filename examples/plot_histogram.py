@@ -1,7 +1,6 @@
 import urllib.request
 
-# this requires duckdb: pip install duckdb
-import duckdb
+from sqlalchemy import create_engine
 
 from sql import plot
 
@@ -11,6 +10,6 @@ urllib.request.urlretrieve(
     "iris.csv",
 )
 
-conn = duckdb.connect(database=":memory:")
+conn = create_engine("duckdb://")
 
 plot.histogram("iris.csv", "petal width", bins=50, conn=conn)

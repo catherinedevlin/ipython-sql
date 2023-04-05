@@ -1,10 +1,10 @@
 from typing import Iterator
 from collections.abc import Mapping
 
-import duckdb
 import numpy as np
 from matplotlib import cbook
 from sql import plot
+from sql.connection import Connection
 from pathlib import Path
 import pytest
 
@@ -44,35 +44,38 @@ class DictOfFloats(Mapping):
         return repr(self._data)
 
 
-def test_boxplot_stats(chinook_db):
-    con = duckdb.connect(database=":memory:")
-    con.execute("INSTALL 'sqlite_scanner';")
-    con.execute("LOAD 'sqlite_scanner';")
-    con.execute(f"CALL sqlite_attach({chinook_db!r});")
+def test_boxplot_stats(chinook_db, ip_empty):
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql INSTALL 'sqlite_scanner';")
+    ip_empty.run_cell("%sql LOAD 'sqlite_scanner';")
+    ip_empty.run_cell(f"%sql CALL sqlite_attach({chinook_db!r});")
 
-    res = con.execute("SELECT * FROM Invoice")
-    X = res.df().Total
+    res = ip_empty.run_cell("%sql SELECT * FROM Invoice").result
+    X = res.DataFrame().Total
     expected = cbook.boxplot_stats(X)
-
-    result = plot._boxplot_stats(con, "Invoice", "Total")
+    result = plot._boxplot_stats(Connection.current.session, "Invoice", "Total")
 
     assert DictOfFloats(result) == DictOfFloats(expected[0])
 
 
-def test_boxplot_stats_exception(chinook_db):
-    con = duckdb.connect(database=":memory:")
-    con.execute("INSTALL 'sqlite_scanner';")
-    con.execute("LOAD 'sqlite_scanner';")
-    con.execute(f"CALL sqlite_attach({chinook_db!r});")
+def test_boxplot_stats_exception(chinook_db, ip_empty):
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql INSTALL 'sqlite_scanner';")
+    ip_empty.run_cell("%sql LOAD 'sqlite_scanner';")
+    ip_empty.run_cell(f"%sql CALL sqlite_attach({chinook_db!r});")
 
-    res = con.execute("SELECT * FROM Invoice")
-    X = res.df().Total
+    res = ip_empty.run_cell("%sql SELECT * FROM Invoice").result
+
+    X = res.DataFrame().Total
     cbook.boxplot_stats(X)
     with pytest.raises(
         BaseException, match="whis must be a float or list of percentiles.*"
     ):
         plot._boxplot_stats(
-            con, "Invoice", "Total", "Not a float or list of percentiles whis param"
+            Connection.current.session,
+            "Invoice",
+            "Total",
+            "Not a float or list of percentiles whis param",
         )
 
 

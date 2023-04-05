@@ -4,6 +4,7 @@ Plot using the SQL backend
 from ploomber_core.dependencies import requires
 from ploomber_core.exceptions import modify_exceptions
 from jinja2 import Template
+import sqlalchemy
 
 try:
     import matplotlib.pyplot as plt
@@ -41,7 +42,7 @@ FROM "{{table}}"
     if with_:
         query = str(store.render(query, with_=with_))
 
-    values = con.execute(query).fetchone()
+    values = con.execute(sqlalchemy.sql.text(query)).fetchone()
     keys = ["q1", "med", "q3", "mean", "N"]
     return {k: float(v) for k, v in zip(keys, values)}
 
@@ -63,7 +64,7 @@ FROM (
     if with_:
         query = str(store.render(query, with_=with_))
     query = sql.connection.Connection._transpile_query(query)
-    values = con.execute(query).fetchone()
+    values = con.execute(sqlalchemy.sql.text(query)).fetchone()
     keys = ["N", "wiskhi_max"]
     return {k: float(v) for k, v in zip(keys, values)}
 
@@ -85,7 +86,7 @@ FROM (
     if with_:
         query = str(store.render(query, with_=with_))
     query = sql.connection.Connection._transpile_query(query)
-    values = con.execute(query).fetchone()
+    values = con.execute(sqlalchemy.sql.text(query)).fetchone()
     keys = ["N", "wisklo_min"]
     return {k: float(v) for k, v in zip(keys, values)}
 
@@ -103,7 +104,7 @@ FROM "{{table}}"
     if with_:
         query = str(store.render(query, with_=with_))
     query = sql.connection.Connection._transpile_query(query)
-    values = con.execute(query).fetchone()[0]
+    values = con.execute(sqlalchemy.sql.text(query)).fetchone()[0]
     return values
 
 
@@ -121,7 +122,7 @@ OR  "{{column}}" > {{whishi}}
     if with_:
         query = str(store.render(query, with_=with_))
     query = sql.connection.Connection._transpile_query(query)
-    results = [float(n[0]) for n in con.execute(query).fetchall()]
+    results = [float(n[0]) for n in con.execute(sqlalchemy.sql.text(query)).fetchall()]
     return results
 
 
@@ -271,21 +272,24 @@ def boxplot(payload, table, column, *, orient="v", with_=None, conn=None, ax=Non
     return ax
 
 
-def _min_max(con, table, column, with_=None):
-    template = Template(
-        """
+def _min_max(con, table, column, with_=None, use_backticks=False):
+    template_ = """
 SELECT
     MIN("{{column}}"),
     MAX("{{column}}")
 FROM "{{table}}"
 """
-    )
+
+    if use_backticks:
+        template_ = template_.replace('"', "`")
+
+    template = Template(template_)
     query = template.render(table=table, column=column)
 
     if with_:
         query = str(store.render(query, with_=with_))
     query = sql.connection.Connection._transpile_query(query)
-    min_, max_ = con.execute(query).fetchone()
+    min_, max_ = con.execute(sqlalchemy.sql.text(query)).fetchone()
     return min_, max_
 
 
@@ -482,9 +486,13 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
     """Compute bins and heights"""
     if not conn:
         conn = sql.connection.Connection.current.session
+        use_backticks = sql.connection.Connection.is_use_backtick_template()
+    else:
+        # TODO: fix
+        use_backticks = False
 
     # FIXME: we're computing all the with elements twice
-    min_, max_ = _min_max(conn, table, column, with_=with_)
+    min_, max_ = _min_max(conn, table, column, with_=with_, use_backticks=use_backticks)
 
     filter_query = f"WHERE {facet['key']} == '{facet['value']}'" if facet else ""
 
@@ -499,8 +507,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
         range_ = max_ - min_
         bin_size = range_ / bins
 
-        template = Template(
-            """
+        template_ = """
             select
             floor("{{column}}"/{{bin_size}})*{{bin_size}},
             count(*) as count
@@ -509,13 +516,17 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
             group by 1
             order by 1;
             """
-        )
+
+        if use_backticks:
+            template_ = template_.replace('"', "`")
+
+        template = Template(template_)
+
         query = template.render(
             table=table, column=column, bin_size=bin_size, filter_query=filter_query
         )
     else:
-        template = Template(
-            """
+        template_ = """
         select
             "{{column}}", count ({{column}})
         from "{{table}}"
@@ -523,14 +534,19 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
         group by 1
         order by 1;
         """
-        )
+
+        if use_backticks:
+            template_ = template_.replace('"', "`")
+
+        template = Template(template_)
+
         query = template.render(table=table, column=column, filter_query=filter_query)
 
     if with_:
         query = str(store.render(query, with_=with_))
 
     query = sql.connection.Connection._transpile_query(query)
-    data = conn.execute(query).fetchall()
+    data = conn.execute(sqlalchemy.sql.text(query)).fetchall()
     bin_, height = zip(*data)
 
     if bin_[0] is None:

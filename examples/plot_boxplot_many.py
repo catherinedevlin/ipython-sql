@@ -1,8 +1,7 @@
 from pathlib import Path
 import urllib.request
 
-# this requires duckdb: pip install duckdb
-import duckdb
+from sqlalchemy import create_engine
 
 from sql import plot
 
@@ -13,6 +12,6 @@ if not Path("iris.csv").is_file():
         "iris.csv",
     )
 
-conn = duckdb.connect(database=":memory:")
+conn = create_engine("duckdb://")
 
 plot.boxplot("iris.csv", ["petal width", "sepal width"], conn=conn)

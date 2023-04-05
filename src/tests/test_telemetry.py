@@ -2,7 +2,7 @@ from pathlib import Path
 from unittest.mock import ANY, Mock
 import pytest
 import urllib.request
-import duckdb
+from sqlalchemy import create_engine
 from sql.telemetry import telemetry
 from sql import plot
 
@@ -40,8 +40,7 @@ def simple_file_path_penguins(tmpdir):
 
 @pytest.fixture
 def simple_db_conn():
-    conn = duckdb.connect(database=":memory:")
-    return conn
+    return create_engine("duckdb://")
 
 
 @pytest.fixture
