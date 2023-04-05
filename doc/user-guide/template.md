@@ -19,14 +19,10 @@ myst:
 
 # Parameterizing SQL queries
 
-```{note}
-This feature will be released in version 0.7, but you can give it a try now!
-
-~~~
-pip uninstall jupysql -y
-pip install git+https://github.com/ploomber/jupysql
-~~~
+```{versionchanged} 0.7
+Queries are parametrized with  `{{variable}}` instead of the legacy `{variable}`, `:variable`, and `$variable` formats from ipython-sql to prevent SQL parsing issues.
 ```
+
 
 ## Variable Expansion as `{{variable}}`
 

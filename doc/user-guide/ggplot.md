@@ -20,14 +20,13 @@ myst:
 # ggplot
 
 
-```{note}
-This feature will be released in version 0.7, but you can give it a try now!
-
+```{versionadded} 0.7
 ~~~
-pip uninstall jupysql -y
-pip install git+https://github.com/ploomber/jupysql
+pip install jupysql --upgrade
 ~~~
 ```
+
+
 
 ```{note}
 `ggplot` API requires `matplotlib`: `pip install matplotlib`
