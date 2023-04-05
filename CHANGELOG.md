@@ -18,6 +18,8 @@
 * [Feature] Adds `%%config SqlMagic.polars_dataframe_kwargs = {...}` (by [@jorisroovers](https://github.com/jorisroovers))
 * [Fix] Jupysql with autopolars crashes when schema cannot be inferred from the first 100 rows (by [@jorisroovers](https://github.com/jorisroovers)) ([#312](https://github.com/ploomber/jupysql/issues/312))
 * [Feature] Adding `sqlglot` to better support SQL dialects in some internal SQL queries
+* [Fix] Fix problem where a `%name` in a query (even if commented) would be interpreted as a query parameter (#362)
+* [Fix] Better support for MySQL and MariaDB (generating internal SQL queries with backticks instead of double quotes)
 
 ## 0.6.6 (2023-03-16)
 
