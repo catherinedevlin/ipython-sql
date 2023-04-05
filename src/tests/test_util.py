@@ -7,6 +7,64 @@ EXPECTED_NO_TABLE_IN_DEFAULT_SCHEMA = (
     "There is no table with name {0!r} in the default schema"
 )
 EXPECTED_NO_TABLE_IN_SCHEMA = "There is no table with name {0!r} in schema {1!r}"
+EXPECTED_STORE_SUGGESTIONS = (
+    "but there is a stored query.\nDid you miss passing --with {0}?"
+)
+
+
+@pytest.mark.parametrize(
+    "store_table, query",
+    [
+        ("a", "%sqlcmd columns --table {}"),
+        ("bbb", "%sqlcmd profile --table {}"),
+        ("c_c", "%sqlplot histogram --table {} --column x"),
+        ("d_d_d", "%sqlplot boxplot --table {} --column x"),
+    ],
+)
+def test_missing_with(ip, store_table, query):
+    ip.run_cell(
+        f"""
+        %%sql --save {store_table} --no-execute
+        SELECT *
+        FROM number_table
+        """
+    ).result
+
+    query = query.format(store_table)
+    out = ip.run_cell(query)
+
+    expected_store_message = EXPECTED_STORE_SUGGESTIONS.format(store_table)
+
+    error_message = str(out.error_in_exec)
+    assert isinstance(out.error_in_exec, ValueError)
+    assert str(expected_store_message).lower() in error_message.lower()
+
+
+@pytest.mark.parametrize(
+    "store_table, query",
+    [
+        ("a", "%sqlcmd columns --table {} --with {}"),
+        ("bbb", "%sqlcmd profile --table {} --with {}"),
+        ("c_c", "%sqlplot histogram --table {} --with {} --column x"),
+        ("d_d_d", "%sqlplot boxplot --table {} --with {} --column x"),
+    ],
+)
+def test_no_errors_with_stored_query(ip, store_table, query):
+    ip.run_cell(
+        f"""
+        %%sql --save {store_table} --no-execute
+        SELECT *
+        FROM number_table
+        """
+    ).result
+
+    query = query.format(store_table, store_table)
+    out = ip.run_cell(query)
+
+    expected_store_message = EXPECTED_STORE_SUGGESTIONS.format(store_table)
+    error_message = str(out.error_in_exec)
+    assert not isinstance(out.error_in_exec, ValueError)
+    assert str(expected_store_message).lower() not in error_message.lower()
 
 
 @pytest.mark.parametrize(
@@ -25,6 +83,7 @@ EXPECTED_NO_TABLE_IN_SCHEMA = "There is no table with name {0!r} in schema {1!r}
 def test_bad_table_error_message(ip, table, query, suggestions):
     query = query.format(table)
     out = ip.run_cell(query)
+
     expected_error_message = EXPECTED_NO_TABLE_IN_DEFAULT_SCHEMA.format(table)
 
     error_message = str(out.error_in_exec)

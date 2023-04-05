@@ -94,12 +94,21 @@ def is_table_exists(
                     f"There is no table with name {table!r} in the default schema"
                 )
 
-            suggestions = difflib.get_close_matches(invalid_input, expected)
+            if table in list(store):
+                # Suggest user use --with when given table
+                # is in the store
+                suggestion_message = (
+                    ", but there is a stored query."
+                    f"\nDid you miss passing --with {table}?"
+                )
+                err_message = f"{err_message}{suggestion_message}"
+            else:
+                suggestions = difflib.get_close_matches(invalid_input, expected)
 
-            if len(suggestions) > 0:
-                _suggestions_string = pretty_print(suggestions, last_delimiter="or")
-                suggestions_message = f"\nDid you mean : {_suggestions_string}"
-                err_message = f"{err_message}{suggestions_message}"
+                if len(suggestions) > 0:
+                    _suggestions_string = pretty_print(suggestions, last_delimiter="or")
+                    suggestions_message = f"\nDid you mean : {_suggestions_string}"
+                    err_message = f"{err_message}{suggestions_message}"
 
             raise ValueError(err_message)
 
@@ -147,21 +156,22 @@ def _is_table_exists(table: str, with_: str) -> bool:
     """
     Runs a SQL query to check if table exists
     """
-
     identifiers = Connection.get_curr_identifiers()
-
-    for iden in identifiers:
-        if isinstance(iden, tuple):
-            query = "SELECT * FROM {0}{1}{2} WHERE 1=0".format(iden[0], table, iden[1])
-        else:
-            query = "SELECT * FROM {0}{1}{0} WHERE 1=0".format(iden, table)
-        try:
-            if with_:
-                query = str(store.render(query, with_=with_))
-            query = sql.connection.Connection._transpile_query(query)
-            sql.run.raw_run(Connection.current, query)
-            return True
-        except Exception:
-            pass
+    if with_:
+        return table in list(store)
+    else:
+        for iden in identifiers:
+            if isinstance(iden, tuple):
+                query = "SELECT * FROM {0}{1}{2} WHERE 1=0".format(
+                    iden[0], table, iden[1]
+                )
+            else:
+                query = "SELECT * FROM {0}{1}{0} WHERE 1=0".format(iden, table)
+            try:
+                query = sql.connection.Connection._transpile_query(query)
+                sql.run.raw_run(Connection.current, query)
+                return True
+            except Exception:
+                pass
 
     return False
