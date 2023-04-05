@@ -77,6 +77,35 @@ Check out our guide for connecting to a database:
 %load_ext sql
 ```
 
+### DSN connections
+
+```{tip} 
+It is recommended to use config file for connection as it's more secure and do not expose credentials.
+```
+
+To ensure the security of your credentials, you can store connection information in a configuration file, under a section name chosen to  refer to your database.
+
+For instance, suppose you have a configuration file named _dsn.ini_ that contains the following section:
+
+```
+[DB_CONFIG_1] 
+drivername=postgres 
+host=my.remote.host 
+port=5433 
+database=mydatabase 
+username=myuser 
+password=1234
+```
+
+then you can establish a connection to your database by running the following commands:
+
+```
+%config SqlMagic.dsn_filename='./dsn.ini'
+%sql --section DB_CONFIG_1 
+```
+
++++
+
 ### Building connection string
 
 One option is to use `getpass`, type your password, build your connection string and pass it to `%sql`:
@@ -110,31 +139,6 @@ environ["DATABASE_URL"] = f"postgresql://user:{password}@localhost/database"
 ```python
 # without any args, %sql reads from DATABASE_URL
 %sql
-```
-
-+++
-
-## DSN connections
-
-Alternately, you can store connection info in a configuration file, under a section name chosen to  refer to your database.
-
-For example, if dsn.ini contains:
-
-```
-[DB_CONFIG_1] 
-drivername=postgres 
-host=my.remote.host 
-port=5433 
-database=mydatabase 
-username=myuser 
-password=1234
-```
-
-then you can:
-
-```
-%config SqlMagic.dsn_filename='./dsn.ini'
-%sql --section DB_CONFIG_1 
 ```
 
 +++
