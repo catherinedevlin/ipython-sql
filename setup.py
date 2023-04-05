@@ -45,7 +45,6 @@ DEV = [
     "black",
     # for %%sql --interact
     "ipywidgets",
-    "pytest-xdist",
 ]
 
 # dependencies for running integration tests
