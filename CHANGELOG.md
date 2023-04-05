@@ -1,25 +1,26 @@
 # CHANGELOG
 
-## 0.7.0dev
-* [Fix] Clearer error when using bad table/schema name with `%sqlcmd` and `%sqlplot` (#155)
-* [Fix] Fix `%sqlcmd` exception handling (#262)
-* [Doc] Tutorial on ETLs via Jupysql and Github actions
-* [Feature] Adds `%sqlcmd profile` (#66)
+## 0.7.0 (2023-04-05)
+
 * [API Change] Deprecates old SQL parametrization: `$var`, `:var`, and `{var}` in favor of `{{var}}`
-* [Fix] `--save` + `--with` double quotes syntax error in MySQL ([#145](https://github.com/ploomber/jupysql/issues/145))
+* [Feature] Adds `%sqlcmd profile` ([#66](https://github.com/ploomber/jupysql/issues/66))
 * [Feature] Adds `%sqlcmd test` to run tests on tables
-* [Feature] Adds `--interact` argument to `%%sql` to enable interactivity in parametrized SQL queries (#293)
-* [Feature] Results parse HTTP URLs to make them clickable (#230)
+* [Feature] Adds `--interact` argument to `%%sql` to enable interactivity in parametrized SQL queries ([#293](https://github.com/ploomber/jupysql/issues/293))
+* [Feature] Results parse HTTP URLs to make them clickable ([#230](https://github.com/ploomber/jupysql/issues/230))
 * [Feature] Adds `ggplot` plotting API (histogram and boxplot)
-* [Fix] Clearer error when using `--with` with snippets that do not exist (#257)
+* [Feature] Adds `%%config SqlMagic.polars_dataframe_kwargs = {...}` (by [@jorisroovers](https://github.com/jorisroovers))
+* [Feature] Adding `sqlglot` to better support SQL dialects in some internal SQL queries
+* [Fix] Clearer error when using bad table/schema name with `%sqlcmd` and `%sqlplot` ([#155](https://github.com/ploomber/jupysql/issues/155))
+* [Fix] Fix `%sqlcmd` exception handling ([#262](https://github.com/ploomber/jupysql/issues/262))
+* [Fix] `--save` + `--with` double quotes syntax error in MySQL ([#145](https://github.com/ploomber/jupysql/issues/145))
+* [Fix] Clearer error when using `--with` with snippets that do not exist ([#257](https://github.com/ploomber/jupysql/issues/257))
 * [Fix] Pytds now automatically compatible
+* [Fix] Jupysql with autopolars crashes when schema cannot be inferred from the first 100 rows (by [@jorisroovers](https://github.com/jorisroovers)) ([#312](https://github.com/ploomber/jupysql/issues/312))
+* [Fix] Fix problem where a `%name` in a query (even if commented) would be interpreted as a query parameter ([#362](https://github.com/ploomber/jupysql/issues/362))
+* [Fix] Better support for MySQL and MariaDB (generating internal SQL queries with backticks instead of double quotes)
+* [Doc] Tutorial on ETLs via Jupysql and Github actions
 * [Doc] SQL keywords autocompletion
 * [Doc] Included schema and dataspec into `%sqlrender` API reference
-* [Feature] Adds `%%config SqlMagic.polars_dataframe_kwargs = {...}` (by [@jorisroovers](https://github.com/jorisroovers))
-* [Fix] Jupysql with autopolars crashes when schema cannot be inferred from the first 100 rows (by [@jorisroovers](https://github.com/jorisroovers)) ([#312](https://github.com/ploomber/jupysql/issues/312))
-* [Feature] Adding `sqlglot` to better support SQL dialects in some internal SQL queries
-* [Fix] Fix problem where a `%name` in a query (even if commented) would be interpreted as a query parameter (#362)
-* [Fix] Better support for MySQL and MariaDB (generating internal SQL queries with backticks instead of double quotes)
 
 ## 0.6.6 (2023-03-16)
 
