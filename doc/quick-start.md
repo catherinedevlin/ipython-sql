@@ -42,6 +42,12 @@ Or the following in a Jupyter notebook:
 %pip install jupysql duckdb-engine --quiet
 ```
 
+You might also install it from conda:
+
+```sh
+conda install jupysql -c conda-forge
+```
+
 ## Setup
 
 ```{tip}

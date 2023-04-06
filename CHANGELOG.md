@@ -5,6 +5,8 @@
 
 ## 0.7.0 (2023-04-05)
 
+JupySQL is now available via `conda install jupysql -c conda-forge`. Thanks, [@sterlinm](https://github.com/sterlinm)!
+
 * [API Change] Deprecates old SQL parametrization: `$var`, `:var`, and `{var}` in favor of `{{var}}`
 * [Feature] Adds `%sqlcmd profile` ([#66](https://github.com/ploomber/jupysql/issues/66))
 * [Feature] Adds `%sqlcmd test` to run tests on tables

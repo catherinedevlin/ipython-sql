@@ -42,6 +42,12 @@ Run SQL in Jupyter/IPython via a `%sql` and `%%sql` magics.
 pip install jupysql
 ```
 
+or:
+
+```
+conda install jupysql -c conda-forge
+```
+
 ## Documentation
 
 [Click here to see the documentation.](https://jupysql.ploomber.io)
