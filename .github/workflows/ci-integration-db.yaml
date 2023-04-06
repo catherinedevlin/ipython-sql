@@ -1,6 +1,12 @@
 name: CI - DB Integration
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+      - 'dev/**'
+  pull_request:
+
 
 jobs:
   database-integration-test:
