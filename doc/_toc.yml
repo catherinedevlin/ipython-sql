@@ -29,6 +29,7 @@ parts:
       - file: integrations/clickhouse
       - file: integrations/mindsdb
       - file: integrations/postgres-connect
+      - file: integrations/compatibility
 
   - caption: API Reference
     chapters:
