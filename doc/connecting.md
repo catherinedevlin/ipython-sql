@@ -60,7 +60,7 @@ a flag with (-a|--connection_arguments)the connection string as a JSON string. S
 
 +++
 
-## Connecting to Specifit Databases
+## Connecting to Databases
 
 Check out our guide for connecting to a database:
 
@@ -73,7 +73,7 @@ Check out our guide for connecting to a database:
 
 +++
 
-## Connecting securely
+## Secure Connections
 
 **It is highly recommended** that you do not pass plain credentials.
 
@@ -101,7 +101,7 @@ connection_string = f"postgresql://user:{password}@localhost/database"
 
 +++
 
-You can also set the `DATABASE_URL` environment variable, and `%sql` will automatically load it from there. You can do it either by setting the environment variable from your terminal or in your notebook:
+Alternatively, set the `DATABASE_URL` environment variable, and `%sql` will automatically load it. You can do this either by setting the environment variable from your terminal or in your notebook:
 
 ```python
 from getpass import getpass
@@ -120,7 +120,7 @@ environ["DATABASE_URL"] = f"postgresql://user:{password}@localhost/database"
 
 ## Using DSN connections
 
-Alternately, you can store connection info in a configuration file, under a section name chosen to  refer to your database.
+You can also store connection information in a configuration file under a section name referring to your database. 
 
 For example, if `dsn.ini` contains:
 
@@ -145,10 +145,7 @@ then you can:
 
 ## Using an existing `sqlalchemy.engine.Engine`
 
-```{versionadded} 0.5.1
-```
-
-Use an existing `Engine` by passing the variable name to `%sql`.
+Available since version 0.5.1, you can use an existing `Engine` by passing the variable name to `%sql`.
 
 ```{code-cell} ipython3
 import pandas as pd
@@ -176,3 +173,14 @@ df.to_sql("numbers", engine)
 %%sql
 SELECT * FROM numbers
 ```
+## Conclusion
+
+In this tutorial demonstrated how to leverage the power of SQL Magic in Jupyter Notebooks for connecting to and interacting with databases. We covered key aspects such as:
+
+- Connection strings for different databases following SQLAlchemy URL standards.
+- Connecting to databases using the %sql magic command.
+- Securely connecting to databases by avoiding plain credentials and using methods like getpass and DATABASE_URL environment variable.
+- Using DSN connections for managing connection information in configuration files.
+- Utilizing existing sqlalchemy.engine.Engine instances for database connections.
+
+With these techniques, you can confidently manage connections to your databases while ensuring security and flexibility. SQL Magic provides a convenient and powerful way to execute SQL queries and analyze data within Jupyter Notebooks.
