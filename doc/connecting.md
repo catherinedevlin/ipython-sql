@@ -18,9 +18,13 @@ myst:
     property=og:locale: "en_US"
 ---
 
-# Connecting
+# Connecting to Databases with SQL Magic
 
-Connection strings are [SQLAlchemy URL](http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls) standard.
+Learn how to connect to various databases using SQL Magic in this tutorial. SQL Magic is a Jupyter Notebook extension that allows you to execute SQL queries directly in your notebook cells. We'll show you how to establish connections, connect securely, and use existing `sqlalchemy.engine.Engine` instances.
+
+## Establishing a connection
+
+Connection strings follow the SQLAlchemy URL standard. Here are some example connection strings for various databases:
 
 Some example connection strings:
 
@@ -32,15 +36,13 @@ sqlite:///foo.db
 mssql+pyodbc://username:password@host/database?driver=SQL+Server+Native+Client+11.0
 ```
 
-Note that `mysql` and `mysql+pymysql` connections (and perhaps others)
-don't read your client character set information from .my.cnf.  You need
-to specify it in the connection string::
+**Note:** `mysql` and `mysql+pymysql` connections (and perhaps others) don't read your client character set information from `.my.cnf.` You need to specify it in the connection string:
 
 ```
 mysql+pymysql://scott:tiger@localhost/foo?charset=utf8
 ```
 
-Note that an `impala` connection with [`impyla`](https://github.com/cloudera/impyla) for HiveServer2 requires disabling autocommit::
+For an `impala` connection with [`impyla`](https://github.com/cloudera/impyla) for HiveServer2, you need to disable autocommit:
 
 ```
 %config SqlMagic.autocommit=False
@@ -58,11 +60,16 @@ a flag with (-a|--connection_arguments)the connection string as a JSON string. S
 
 +++
 
-## Connecting to...
+## Connecting to Specifit Databases
 
 Check out our guide for connecting to a database:
 
 - [PostgreSQL](integrations/postgres-connect)
+- [ClickHouse](integrations/clickhouse)
+- [MariaDB](integrations/mariadb)
+- [MindsDB](integrations/mindsdb)
+- [MSSQL](integrations/mssql)
+- [MySQL](integrations/mysql)
 
 +++
 
@@ -74,7 +81,7 @@ Check out our guide for connecting to a database:
 %load_ext sql
 ```
 
-### Building connection string
+### Building connection strings with `getpass`
 
 One option is to use `getpass`, type your password, build your connection string and pass it to `%sql`:
 
@@ -94,7 +101,7 @@ connection_string = f"postgresql://user:{password}@localhost/database"
 
 +++
 
-You may also set the `DATABASE_URL` environment variable, and `%sql` will automatically load it from there. You can do it either by setting the environment variable from your terminal or in your notebook:
+You can also set the `DATABASE_URL` environment variable, and `%sql` will automatically load it from there. You can do it either by setting the environment variable from your terminal or in your notebook:
 
 ```python
 from getpass import getpass
@@ -111,11 +118,11 @@ environ["DATABASE_URL"] = f"postgresql://user:{password}@localhost/database"
 
 +++
 
-## DSN connections
+## Using DSN connections
 
 Alternately, you can store connection info in a configuration file, under a section name chosen to  refer to your database.
 
-For example, if dsn.ini contains:
+For example, if `dsn.ini` contains:
 
 ```
 [DB_CONFIG_1] 
