@@ -16,7 +16,6 @@ def test_query_count(ip_with_MSSQL):
     assert len(out) == 3
 
 
-@pytest.mark.xfail(reason="Known sqlglot issue, addressing in: jupysql/issues/307")
 def test_cte(ip_with_MSSQL):
     ip_with_MSSQL.run_cell(
         "%sql --save taxi_subset --no-execute \

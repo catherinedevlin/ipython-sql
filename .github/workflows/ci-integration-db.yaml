@@ -15,58 +15,6 @@ jobs:
         python-version: ['3.11']
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
-    services:
-    # postgreSQL Service
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_DB: db
-          POSTGRES_USER: ploomber_app
-          POSTGRES_PASSWORD: ploomber_app_password
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-      # mySQL Service
-      mysql:
-        image: mysql
-        env:
-          MYSQL_DATABASE: db
-          MYSQL_USER: ploomber_app
-          MYSQL_PASSWORD: ploomber_app_password
-          MYSQL_ROOT_PASSWORD: ploomber_app_root_password
-        ports:
-          - 33306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-      mariadb:
-      # mariaDB Service
-        image: mariadb
-        env:
-          MYSQL_DATABASE: db
-          MYSQL_USER: ploomber_app
-          MYSQL_PASSWORD: ploomber_app_password
-          MYSQL_ROOT_PASSWORD: ploomber_app_root_password
-        ports:
-          - 33309:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
-      # MSSQL Service
-      mssql:
-        image: mcr.microsoft.com/azure-sql-edge
-        env:
-          ACCEPT_EULA: Y
-          MSSQL_DATABASE: master
-          MSSQL_USER: sa
-          MSSQL_SA_PASSWORD: Ploomber_App@Root_Password
-        ports: 
-          - 1433:1433
-        options: >-
-            --health-cmd "/opt/mssql-tools/bin/sqlcmd -U $DB_USER -P $SA_PASSWORD -Q 'select 1' -b -o /dev/null"
-            --health-interval 5s
-            --health-timeout 2s
-            --health-retries 3
     steps:
       - uses: actions/checkout@v2
 
@@ -90,4 +38,4 @@ jobs:
       - name: Integration Test
         run: |
           # Run the integration test by pytest marker
-          pytest src/tests/integration
+          pytest src/tests/integration --verbose

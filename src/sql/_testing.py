@@ -132,13 +132,10 @@ client = docker.from_env()
 def database_ready(
     database,
     timeout=20,
-    poll_freq=0.2,
+    poll_freq=0.5,
 ):
-    """Wait until a postgres instance is ready to receive connections.
+    """Wait until the container is ready to receive connections.
 
-    .. note::
-
-        This requires psycopg2 to be installed.
 
     :type host: str
     :type port: int
@@ -147,15 +144,23 @@ def database_ready(
     """
     import sqlalchemy
 
+    errors = []
+
     t0 = time.time()
     while time.time() - t0 < timeout:
         try:
             eng = sqlalchemy.create_engine(_get_database_url(database)).connect()
             eng.close()
             return True
-        except Exception:
-            pass
+        except Exception as e:
+            errors.append(str(e))
+
         time.sleep(poll_freq)
+
+    # print all the errors so we know what's goin on since failing to connect might be
+    # to some misconfiguration error
+    errors_ = "\n".join(errors)
+    print(f"ERRORS: {errors_}")
 
     return False
 

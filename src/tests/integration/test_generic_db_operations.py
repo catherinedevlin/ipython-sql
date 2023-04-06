@@ -6,6 +6,15 @@ from sql.telemetry import telemetry
 from unittest.mock import ANY, Mock
 import math
 
+ALL_DATABASES = [
+    "ip_with_postgreSQL",
+    "ip_with_mySQL",
+    "ip_with_mariaDB",
+    "ip_with_SQLite",
+    "ip_with_duckDB",
+    "ip_with_MSSQL",
+]
+
 
 @pytest.fixture(autouse=True)
 def run_around_tests(tmpdir_factory):
@@ -182,6 +191,10 @@ def test_telemetry_execute_command_has_connection_info(
         ("ip_with_mariaDB"),
         ("ip_with_SQLite"),
         ("ip_with_duckDB"),
+        pytest.param(
+            "ip_with_MSSQL",
+            marks=pytest.mark.xfail(reason="sqlglot does not support SQL server"),
+        ),
     ],
 )
 def test_sqlplot_histogram(ip_with_dynamic_db, cell, request):
@@ -249,17 +262,7 @@ def test_sqlplot_boxplot(ip_with_dynamic_db, cell, request):
     assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
 
 
-@pytest.mark.parametrize(
-    "ip_with_dynamic_db",
-    [
-        ("ip_with_postgreSQL"),
-        ("ip_with_mySQL"),
-        ("ip_with_mariaDB"),
-        ("ip_with_SQLite"),
-        ("ip_with_duckDB"),
-        ("ip_with_MSSQL"),
-    ],
-)
+@pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
 def test_sql_cmd_magic_uno(ip_with_dynamic_db, request):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 
@@ -273,17 +276,7 @@ def test_sql_cmd_magic_uno(ip_with_dynamic_db, request):
     assert "greater" in result.keys()
 
 
-@pytest.mark.parametrize(
-    "ip_with_dynamic_db",
-    [
-        ("ip_with_postgreSQL"),
-        ("ip_with_mySQL"),
-        ("ip_with_mariaDB"),
-        ("ip_with_SQLite"),
-        ("ip_with_duckDB"),
-        ("ip_with_MSSQL"),
-    ],
-)
+@pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
 def test_sql_cmd_magic_dos(ip_with_dynamic_db, request):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 
@@ -414,3 +407,42 @@ def test_profile_query(request, ip_with_dynamic_db, table, table_columns, expect
 
             assert criteria in expected
             assert cell_value == str(expected[criteria][i])
+
+
+@pytest.mark.parametrize(
+    "cell",
+    [
+        "%sqlcmd tables",
+        "%sqlcmd columns --table numbers",
+    ],
+)
+@pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
+def test_sqlcmd_tables_columns(ip_with_dynamic_db, cell, request):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    out = ip_with_dynamic_db.run_cell(cell)
+    assert out.result
+
+
+@pytest.mark.parametrize(
+    "cell",
+    [
+        "%%sql\nSELECT * FROM numbers WHERE 0=1",
+        "%%sql --with subset\nSELECT * FROM subset WHERE 0=1",
+        "%%sql\nSELECT *\n-- %one $another\nFROM numbers WHERE 0=1",
+    ],
+    ids=[
+        "simple-query",
+        "cte",
+        "interpolation-like-comment",
+    ],
+)
+@pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
+def test_sql_query(ip_with_dynamic_db, cell, request):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    ip_with_dynamic_db.run_cell(
+        """%%sql --save subset --no-execute
+SELECT * FROM numbers WHERE 1=0
+"""
+    )
+    out = ip_with_dynamic_db.run_cell(cell)
+    assert out.error_in_exec is None
