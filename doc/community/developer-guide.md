@@ -19,9 +19,27 @@ myst:
 
 # Developer guide
 
+Before continuing, ensure you have a working [development environment.](https://ploomber-contributing.readthedocs.io/en/latest/contributing/setup.html)
+
 +++
 
 ## Unit testing
+
+### Running tests
+
+Unit tests are executed on each PR; however, you might need to run them locally.
+
+To run all unit tests:
+
+```sh
+pytest --ignore=src/tests/integration
+```
+
+To run a specific file:
+
+```sh
+pytest src/tests/TEST_FILE_NAME.py
+```
 
 ### Magics (e.g., `%sql`, `%%sql`, etc)
 
@@ -135,3 +153,51 @@ with pytest.raises(ZeroDivisionError) as excinfo:
 ```{code-cell} ipython3
 assert str(excinfo.value) == "division by zero"
 ```
+
+## Integration tests
+
+Integration tests check compatibility with different databases. They are executed on
+each PR; however, you might need to run them locally.
+
+```{note}
+Setting up the development environment for running integration tests locally
+is challenging given the number of dependencies. If you have problems,
+[message us on Slack.](https://ploomber.io/community)
+```
+
+Ensure you have [Docker Desktop](https://docs.docker.com/desktop/) before continuing.
+
+To install all dependencies:
+
+```sh
+# create development environment (you can skip this if you already executed it)
+pkgmt setup
+
+# activate environment
+conda activate jupysql
+
+# install depdencies
+pip install -e '.[integration]'
+```
+
+```{tip}
+Ensure Docker is running before continuing!
+```
+
+To run all integration tests (the tests are pre-configured to start and shut down
+the required Docker images):
+
+```sh
+pytest src/tests/integration
+```
+
+```{important}
+If you're using **Windows**, the command above might get stuck. Send us a [message on Slack](https://ploomber.io/community) if it happens.
+```
+
+To run some of the tests:
+
+```sh
+pytest src/tests/integration/test_generic_db_operations.py::test_profile_query
+```
+
