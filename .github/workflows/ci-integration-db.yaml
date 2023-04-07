@@ -3,7 +3,7 @@ name: CI - DB Integration
 on:
   push:
     branches:
-      - main
+      - master
       - 'dev/**'
   pull_request:
 
