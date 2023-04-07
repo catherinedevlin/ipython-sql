@@ -17,6 +17,7 @@ try:
     from pgspecial.main import PGSpecial
 except ImportError:
     PGSpecial = None
+from sqlalchemy.orm import Session
 
 from sql.telemetry import telemetry
 import logging
@@ -390,7 +391,8 @@ def _commit(conn, config, manual_commit):
 
     if _should_commit:
         try:
-            conn.session.execute("commit")
+            with Session(conn.session) as session:
+                session.commit()
         except sqlalchemy.exc.OperationalError:
             print("The database does not support the COMMIT command")
 

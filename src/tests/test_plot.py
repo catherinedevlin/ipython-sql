@@ -47,6 +47,7 @@ class DictOfFloats(Mapping):
 def test_boxplot_stats(chinook_db, ip_empty):
     ip_empty.run_cell("%sql duckdb://")
     ip_empty.run_cell("%sql INSTALL 'sqlite_scanner';")
+    ip_empty.run_cell("%sql commit")
     ip_empty.run_cell("%sql LOAD 'sqlite_scanner';")
     ip_empty.run_cell(f"%sql CALL sqlite_attach({chinook_db!r});")
 
@@ -61,6 +62,7 @@ def test_boxplot_stats(chinook_db, ip_empty):
 def test_boxplot_stats_exception(chinook_db, ip_empty):
     ip_empty.run_cell("%sql duckdb://")
     ip_empty.run_cell("%sql INSTALL 'sqlite_scanner';")
+    ip_empty.run_cell("%sql commit")
     ip_empty.run_cell("%sql LOAD 'sqlite_scanner';")
     ip_empty.run_cell(f"%sql CALL sqlite_attach({chinook_db!r});")
 

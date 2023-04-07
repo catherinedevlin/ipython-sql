@@ -3,6 +3,7 @@ import math
 import sql.connection
 from sql.store import store
 from sql.telemetry import telemetry
+import sqlalchemy
 
 
 def _run_query(query, with_=None, conn=None):
@@ -12,7 +13,7 @@ def _run_query(query, with_=None, conn=None):
     if with_:
         query = str(store.render(query, with_=with_))
 
-    return conn.execute(query).fetchall()
+    return conn.execute(sqlalchemy.text(query)).fetchall()
 
 
 class facet:

@@ -150,16 +150,16 @@ def test_table_profile(ip, tmp_empty):
 
 def test_table_schema_profile(ip, tmp_empty):
     with sqlite3.connect("a.db") as conn:
-        conn.execute("CREATE TABLE t (n FLOAT)")
-        conn.execute("INSERT INTO t VALUES (1)")
-        conn.execute("INSERT INTO t VALUES (2)")
-        conn.execute("INSERT INTO t VALUES (3)")
+        conn.execute(("CREATE TABLE t (n FLOAT)"))
+        conn.execute(("INSERT INTO t VALUES (1)"))
+        conn.execute(("INSERT INTO t VALUES (2)"))
+        conn.execute(("INSERT INTO t VALUES (3)"))
 
     with sqlite3.connect("b.db") as conn:
-        conn.execute("CREATE TABLE t (n FLOAT)")
-        conn.execute("INSERT INTO t VALUES (11)")
-        conn.execute("INSERT INTO t VALUES (22)")
-        conn.execute("INSERT INTO t VALUES (33)")
+        conn.execute(("CREATE TABLE t (n FLOAT)"))
+        conn.execute(("INSERT INTO t VALUES (11)"))
+        conn.execute(("INSERT INTO t VALUES (22)"))
+        conn.execute(("INSERT INTO t VALUES (33)"))
 
     ip.run_cell(
         """

@@ -1,6 +1,6 @@
 import urllib.request
 
-from sqlalchemy import create_engine
+from sql.connection import Connection
 
 from sql import plot
 
@@ -10,6 +10,6 @@ urllib.request.urlretrieve(
     "iris.csv",
 )
 
-conn = create_engine("duckdb://")
+conn = Connection.from_connect_str("duckdb://").session
 
 plot.histogram("iris.csv", "petal width", bins=50, conn=conn)

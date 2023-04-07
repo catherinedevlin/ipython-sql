@@ -606,6 +606,6 @@ def _histogram_stacked(
         query = str(store.render(query, with_=with_))
 
     query = sql.connection.Connection._transpile_query(query)
-    data = conn.execute(query).fetchall()
+    data = conn.execute(sqlalchemy.text(query)).fetchall()
 
     return data

@@ -11,7 +11,7 @@ def connection_from_dsn_section(section, config):
     parser = CP.ConfigParser()
     parser.read(config.dsn_filename)
     cfg_dict = dict(parser.items(section))
-    return str(URL(**cfg_dict))
+    return str(URL.create(**cfg_dict).render_as_string(hide_password=False))
 
 
 def _connection_string(s, config):
@@ -23,7 +23,7 @@ def _connection_string(s, config):
         parser = CP.ConfigParser()
         parser.read(config.dsn_filename)
         cfg_dict = dict(parser.items(section))
-        return str(URL(**cfg_dict))
+        return str(URL.create(**cfg_dict))
     return ""
 
 
