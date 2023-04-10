@@ -3,23 +3,23 @@ import pytest
 from matplotlib import pyplot as plt
 
 
-def test_query_count(ip_with_MSSQL):
+def test_query_count(ip_with_MSSQL, test_table_name_dict):
     # MSSQL doesn't have LIMIT
     out = ip_with_MSSQL.run_line_magic(
         "sql",
-        """
+        f"""
         SELECT TOP 3 *
-        FROM taxi
+        FROM {test_table_name_dict['taxi']}
         """,
     )
 
     assert len(out) == 3
 
 
-def test_cte(ip_with_MSSQL):
+def test_cte(ip_with_MSSQL, test_table_name_dict):
     ip_with_MSSQL.run_cell(
-        "%sql --save taxi_subset --no-execute \
-        SELECT TOP 3 * FROM taxi "
+        f"%sql --save taxi_subset --no-execute \
+        SELECT TOP 3 * FROM {test_table_name_dict['taxi']} "
     )
     out_query_with_save_arg = ip_with_MSSQL.run_cell(
         "%sql --with taxi_subset SELECT * FROM taxi_subset"
@@ -27,24 +27,32 @@ def test_cte(ip_with_MSSQL):
     assert len(out_query_with_save_arg.result) == 3
 
 
-def test_create_table_with_indexed_df(ip_with_MSSQL):
+def test_create_table_with_indexed_df(ip_with_MSSQL, test_table_name_dict):
     # MSSQL gives error if DB doesn't exist
     try:
-        ip_with_MSSQL.run_cell("%sql DROP TABLE new_table_from_df")
+        ip_with_MSSQL.run_cell(
+            f"%sql DROP TABLE {test_table_name_dict['new_table_from_df']}"
+        )
     except pyodbc.ProgrammingError as e:
         print(f"Error: {e}")
 
     # Prepare DF
     ip_with_MSSQL.run_cell(
-        """results = %sql\
+        f"""results = %sql\
                     SELECT TOP 15 *\
-                    FROM taxi
+                    FROM {test_table_name_dict['taxi']}
                     """
     )
-    ip_with_MSSQL.run_cell("new_table_from_df = results.DataFrame()")
+    ip_with_MSSQL.run_cell(
+        f"{test_table_name_dict['new_table_from_df']} = results.DataFrame()"
+    )
     # Create table from DF
-    persist_out = ip_with_MSSQL.run_cell("%sql --persist new_table_from_df")
-    query_out = ip_with_MSSQL.run_cell("%sql SELECT * FROM new_table_from_df")
+    persist_out = ip_with_MSSQL.run_cell(
+        f"%sql --persist {test_table_name_dict['new_table_from_df']}"
+    )
+    query_out = ip_with_MSSQL.run_cell(
+        f"%sql SELECT * FROM {test_table_name_dict['new_table_from_df']}"
+    )
     assert persist_out.error_in_exec is None and query_out.error_in_exec is None
     assert len(query_out.result) == 15
 

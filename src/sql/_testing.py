@@ -5,6 +5,8 @@ import time
 import docker
 from docker import errors
 from sqlalchemy.engine import URL
+import os
+
 
 TMP_DIR = "tmp"
 
@@ -109,6 +111,21 @@ databaseConfig = {
             "ports": {1433: 1433},
         },
         "alias": "MSSQLTest",
+    },
+    "Snowflake": {
+        "drivername": "snowflake",
+        "username": os.getenv("SF_USERNAME"),
+        "password": os.getenv("SF_PASSWORD"),
+        # database/schema
+        "database": os.getenv("SF_DATABASE"),
+        "host": "lpb17716.us-east-1",
+        "port": None,
+        "alias": "snowflakeTest",
+        "docker_ct": None,
+        "query": {
+            "warehouse": "COMPUTE_WH",
+            "role": "SYSADMIN",
+        },
     },
 }
 

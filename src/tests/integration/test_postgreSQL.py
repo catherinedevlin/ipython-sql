@@ -1,7 +1,12 @@
-def test_meta_cmd_display(ip_with_postgreSQL):
+def test_meta_cmd_display(ip_with_postgreSQL, test_table_name_dict):
     out = ip_with_postgreSQL.run_cell("%sql \d")  # noqa: W605
     assert len(out.result) > 0
-    assert ("public", "taxi", "table", "ploomber_app") in out.result
+    assert (
+        "public",
+        test_table_name_dict["taxi"],
+        "table",
+        "ploomber_app",
+    ) in out.result
 
 
 def test_auto_commit_mode_on(ip_with_postgreSQL, capsys):

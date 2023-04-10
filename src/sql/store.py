@@ -100,11 +100,11 @@ class SQLQuery:
 
     def __str__(self) -> str:
         """
-        Since some dialects don't support " (double quote) symbol, we will
-        replace to the ' (backtick) symbol if it's supported
+        We use the ' (backtick symbol) to wrap the CTE alias if the dialect supports
+        ` (backtick)
         """
         with_clause_template = Template(
-            """WITH{% for name in with_ %} "{{name}}" AS ({{saved[name]._query}})\
+            """WITH{% for name in with_ %} {{name}} AS ({{saved[name]._query}})\
 {{ "," if not loop.last }}{% endfor %}{{query}}"""
         )
         with_clause_template_backtick = Template(
