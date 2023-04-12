@@ -1,6 +1,10 @@
+from unittest.mock import Mock
+
 from inspect import getsource
 import pytest
 from functools import partial
+
+from prettytable import PrettyTable
 
 from sql import inspect, connection
 
@@ -124,3 +128,114 @@ ATTACH DATABASE 'my.db' AS test_schema
     schema_names = inspect.get_schema_names()
     for schema in schema_names:
         assert schema in expected_schema_names
+
+
+@pytest.mark.parametrize(
+    "get_columns, rows, field_names, name, schema",
+    [
+        [
+            [
+                {"column_a": "a", "column_b": "b"},
+                # the second row does not have column_b
+                {
+                    "column_a": "a2",
+                },
+            ],
+            [["a", "b"], ["a2", ""]],
+            ["column_a", "column_b"],
+            "test_table",
+            None,
+        ],
+        [
+            [
+                {"column_a": "a", "column_b": "b"},
+                # the second row does not have column_b
+                {
+                    "column_a": "a2",
+                },
+            ],
+            [["a", "b"], ["a2", ""]],
+            ["column_a", "column_b"],
+            "another_table",
+            "another_schema",
+        ],
+        [
+            [
+                {
+                    "column_a": "a2",
+                },
+                # contains an extra column
+                {"column_a": "a", "column_b": "b"},
+            ],
+            [["a2", ""], ["a", "b"]],
+            ["column_a", "column_b"],
+            "test_table",
+            None,
+        ],
+        [
+            [
+                {"column_a": "a", "column_b": "b"},
+                {"column_b": "b2", "column_a": "a2"},
+            ],
+            [["a", "b"], ["a2", "b2"]],
+            ["column_a", "column_b"],
+            "test_table",
+            None,
+        ],
+        [
+            [
+                dict(),
+                dict(),
+            ],
+            [[], []],
+            [],
+            "test_table",
+            None,
+        ],
+        [
+            None,
+            [],
+            [],
+            "test_table",
+            None,
+        ],
+    ],
+    ids=[
+        "missing-val-second-row",
+        "missing-val-second-row-another-schema",
+        "extra-val-second-row",
+        "keeps-order",
+        "empty-dictionaries",
+        "none-return-value",
+    ],
+)
+def test_columns_with_missing_values(
+    tmp_empty, ip, monkeypatch, get_columns, rows, field_names, name, schema
+):
+    mock = Mock()
+    mock.get_columns.return_value = get_columns
+
+    monkeypatch.setattr(inspect, "_get_inspector", lambda _: mock)
+
+    ip.run_cell(
+        """%%sql sqlite:///another.db
+CREATE TABLE IF NOT EXISTS another_table (id INT)
+"""
+    )
+
+    ip.run_cell(
+        """%%sql sqlite:///my.db
+CREATE TABLE IF NOT EXISTS test_table (id INT)
+"""
+    )
+
+    ip.run_cell(
+        """%%sql
+ATTACH DATABASE 'another.db' as 'another_schema';
+"""
+    )
+
+    pt = PrettyTable(field_names=field_names)
+    pt.add_rows(rows)
+
+    assert str(inspect.get_columns(name=name, schema=schema)) == str(pt)

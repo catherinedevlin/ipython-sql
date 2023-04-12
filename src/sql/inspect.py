@@ -44,6 +44,37 @@ class Tables(DatabaseInspection):
         self._table_txt = self._table.get_string()
 
 
+def _add_missing_keys(keys, mapping):
+    """
+    Return a copy of `mapping` with all the missing `keys`, setting the
+    value as an empty string
+    """
+    return {key: mapping.get(key, "") for key in keys}
+
+
+# we're assuming there's one row that contains all keys, I tested this and worked fine
+# my initial implementation just took all keys that appeared in "rows" but then order
+# isn't preserved, which is important for user experience
+def _get_row_with_most_keys(rows):
+    """
+    Get the row with the maximum length from the nested lists in `rows`
+    """
+    if not rows:
+        return list()
+
+    max_idx, max_ = None, 0
+
+    for idx, row in enumerate(rows):
+        if len(row) > max_:
+            max_idx = idx
+            max_ = len(row)
+
+    if max_idx is None:
+        return list()
+
+    return list(rows[max_idx])
+
+
 @modify_exceptions
 class Columns(DatabaseInspection):
     """
@@ -55,13 +86,18 @@ class Columns(DatabaseInspection):
 
         inspector = _get_inspector(conn)
 
-        columns = inspector.get_columns(name, schema)
+        # this returns a list of dictionaries. e.g.,
+        # [{"name": "column_a", "type": "INT"}
+        #  {"name": "column_b", "type": "FLOAT"}]
+        columns = inspector.get_columns(name, schema) or []
 
         self._table = PrettyTable()
-        self._table.field_names = list(columns[0].keys())
+        self._table.field_names = _get_row_with_most_keys(columns)
 
         for row in columns:
-            self._table.add_row(list(row.values()))
+            self._table.add_row(
+                list(_add_missing_keys(self._table.field_names, row).values())
+            )
 
         self._table_html = self._table.get_html_string()
         self._table_txt = self._table.get_string()
