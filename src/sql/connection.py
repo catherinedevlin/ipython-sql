@@ -349,8 +349,7 @@ class Connection:
             )
             conn.session.close()
 
-    @classmethod
-    def _get_curr_sqlalchemy_connection_info(cls):
+    def _get_curr_sqlalchemy_connection_info(self):
         """Get the dialect, driver, and database server version info of current
         connected dialect
 
@@ -360,18 +359,18 @@ class Connection:
             The dictionary which contains the SQLAlchemy-based dialect
             information, or None if there is no current connection.
         """
-        if not cls.current:
-            return None
 
-        engine = cls.current.metadata.bind if IS_SQLALCHEMY_ONE else cls.current
+        if not self.session:
+            return None
+        engine = self.metadata.bind if IS_SQLALCHEMY_ONE else self.session
+
         return {
             "dialect": getattr(engine.dialect, "name", None),
             "driver": getattr(engine.dialect, "driver", None),
             "server_version_info": getattr(engine.dialect, "server_version_info", None),
         }
 
-    @classmethod
-    def _get_curr_sqlglot_dialect(cls):
+    def _get_curr_sqlglot_dialect(self):
         """Get the dialect name in sqlglot package scope
 
         Returns
@@ -380,7 +379,7 @@ class Connection:
             Available dialect in sqlglot package, see more:
             https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/dialect.py
         """
-        connection_info = cls._get_curr_sqlalchemy_connection_info()
+        connection_info = self._get_curr_sqlalchemy_connection_info()
         if not connection_info:
             return None
 
@@ -388,8 +387,7 @@ class Connection:
             connection_info["dialect"], connection_info["dialect"]
         )
 
-    @classmethod
-    def is_use_backtick_template(cls):
+    def is_use_backtick_template(self):
         """Get if the dialect support backtick (`) syntax as identifier
 
         Returns
@@ -397,7 +395,7 @@ class Connection:
         bool
             Indicate if the dialect can use backtick identifier in the SQL clause
         """
-        cur_dialect = cls._get_curr_sqlglot_dialect()
+        cur_dialect = self._get_curr_sqlglot_dialect()
         if not cur_dialect:
             return False
         try:
@@ -407,8 +405,28 @@ class Connection:
         except (ValueError, AttributeError, TypeError):
             return False
 
-    @classmethod
-    def _transpile_query(cls, query):
+    def get_curr_identifiers(self) -> list:
+        """
+        Returns list of identifiers for current connection
+
+        Default identifiers are : ["", '"']
+        """
+        identifiers = ["", '"']
+        try:
+            connection_info = self._get_curr_sqlalchemy_connection_info()
+            if connection_info:
+                cur_dialect = connection_info["dialect"]
+                identifiers_ = sqlglot.Dialect.get_or_raise(
+                    cur_dialect
+                ).Tokenizer.IDENTIFIERS
+
+                identifiers = [*set(identifiers + identifiers_)]
+        except ValueError:
+            pass
+
+        return identifiers
+
+    def _transpile_query(self, query):
         """Translate the given SQL clause that's compatible to current connected
         dialect by sqlglot
 
@@ -422,30 +440,8 @@ class Connection:
         str
             SQL clause that's compatible to current connected dialect
         """
-        write_dialect = cls._get_curr_sqlglot_dialect()
+        write_dialect = self._get_curr_sqlglot_dialect()
         try:
             query = sqlglot.parse_one(query).sql(dialect=write_dialect)
         finally:
             return query
-
-    @classmethod
-    def get_curr_identifiers(cls) -> list:
-        """
-        Returns list of identifiers for current connection
-
-        Default identifiers are : ["", '"']
-        """
-        identifiers = ["", '"']
-        try:
-            connection_info = cls._get_curr_sqlalchemy_connection_info()
-            if connection_info:
-                cur_dialect = connection_info["dialect"]
-                identifiers_ = sqlglot.Dialect.get_or_raise(
-                    cur_dialect
-                ).Tokenizer.IDENTIFIERS
-
-                identifiers = [*set(identifiers + identifiers_)]
-        except ValueError:
-            pass
-
-        return identifiers

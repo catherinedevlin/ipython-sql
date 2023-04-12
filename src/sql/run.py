@@ -181,7 +181,7 @@ class ResultSet(list, ColumnGuesserMixin):
         frame = pd.DataFrame(self, columns=(self and self.keys) or [])
         payload[
             "connection_info"
-        ] = sql.connection.Connection._get_curr_sqlalchemy_connection_info()
+        ] = sql.connection.Connection.current._get_curr_sqlalchemy_connection_info()
         return frame
 
     @telemetry.log_call("polars-data-frame")

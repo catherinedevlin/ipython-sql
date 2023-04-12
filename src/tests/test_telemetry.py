@@ -5,6 +5,7 @@ import urllib.request
 from sql.telemetry import telemetry
 from sql import plot
 from sql.connection import Connection
+from sqlalchemy import create_engine
 
 # Ref: https://pytest.org/en/7.2.x/how-to/tmp_path.html#
 # Utilize tmp directory to store downloaded csv
@@ -39,7 +40,8 @@ def simple_file_path_penguins(tmpdir):
 
 @pytest.fixture
 def simple_db_conn():
-    return Connection.from_connect_str("duckdb://").session
+    engine = create_engine("duckdb://")
+    return Connection(engine=engine)
 
 
 @pytest.fixture

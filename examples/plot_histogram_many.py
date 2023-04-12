@@ -10,6 +10,6 @@ urllib.request.urlretrieve(
     "iris.csv",
 )
 
-conn = Connection.from_connect_str("duckdb://").session
+conn = Connection.from_connect_str("duckdb://")
 
 plot.histogram("iris.csv", ["petal width", "sepal width"], bins=50, conn=conn)

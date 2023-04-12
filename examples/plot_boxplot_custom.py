@@ -12,7 +12,7 @@ if not Path("iris.csv").is_file():
         "iris.csv",
     )
 
-conn = Connection.from_connect_str("duckdb://").session
+conn = Connection.from_connect_str("duckdb://")
 
 # returns matplotlib.Axes object
 ax = plot.boxplot("iris.csv", "petal width", conn=conn)

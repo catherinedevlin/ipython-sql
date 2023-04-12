@@ -39,7 +39,11 @@ def _is_long_number(num) -> bool:
 
 
 def is_table_exists(
-    table: str, schema: str = None, ignore_error: bool = False, with_: str = None
+    table: str,
+    schema: str = None,
+    ignore_error: bool = False,
+    with_: str = None,
+    conn=None,
 ) -> bool:
     """
     Checks if a given table exists for a given connection
@@ -63,6 +67,10 @@ def is_table_exists(
             return False
         else:
             raise ValueError("Table cannot be None")
+    if not Connection.current:
+        raise RuntimeError("No active connection")
+    if not conn:
+        conn = Connection.current
 
     table = strip_multiple_chars(table, "\"'")
 
@@ -71,7 +79,7 @@ def is_table_exists(
     else:
         table_ = table
 
-    _is_exist = _is_table_exists(table_, with_)
+    _is_exist = _is_table_exists(table_, with_, conn)
 
     if not _is_exist:
         if not ignore_error:
@@ -152,11 +160,13 @@ def strip_multiple_chars(string: str, chars: str) -> str:
     return string.translate(str.maketrans("", "", chars))
 
 
-def _is_table_exists(table: str, with_: str) -> bool:
+def _is_table_exists(table: str, with_: str, conn) -> bool:
     """
     Runs a SQL query to check if table exists
     """
-    identifiers = Connection.get_curr_identifiers()
+    if not conn:
+        conn = Connection.current
+    identifiers = conn.get_curr_identifiers()
     if with_:
         return table in list(store)
     else:
@@ -168,8 +178,8 @@ def _is_table_exists(table: str, with_: str) -> bool:
             else:
                 query = "SELECT * FROM {0}{1}{0} WHERE 1=0".format(iden, table)
             try:
-                query = sql.connection.Connection._transpile_query(query)
-                sql.run.raw_run(Connection.current, query)
+                query = conn._transpile_query(query)
+                sql.run.raw_run(conn, query)
                 return True
             except Exception:
                 pass
