@@ -19,11 +19,17 @@ myst:
     property=og:locale: "en_US"
 ---
 
-# Connecting
+# Connecting to Databases with JupySQL
 
-Connection strings are [SQLAlchemy URL](http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls) standard.
+Learn how to connect to various databases using JupySQL in this tutorial. JupySQL is a Jupyter Notebook extension that allows you to execute SQL queries directly in your notebook cells. We'll show you how to establish connections, connect securely, and use existing `sqlalchemy.engine.Engine` instances.
 
-Some example connection strings:
+## Establishing a connection 
+
+### Connect with SQLAlchemy
+
+Connection strings follow the SQLAlchemy URL standard. 
+
+Here are some example connection strings for various databases:
 
 ```
 mysql+pymysql://scott:tiger@localhost/foo
@@ -33,15 +39,13 @@ sqlite:///foo.db
 mssql+pyodbc://username:password@host/database?driver=SQL+Server+Native+Client+11.0
 ```
 
-Note that `mysql` and `mysql+pymysql` connections (and perhaps others)
-don't read your client character set information from .my.cnf.  You need
-to specify it in the connection string::
+**Note:** `mysql` and `mysql+pymysql` connections (and perhaps others) don't read your client character set information from `.my.cnf.` You need to specify it in the connection string:
 
 ```
 mysql+pymysql://scott:tiger@localhost/foo?charset=utf8
 ```
 
-Note that an `impala` connection with [`impyla`](https://github.com/cloudera/impyla) for HiveServer2 requires disabling autocommit::
+For an `impala` connection with [`impyla`](https://github.com/cloudera/impyla) for HiveServer2, you need to disable autocommit:
 
 ```
 %config SqlMagic.autocommit=False
@@ -61,15 +65,21 @@ a flag with (-a|--connection_arguments)the connection string as a JSON string. S
 
 +++
 
-## Connecting to...
+## Connecting to Databases
 
 Check out our guide for connecting to a database:
 
 - [PostgreSQL](integrations/postgres-connect)
+- [ClickHouse](integrations/clickhouse)
+- [MariaDB](integrations/mariadb)
+- [MindsDB](integrations/mindsdb)
+- [MSSQL](integrations/mssql)
+- [MySQL](integrations/mysql)
 
 +++
 
-## Connecting securely
+## Secure Connections
+
 
 **It is highly recommended** that you do not pass plain credentials.
 
@@ -106,7 +116,7 @@ then you can establish a connection to your database by running the following co
 
 +++
 
-### Building connection string
+### Building connection strings
 
 One option is to use `getpass`, type your password, build your connection string and pass it to `%sql`:
 
@@ -126,7 +136,7 @@ connection_string = f"postgresql://user:{password}@localhost/database"
 
 +++
 
-You may also set the `DATABASE_URL` environment variable, and `%sql` will automatically load it from there. You can do it either by setting the environment variable from your terminal or in your notebook:
+Alternatively, set the `DATABASE_URL` environment variable, and `%sql` will automatically load it. You can do this either by setting the environment variable from your terminal or in your notebook:
 
 ```python
 from getpass import getpass
@@ -144,9 +154,6 @@ environ["DATABASE_URL"] = f"postgresql://user:{password}@localhost/database"
 +++
 
 ## Using an existing `sqlalchemy.engine.Engine`
-
-```{versionadded} 0.5.1
-```
 
 Use an existing `Engine` by passing the variable name to `%sql`.
 
@@ -176,3 +183,14 @@ df.to_sql("numbers", engine)
 %%sql
 SELECT * FROM numbers
 ```
+## Conclusion
+
+This tutorial demonstrated how to leverage the power of JupySQL in Jupyter Notebooks for connecting to and interacting with databases. We covered key aspects such as:
+
+- Connection strings for different databases following SQLAlchemy URL standards.
+- Connecting to databases using the %sql magic command.
+- Securely connecting to databases by avoiding plain credentials and using methods like getpass and DATABASE_URL environment variable.
+- Using DSN connections for managing connection information in configuration files.
+- Utilizing existing sqlalchemy.engine.Engine instances for database connections.
+
+With these techniques, you can confidently manage connections to your databases while ensuring security and flexibility. JupySQL provides a convenient and powerful way to execute SQL queries and analyze data within Jupyter Notebooks.
