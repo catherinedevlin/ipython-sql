@@ -1,4 +1,4 @@
-name: CI - DB Integration
+name: CI - DB Integration - Local
 
 on:
   push:
@@ -36,10 +36,6 @@ jobs:
 
           pip install ".[integration]"
       - name: Integration Test
-        env:
-          SF_USERNAME: ${{ secrets.SF_USERNAME }}
-          SF_PASSWORD: ${{ secrets.SF_PASSWORD }}
-          SF_DATABASE: ${{ secrets.SF_DATABASE }}
         run:
           # Run the integration test by pytest marker
           pytest src/tests/integration --verbose

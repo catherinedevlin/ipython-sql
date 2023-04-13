@@ -7,6 +7,24 @@ from sqlalchemy.ext.declarative import declarative_base
 import uuid
 
 
+def pytest_addoption(parser):
+    parser.addoption("--live", action="store_true")
+
+
+# Skip the test case when live mode is on (with --live arg)
+@pytest.fixture(scope="session")
+def skip_on_live_mode(pytestconfig):
+    if pytestconfig.getoption("live"):
+        pytest.skip("Skip on live mode")
+
+
+# Skip the test case when live mode is off (without --live arg)
+@pytest.fixture(scope="session")
+def skip_on_local_mode(pytestconfig):
+    if not pytestconfig.getoption("live"):
+        pytest.skip("Skip on local mode")
+
+
 @pytest.fixture
 def get_database_config_helper():
     return _testing.DatabaseConfigHelper
@@ -84,7 +102,7 @@ def tear_down_generic_testing_data(engine, test_table_name_dict):
 
 
 @pytest.fixture(scope="session")
-def setup_postgreSQL(test_table_name_dict):
+def setup_postgreSQL(test_table_name_dict, skip_on_live_mode):
     with _testing.postgres():
         engine = create_engine(
             _testing.DatabaseConfigHelper.get_database_url("postgreSQL")
@@ -114,7 +132,7 @@ def ip_with_postgreSQL(ip_empty, setup_postgreSQL):
 
 
 @pytest.fixture(scope="session")
-def setup_mySQL(test_table_name_dict):
+def setup_mySQL(test_table_name_dict, skip_on_live_mode):
     with _testing.mysql():
         engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("mySQL"))
         # Load pre-defined datasets
@@ -142,7 +160,7 @@ def ip_with_mySQL(ip_empty, setup_mySQL):
 
 
 @pytest.fixture(scope="session")
-def setup_mariaDB(test_table_name_dict):
+def setup_mariaDB(test_table_name_dict, skip_on_live_mode):
     with _testing.mariadb():
         engine = create_engine(
             _testing.DatabaseConfigHelper.get_database_url("mariaDB")
@@ -172,7 +190,7 @@ def ip_with_mariaDB(ip_empty, setup_mariaDB):
 
 
 @pytest.fixture(scope="session")
-def setup_SQLite(test_table_name_dict):
+def setup_SQLite(test_table_name_dict, skip_on_live_mode):
     engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("SQLite"))
     # Load pre-defined datasets
     load_generic_testing_data(engine, test_table_name_dict)
@@ -199,7 +217,7 @@ def ip_with_SQLite(ip_empty, setup_SQLite):
 
 
 @pytest.fixture(scope="session")
-def setup_duckDB(test_table_name_dict):
+def setup_duckDB(test_table_name_dict, skip_on_live_mode):
     engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("duckDB"))
     # Load pre-defined datasets
     load_generic_testing_data(engine, test_table_name_dict)
@@ -226,7 +244,7 @@ def ip_with_duckDB(ip_empty, setup_duckDB):
 
 
 @pytest.fixture(scope="session")
-def setup_MSSQL(test_table_name_dict):
+def setup_MSSQL(test_table_name_dict, skip_on_live_mode):
     with _testing.mssql():
         engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("MSSQL"))
         # Load pre-defined datasets
@@ -254,7 +272,7 @@ def ip_with_MSSQL(ip_empty, setup_MSSQL):
 
 
 @pytest.fixture(scope="session")
-def setup_Snowflake(test_table_name_dict):
+def setup_Snowflake(test_table_name_dict, skip_on_local_mode):
     engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("Snowflake"))
     engine.connect()
     # Load pre-defined datasets
@@ -265,7 +283,7 @@ def setup_Snowflake(test_table_name_dict):
 
 
 @pytest.fixture
-def ip_with_Snowflake(ip_empty, setup_Snowflake):
+def ip_with_Snowflake(ip_empty, setup_Snowflake, pytestconfig):
     configKey = "Snowflake"
     config = _testing.DatabaseConfigHelper.get_database_config(configKey)
     # Select database engine

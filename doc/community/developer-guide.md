@@ -201,3 +201,8 @@ To run some of the tests:
 pytest src/tests/integration/test_generic_db_operations.py::test_profile_query
 ```
 
+### Integration tests with cloud databases
+
+We run integration tests against cloud databases like Snowflake, which requires using pre-registered accounts to evaluate their behavior. To initiate these tests, please create a branch in our [ploomber/jupyter repository](https://github.com/ploomber/jupysql).
+
+Please note that if you submit a pull request from a forked repository, the integration testing phase will be skipped because the pre-registered accounts won't be accessible.

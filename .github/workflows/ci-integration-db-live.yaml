@@ -1,0 +1,49 @@
+name: CI - DB Integration - Cloud 
+
+on:
+  push:
+    branches:
+      - master
+      - 'dev/**'
+  pull_request:
+
+
+jobs:
+  database-live-integration-test:
+    strategy:
+      matrix:
+        python-version: ['3.11']
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+  
+      - name: Set up Environment Vars
+        id: secret-check
+        # perform secret check & put boolean result as an output
+        shell: bash
+        run: |
+          if [ "${{ secrets.SF_USERNAME }}" != '' ]; then
+            echo "available=true" >> $GITHUB_OUTPUT;
+          else
+            echo "available=false" >> $GITHUB_OUTPUT;
+          fi
+      - name: Set up Python ${{ matrix.python-version }}
+        if: ${{ steps.secret-check.outputs.available == 'true' }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        if: ${{ steps.secret-check.outputs.available == 'true' }}
+        run:
+          pip install ".[integration]"
+      - name: Integration Test
+        if: ${{ steps.secret-check.outputs.available == 'true' }}
+        env:
+          SF_USERNAME: ${{ secrets.SF_USERNAME }}
+          SF_PASSWORD: ${{ secrets.SF_PASSWORD }}
+          SF_DATABASE: ${{ secrets.SF_DATABASE }}
+        run:
+          # Run the integration test with live option
+          pytest src/tests/integration --verbose --live
