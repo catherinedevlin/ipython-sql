@@ -1,0 +1,34 @@
+# NOTE: we need this as a security measure so PRs from forks cannot submit a PR and
+# modify this file. The only way for this test to pass is to add the
+# 'allow-workflow-edits' label and push again.
+name: workflow-edited
+
+
+# note that this triggers on 'pull_request_target' instead of 'pull_request'.
+# https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_target
+# https://docs.boostsecurity.io/rules/cicd-gha-risky-pull-request-target-usage.html
+on: [pull_request_target]
+
+jobs:
+ changelog-edited:
+   runs-on: ubuntu-latest
+   if: ${{ !contains(github.event.pull_request.labels.*.name, 'allow-workflow-edits') }}
+
+   steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+
+    - name: Check
+      id: check
+      run: |
+        BRANCH_NAME=main
+        git fetch --depth=1 origin $BRANCH_NAME:$BRANCH_NAME
+        git diff --exit-code "$BRANCH_NAME" .github/workflows/
+
