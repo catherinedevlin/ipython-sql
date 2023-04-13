@@ -16,15 +16,12 @@ dependencies:
   - cairo=1.16.0
   - certifi=2022.12.7
   - cffi=1.15.1
-  - charset-normalizer=2.1.1
-  - colorama=0.4.6
+  - charset-normalizer=3.1.0
   - contourpy=1.0.7
   - cryptography=40.0.1
   - cycler=0.11.0
   - dbus=1.13.6
-  - docutils=0.18.1
   - expat=2.5.0
-  - fftw=3.3.10
   - font-ttf-dejavu-sans-mono=2.37
   - font-ttf-inconsolata=3.000
   - font-ttf-source-code-pro=2.038
@@ -40,13 +37,11 @@ dependencies:
   - graphite2=1.3.13
   - gst-plugins-base=1.22.0
   - gstreamer=1.22.0
-  - gstreamer-orc=0.4.33
   - harfbuzz=6.0.0
-  - icu=70.1
+  - icu=72.1
   - idna=3.4
   - imagesize=1.4.1
-  - importlib-metadata=6.1.0
-  - jack=1.9.22
+  - importlib-metadata=6.3.0
   - jinja2=3.1.2
   - keyutils=1.6.1
   - kiwisolver=1.4.4
@@ -61,10 +56,9 @@ dependencies:
   - libbrotlienc=1.0.9
   - libcap=2.67
   - libcblas=3.9.0
-  - libclang=15.0.7
-  - libclang13=15.0.7
+  - libclang=16.0.1
+  - libclang13=16.0.1
   - libcups=2.3.3
-  - libdb=6.2.32
   - libdeflate=1.18
   - libedit=3.1.20191231
   - libevent=2.1.10
@@ -81,7 +75,7 @@ dependencies:
   - libiconv=1.17
   - libjpeg-turbo=2.1.5.1
   - liblapack=3.9.0
-  - libllvm15=15.0.7
+  - libllvm16=16.0.1
   - libnsl=2.0.0
   - libogg=1.3.4
   - libopenblas=0.3.21
@@ -93,14 +87,12 @@ dependencies:
   - libstdcxx-ng=12.2.0
   - libsystemd0=253
   - libtiff=4.5.0
-  - libtool=2.4.7
-  - libudev1=253
   - libuuid=2.38.1
   - libvorbis=1.3.7
   - libwebp-base=1.3.0
   - libxcb=1.13
   - libxkbcommon=1.5.0
-  - libxml2=2.10.3
+  - libxml2=2.10.4
   - libzlib=1.2.13
   - lz4-c=1.9.4
   - markupsafe=2.1.2
@@ -117,19 +109,17 @@ dependencies:
   - numpy=1.24.2
   - openjpeg=2.5.0
   - openssl=3.1.0
-  - packaging=23.0
-  - pandas=1.5.3
+  - packaging=23.1
+  - pandas=2.0.0
   - pcre2=10.40
-  - pillow=9.4.0
+  - pillow=9.5.0
   - pip=23.0.1
   - pixman=0.40.0
   - ply=3.11
   - pthread-stubs=0.4
-  - pulseaudio=16.1
   - pulseaudio-client=16.1
-  - pulseaudio-daemon=16.1
   - pycparser=2.21
-  - pygments=2.14.0
+  - pygments=2.15.0
   - pyopenssl=23.1.1
   - pyparsing=3.0.9
   - pyqt=5.15.7
@@ -137,13 +127,14 @@ dependencies:
   - pysocks=1.7.1
   - python=3.10.10
   - python-dateutil=2.8.2
+  - python-tzdata=2023.3
   - python_abi=3.10
   - pytz=2023.3
   - qt-main=5.15.8
   - readline=8.2
   - requests=2.28.2
   - setuptools=67.6.1
-  - sip=6.7.7
+  - sip=6.7.8
   - six=1.16.0
   - snowballstemmer=2.2.0
   - sphinx_rtd_theme=1.2.0
@@ -156,6 +147,7 @@ dependencies:
   - sphinxcontrib-serializinghtml=1.1.5
   - tk=8.6.12
   - toml=0.10.2
+  - tomli=2.0.1
   - tornado=6.2
   - tzdata=2023c
   - unicodedata2=15.0.0
@@ -188,15 +180,20 @@ dependencies:
     - accessible-pygments==0.0.4
     - asttokens==2.2.1
     - attrs==22.2.0
+    - autopep8==2.0.2
+    - awscli==1.27.112
     - backcall==0.2.0
     - backoff==2.2.1
-    - beautifulsoup4==4.12.0
+    - beautifulsoup4==4.12.2
     - black==23.3.0
+    - botocore==1.29.112
     - click==8.1.3
+    - colorama==0.4.4
     - comm==0.1.3
     - commonmark==0.9.1
-    - debugpy==1.6.6
+    - debugpy==1.6.7
     - decorator==5.1.1
+    - docutils==0.16
     - duckdb==0.7.1
     - duckdb-engine==0.7.0
     - exceptiongroup==1.1.1
@@ -211,6 +208,7 @@ dependencies:
     - ipython-genutils==0.2.0
     - ipywidgets==8.0.6
     - jedi==0.18.2
+    - jmespath==1.0.1
     - jsonschema==4.17.3
     - jupyter-book==0.15.1
     - jupyter-cache==0.5.0
@@ -232,36 +230,39 @@ dependencies:
     - myst-parser==0.18.1
     - nbclient==0.5.13
     - nbformat==5.8.0
-    - nbqa==1.6.4
+    - nbqa==1.7.0
     - nest-asyncio==1.5.6
     - parso==0.8.3
     - pathspec==0.11.1
     - pexpect==4.8.0
     - pickleshare==0.7.5
-    - pkgmt==0.2.11
+    - pkgmt==0.3.0
     - platformdirs==3.2.0
     - ploomber-core==0.2.9
     - pluggy==1.0.0
-    - polars==0.16.16
-    - posthog==2.4.2
-    - prettytable==3.6.0
+    - polars==0.17.2
+    - posthog==2.5.0
+    - prettytable==3.7.0
     - prompt-toolkit==3.0.38
     - psutil==5.9.4
     - ptyprocess==0.7.0
     - pure-eval==0.2.2
     - pyarrow==11.0.0
+    - pyasn1==0.4.8
     - pybtex==0.24.0
     - pybtex-docutils==1.0.2
     - pycodestyle==2.10.0
     - pydata-sphinx-theme==0.13.1
     - pyflakes==3.0.1
     - pyrsistent==0.19.3
-    - pytest==7.2.2
-    - pyyaml==6.0
+    - pytest==7.3.0
+    - pyyaml==5.4.1
     - pyzmq==25.0.2
     - readthedocs-sphinx-ext==2.2.0
     - recommonmark==0.7.1
-    - rich==13.3.3
+    - rich==13.3.4
+    - rsa==4.7.2
+    - s3transfer==0.6.0
     - soupsieve==2.4
     - sphinx==5.0.2
     - sphinx-book-theme==1.0.0
@@ -275,15 +276,14 @@ dependencies:
     - sphinx-togglebutton==0.3.2
     - sphinxcontrib-bibtex==2.5.0
     - sqlalchemy==1.4.47
-    - sqlglot==11.4.5
+    - sqlglot==11.5.3
     - sqlparse==0.4.3
     - stack-data==0.6.2
     - tabulate==0.9.0
     - tokenize-rt==5.0.0
-    - tomli==2.0.1
     - traitlets==5.9.0
     - typing-extensions==4.5.0
     - uc-micro-py==1.0.1
     - wcwidth==0.2.6
     - widgetsnbextension==4.0.7
-prefix: /home/docs/checkouts/readthedocs.org/user_builds/jupysql/conda/345
+prefix: /opt/conda/envs/jupysql
