@@ -28,7 +28,7 @@ jobs:
     - name: Check
       id: check
       run: |
-        BRANCH_NAME=main
+        BRANCH_NAME=master
         git fetch --depth=1 origin $BRANCH_NAME:$BRANCH_NAME
         git diff --exit-code "$BRANCH_NAME" .github/workflows/
 
