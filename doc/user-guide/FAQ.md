@@ -12,11 +12,15 @@ kernelspec:
   name: python3
 ---
 
-# Jupyter Magic
++++ {"user_expressions": []}
+
+# FAQ
+
+## What is a magic?
 
 One may be unfamiliar with the commands prefixed with `%` used in this instruction. Here is a detailed description of this command and its usage. 
 
-## Definition of Jupyter Magic
+### Definition of Jupyter Magic
 
 Magics are specific to and provided by the IPython kernel. Some common usage of magic functions are: running external code files, timing code execution, and loading IPython Extensions. 
 
@@ -34,13 +38,25 @@ load an IPython extension by its module name.
 %load_ext sql 
 ```
 
-## Line Magic VS Cell Magic
+### Line Magic VS Cell Magic
 
 **Line magics**, which are denoted by a single % prefix and operate on a single line of input, and **cell magics**, which are denoted by a double %% prefix and operate on multiple lines of input. 
 
 For example, for the code above, **%sql** is a line magic, and **%%sql** is a code magic. 
 
 ### Reference 
+
 [IPython doc](https://ipython.readthedocs.io/en/stable/interactive/magics.html#cell-magics)
 
 [Python Data Science Handbook](https://jakevdp.github.io/PythonDataScienceHandbook/01.03-magic-commands.html)
+
++++ {"user_expressions": []}
+
+## Connecting to `impala`
+
+For an `impala` connection with [`impyla`](https://github.com/cloudera/impyla) for HiveServer2, you need to disable autocommit:
+
+```
+%config SqlMagic.autocommit=False
+%sql impala://hserverhost:port/default?kerberos_service_name=hive&auth_mechanism=GSSAPI
+```
