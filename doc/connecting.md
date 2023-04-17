@@ -218,6 +218,7 @@ environ["DATABASE_URL"] = f"postgresql://user:{password}@localhost/database"
 # this cell is hidden in the docs, only used to fake
 # the environment variable
 from os import environ
+
 environ["DATABASE_URL"] = "sqlite://"
 ```
 
