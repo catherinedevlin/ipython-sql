@@ -11,6 +11,7 @@ parts:
     - file: plot
     - file: compose
     - file: user-guide/tables-columns
+    - file: user-guide/testing-columns
     - file: plot-legacy
     - file: user-guide/template
     - file: user-guide/interactive

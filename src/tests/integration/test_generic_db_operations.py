@@ -329,17 +329,28 @@ def test_sqlplot_boxplot(ip_with_dynamic_db, cell, request, test_table_name_dict
         ("ip_with_Snowflake"),
     ],
 )
-def test_sql_cmd_magic_uno(ip_with_dynamic_db, request, test_table_name_dict):
+def test_sql_cmd_magic_uno(ip_with_dynamic_db, request, capsys):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 
-    result = ip_with_dynamic_db.run_cell(
-        f"%sqlcmd test --table {test_table_name_dict['numbers']}\
-              --column numbers_elements --less-than 5 --greater 1"
-    ).result
+    ip_with_dynamic_db.run_cell(
+        """
+    %%sql sqlite://
+    CREATE TABLE test_numbers (value);
+    INSERT INTO test_numbers VALUES (0);
+    INSERT INTO test_numbers VALUES (4);
+    INSERT INTO test_numbers VALUES (5);
+    INSERT INTO test_numbers VALUES (6);
+    """
+    )
 
-    assert len(result) == 2
-    assert "less_than" in result.keys()
-    assert "greater" in result.keys()
+    ip_with_dynamic_db.run_cell(
+        "%sqlcmd test --table test_numbers --column value" " --less-than 5 --greater 1"
+    )
+
+    _out = capsys.readouterr()
+
+    assert "less_than" in _out.out
+    assert "greater" in _out.out
 
 
 @pytest.mark.parametrize(
@@ -359,18 +370,28 @@ def test_sql_cmd_magic_uno(ip_with_dynamic_db, request, test_table_name_dict):
         ),
     ],
 )
-def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, test_table_name_dict):
+def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 
-    result = ip_with_dynamic_db.run_cell(
-        f"%sqlcmd test --table {test_table_name_dict['numbers']}\
-          --column numbers_elements"
-        " --greater-or-equal 3"
-    ).result
+    ip_with_dynamic_db.run_cell(
+        """
+    %%sql sqlite://
+    CREATE TABLE test_numbers (value);
+    INSERT INTO test_numbers VALUES (0);
+    INSERT INTO test_numbers VALUES (4);
+    INSERT INTO test_numbers VALUES (5);
+    INSERT INTO test_numbers VALUES (6);
+    """
+    )
 
-    assert len(result) == 1
-    assert "greater_or_equal" in result.keys()
-    assert list(result["greater_or_equal"]) == [2, 3]
+    ip_with_dynamic_db.run_cell(
+        "%sqlcmd test --table test_numbers --column value --greater-or-equal 3"
+    )
+
+    _out = capsys.readouterr()
+
+    assert "greater_or_equal" in _out.out
+    assert "0" in _out.out
 
 
 @pytest.mark.parametrize(

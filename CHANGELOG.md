@@ -7,6 +7,8 @@
 
 * [Feature] Upgrades SQLAlchemy version to 2
 
+* [Fix] `%sqlcmd --test` improved, changes in logic and addition of user guide (#275)
+
 ## 0.7.0 (2023-04-05)
 
 JupySQL is now available via `conda install jupysql -c conda-forge`. Thanks, [@sterlinm](https://github.com/sterlinm)!
