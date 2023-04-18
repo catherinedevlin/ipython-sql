@@ -32,7 +32,7 @@ DEV = [
     "flake8",
     "pytest",
     "pandas",
-    "polars",
+    "polars==0.17.2",  # 04/18/23 this breaks our CI
     "invoke",
     "pkgmt",
     "twine",
