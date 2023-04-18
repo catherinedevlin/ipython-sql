@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## 0.7.1dev
+* [Doc] Algolia search added (#64)
 * [Fix] Fix `%sqlcmd columns` in MySQL and MariaDB
 * [Doc] Updating connecting guide (by @DaveOkpare) (#56)
 

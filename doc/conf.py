@@ -51,7 +51,6 @@ html_logo = "square-no-bg-small.png"
 html_sourcelink_suffix = ""
 html_theme = "sphinx_book_theme"
 html_theme_options = {
-    "search_bar_text": "Search this book...",
     "launch_buttons": {
         "notebook_interface": "jupyterlab",
         "binderhub_url": "https://binder.ploomber.io",
@@ -94,3 +93,28 @@ pygments_style = "sphinx"
 suppress_warnings = ["misc.highlighting_failure"]
 use_jupyterbook_latex = True
 use_multitoc_numbering = True
+
+
+# Adding Algolia search to jupyter-book :
+# https://github.com/sphinx-doc/sphinx/issues/3812#issuecomment-491256702
+# Please note this is an old thread and they are working with v2 which is a legacy.
+# In order to make it work with v3 we made some changes.
+# Please see algolia.css and algolia.js files to read more about these changes.
+
+# Add any paths that contain custom static files (such as style sheets) here,
+# relative to this directory.
+html_static_path = ['_static']
+
+# Load custom stylesheets to support Algolia search.
+html_css_files = [
+    'algolia.css',
+    'https://cdn.jsdelivr.net/npm/@docsearch/css@3'
+]
+
+# Load custom javascript to support Algolia search. Note that the sequence
+# defined below (external first) is intentional!
+html_js_files = [
+    ('https://cdn.jsdelivr.net/npm/@docsearch/js@3.3.3/dist/umd/index.js',
+     {'defer': 'defer'}),
+    ('algolia.js', {'defer': 'defer'})
+]
