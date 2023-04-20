@@ -6,6 +6,8 @@ from ploomber_core.exceptions import modify_exceptions
 from jinja2 import Template
 import sqlalchemy
 
+from sql.util import flatten
+
 try:
     import matplotlib.pyplot as plt
     from matplotlib.colors import Normalize
@@ -30,23 +32,23 @@ def _summary_stats(conn, table, column, with_=None):
     """Compute percentiles and mean for boxplot"""
     template = Template(
         """
-SELECT
-percentile_disc(0.25) WITHIN GROUP (ORDER BY "{{column}}") AS q1,
-percentile_disc(0.50) WITHIN GROUP (ORDER BY "{{column}}") AS med,
-percentile_disc(0.75) WITHIN GROUP (ORDER BY "{{column}}") AS q3,
-AVG("{{column}}") AS mean,
-COUNT(*) AS N
-FROM "{{table}}"
+    SELECT
+    percentile_disc([0.25, 0.50, 0.75]) WITHIN GROUP \
+    (ORDER BY "{{column}}") AS percentiles,
+    AVG("{{column}}") AS mean,
+    COUNT(*) AS N
+    FROM "{{table}}"
 """
     )
+
     query = template.render(table=table, column=column)
 
     if with_:
         query = str(store.render(query, with_=with_))
-
+    query = conn._transpile_query(query)
     values = conn.session.execute(sqlalchemy.sql.text(query)).fetchone()
     keys = ["q1", "med", "q3", "mean", "N"]
-    return {k: float(v) for k, v in zip(keys, values)}
+    return {k: float(v) for k, v in zip(keys, flatten(values))}
 
 
 def _whishi(conn, table, column, hival, with_=None):

@@ -2,6 +2,7 @@
 
 ## 0.7.2dev
 
+* [Feature] Improve boxplot performance [#152]
 ## 0.7.1 (2023-04-19)
 
 * [Feature] Upgrades SQLAlchemy version to 2
