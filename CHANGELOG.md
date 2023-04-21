@@ -5,6 +5,7 @@
 * [Feature] Improve boxplot performance (#152)
 * [Fix] Modifies some errors so only the error message is displayed (and traceback is hidden) (#407)
 * [Doc] Add QuestDB tutorial (#350)
+* [Fix] Fixes `%sqlcmd plot` when `--table` or `--column` have spaces (#409)
 
 ## 0.7.1 (2023-04-19)
 
