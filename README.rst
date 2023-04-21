@@ -6,6 +6,14 @@ ipython-sql
 
 Introduces a %sql (or %%sql) magic.
 
+Legacy project
+--------------
+
+IPython-SQL's functionality and maintenance have been eclipsed by [JupySQL](https://github.com/ploomber/jupysql), a fork maintained and developed by the Ploomber team.  Future work will be directed into JupySQL - please file issues there, as well!
+
+Description
+-----------
+
 Connect to a database, using `SQLAlchemy URL`_ connect strings, then issue SQL
 commands within IPython or IPython Notebook.
 
