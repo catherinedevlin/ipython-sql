@@ -9,12 +9,12 @@ import matplotlib.pyplot as plt
     [
         [
             "%sqlplot someplot -t a -c b",
-            ValueError,
+            UsageError,
             "Unknown plot 'someplot'. Must be: 'histogram' or 'boxplot'",
         ],
         [
             "%sqlplot -t a -c b",
-            ValueError,
+            UsageError,
             "Missing the first argument, must be: 'histogram' or 'boxplot'",
         ],
     ],

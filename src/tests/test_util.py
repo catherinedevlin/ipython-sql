@@ -1,6 +1,8 @@
 import pytest
 from sql import util
 
+from IPython.core.error import UsageError
+
 ERROR_MESSAGE = "Table cannot be None"
 EXPECTED_SUGGESTIONS_MESSAGE = "Did you mean :"
 EXPECTED_NO_TABLE_IN_DEFAULT_SCHEMA = (
@@ -36,7 +38,7 @@ def test_missing_with(ip, store_table, query):
     expected_store_message = EXPECTED_STORE_SUGGESTIONS.format(store_table)
 
     error_message = str(out.error_in_exec)
-    assert isinstance(out.error_in_exec, ValueError)
+    assert isinstance(out.error_in_exec, UsageError)
     assert str(expected_store_message).lower() in error_message.lower()
 
 
@@ -87,7 +89,7 @@ def test_bad_table_error_message(ip, table, query, suggestions):
     expected_error_message = EXPECTED_NO_TABLE_IN_DEFAULT_SCHEMA.format(table)
 
     error_message = str(out.error_in_exec)
-    assert isinstance(out.error_in_exec, ValueError)
+    assert isinstance(out.error_in_exec, UsageError)
     assert str(expected_error_message).lower() in error_message.lower()
 
     error_suggestions_arr = error_message.split(EXPECTED_SUGGESTIONS_MESSAGE)
@@ -159,7 +161,7 @@ ATTACH DATABASE 'my.db' AS test_schema
     out = ip.run_cell(query)
 
     error_message = str(out.error_in_exec)
-    assert isinstance(out.error_in_exec, ValueError)
+    assert isinstance(out.error_in_exec, UsageError)
     assert str(expected_error_message).lower() in error_message.lower()
 
     error_suggestions_arr = error_message.split(EXPECTED_SUGGESTIONS_MESSAGE)
@@ -191,20 +193,20 @@ def test_is_table_exists_ignore_error(ip, table, expected_result):
 @pytest.mark.parametrize(
     "table, expected_error",
     [
-        ("number_table", None),
-        ("test", None),
-        ("author", None),
-        ("empty_table", None),
-        ("numbers1", ValueError),
-        ("test1", ValueError),
-        ("author1", ValueError),
-        ("empty_table1", ValueError),
-        (None, ValueError),
+        ("number_table", False),
+        ("test", False),
+        ("author", False),
+        ("empty_table", False),
+        ("numbers1", True),
+        ("test1", True),
+        ("author1", True),
+        ("empty_table1", True),
+        (None, True),
     ],
 )
 def test_is_table_exists(ip, table, expected_error):
     if expected_error:
-        with pytest.raises(ValueError):
+        with pytest.raises(UsageError):
             util.is_table_exists(table)
     else:
         util.is_table_exists(table)
@@ -214,9 +216,9 @@ def test_is_table_exists(ip, table, expected_error):
     "table, expected_error, expected_suggestions",
     [
         ("number_table", None, []),
-        ("number_tale", ValueError, ["number_table"]),
-        ("_table", ValueError, ["number_table", "empty_table"]),
-        (None, ValueError, []),
+        ("number_tale", UsageError, ["number_table"]),
+        ("_table", UsageError, ["number_table", "empty_table"]),
+        (None, UsageError, []),
     ],
 )
 def test_is_table_exists_with(ip, table, expected_error, expected_suggestions):

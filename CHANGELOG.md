@@ -2,8 +2,9 @@
 
 ## 0.7.2dev
 * [Feature] Support for DB API 2.0 drivers (#350)
+* [Feature] Improve boxplot performance (#152)
+* [Fix] Modifies some errors so only the error message is displayed (and traceback is hidden) (#407)
 * [Doc] Add QuestDB tutorial (#350)
-* [Feature] Improve boxplot performance [#152]
 
 ## 0.7.1 (2023-04-19)
 

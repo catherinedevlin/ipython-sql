@@ -4,6 +4,7 @@ from inspect import getsource
 import pytest
 from functools import partial
 
+from IPython.core.error import UsageError
 from prettytable import PrettyTable
 
 from sql import inspect, connection
@@ -95,7 +96,7 @@ def test_get_column(sample_db, name, first, second, schema):
     ],
 )
 def test_nonexistent_table(sample_db, name, schema, error):
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(UsageError) as excinfo:
         inspect.get_columns(name, schema)
     assert error.lower() in str(excinfo.value).lower()
 
