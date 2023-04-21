@@ -9,7 +9,7 @@ Introduces a %sql (or %%sql) magic.
 Legacy project
 --------------
 
-IPython-SQL's functionality and maintenance have been eclipsed by [JupySQL](https://github.com/ploomber/jupysql), a fork maintained and developed by the Ploomber team.  Future work will be directed into JupySQL - please file issues there, as well!
+IPython-SQL's functionality and maintenance have been eclipsed by JupySQL_, a fork maintained and developed by the Ploomber team.  Future work will be directed into JupySQL - please file issues there, as well!
 
 Description
 -----------
@@ -439,3 +439,4 @@ Credits
 .. _Distribute: http://pypi.python.org/pypi/distribute
 .. _Buildout: http://www.buildout.org/
 .. _modern-package-template: http://pypi.python.org/pypi/modern-package-template
+.. _JupySQL: https://github.com/ploomber/jupysql
