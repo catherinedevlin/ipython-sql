@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 import pytest
 from IPython.core.error import UsageError
@@ -48,6 +49,7 @@ def test_validate_arguments(tmp_empty, ip, cell, error_type, error_message):
     assert str(out.error_in_exec) == (error_message)
 
 
+@pytest.mark.xfail()
 @pytest.mark.parametrize(
     "cell",
     [
@@ -64,6 +66,34 @@ def test_validate_arguments(tmp_empty, ip, cell, error_type, error_message):
         "%sqlplot boxplot --table subset --column x --with subset",
         "%sqlplot boxplot -t subset -c x -w subset -o h",
         "%sqlplot boxplot --table nas.csv --column x",
+        pytest.param(
+            "%sqlplot boxplot --table spaces.csv --column 'some column'",
+            marks=pytest.mark.xfail(
+                sys.platform == "win32",
+                reason="problem in IPython.core.magic_arguments.parse_argstring",
+            ),
+        ),
+        pytest.param(
+            "%sqlplot histogram --table spaces.csv --column 'some column'",
+            marks=pytest.mark.xfail(
+                sys.platform == "win32",
+                reason="problem in IPython.core.magic_arguments.parse_argstring",
+            ),
+        ),
+        pytest.param(
+            "%sqlplot boxplot --table 'file with spaces.csv' --column x",
+            marks=pytest.mark.xfail(
+                sys.platform == "win32",
+                reason="problem in IPython.core.magic_arguments.parse_argstring",
+            ),
+        ),
+        pytest.param(
+            "%sqlplot histogram --table 'file with spaces.csv' --column x",
+            marks=pytest.mark.xfail(
+                sys.platform == "win32",
+                reason="problem in IPython.core.magic_arguments.parse_argstring",
+            ),
+        ),
     ],
     ids=[
         "histogram",
@@ -76,11 +106,24 @@ def test_validate_arguments(tmp_empty, ip, cell, error_type, error_message):
         "boxplot-with",
         "boxplot-shortcuts",
         "boxplot-nas",
+        "boxplot-column-name-with-spaces",
+        "histogram-column-name-with-spaces",
+        "boxplot-table-name-with-spaces",
+        "histogram-table-name-with-spaces",
     ],
 )
 def test_sqlplot(tmp_empty, ip, cell):
     # clean current Axes
     plt.cla()
+
+    Path("spaces.csv").write_text(
+        """\
+"some column", y
+0, 0
+1, 1
+2, 2
+"""
+    )
 
     Path("data.csv").write_text(
         """\
@@ -100,6 +143,14 @@ x, y
 """
     )
 
+    Path("file with spaces.csv").write_text(
+        """\
+x, y
+0, 0
+1, 1
+2, 2
+"""
+    )
     ip.run_cell("%sql duckdb://")
 
     ip.run_cell(

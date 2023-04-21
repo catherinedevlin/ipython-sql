@@ -1,3 +1,4 @@
+import sys
 import sqlite3
 
 import pytest
@@ -74,11 +75,27 @@ ATTACH DATABASE 'my.db' AS some_schema
     assert "numbers" in out
 
 
-def test_columns(ip):
-    out = ip.run_cell("%sqlcmd columns -t author").result._repr_html_()
-    assert "first_name" in out
-    assert "last_name" in out
-    assert "year_of_death" in out
+@pytest.mark.xfail(
+    sys.platform == "win32",
+    reason="problem in IPython.core.magic_arguments.parse_argstring",
+)
+@pytest.mark.parametrize(
+    "cmd, cols",
+    [
+        ["%sqlcmd columns -t author", ["first_name", "last_name", "year_of_death"]],
+        [
+            "%sqlcmd columns -t 'table with spaces'",
+            ["first", "second"],
+        ],
+        [
+            '%sqlcmd columns -t "table with spaces"',
+            ["first", "second"],
+        ],
+    ],
+)
+def test_columns(ip, cmd, cols):
+    out = ip.run_cell(cmd).result._repr_html_()
+    assert all(col in out for col in cols)
 
 
 def test_columns_with_schema(ip, tmp_empty):

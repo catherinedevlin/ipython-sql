@@ -69,6 +69,7 @@ def ip(ip_empty):
             "CREATE TABLE test (n INT, name TEXT)",
             "INSERT INTO test VALUES (1, 'foo')",
             "INSERT INTO test VALUES (2, 'bar')",
+            'CREATE TABLE "table with spaces" (first INT, second TEXT)',
             "CREATE TABLE author (first_name, last_name, year_of_death)",
             "INSERT INTO author VALUES ('William', 'Shakespeare', 1616)",
             "INSERT INTO author VALUES ('Bertold', 'Brecht', 1956)",

@@ -70,21 +70,23 @@ class SqlPlotMagic(Magics, Configurable):
                 "Example: %sqlplot histogram"
             )
 
-        if cmd.args.line[0] in {"box", "boxplot"}:
-            util.is_table_exists(cmd.args.table, with_=cmd.args.with_)
+        column = util.sanitize_identifier(column)
+        table = util.sanitize_identifier(cmd.args.table)
 
+        if cmd.args.line[0] in {"box", "boxplot"}:
+            util.is_table_exists(table, with_=cmd.args.with_)
             return plot.boxplot(
-                table=cmd.args.table,
+                table=table,
                 column=column,
                 with_=cmd.args.with_,
                 orient=cmd.args.orient,
                 conn=None,
             )
         elif cmd.args.line[0] in {"hist", "histogram"}:
-            util.is_table_exists(cmd.args.table, with_=cmd.args.with_)
+            util.is_table_exists(table, with_=cmd.args.with_)
 
             return plot.histogram(
-                table=cmd.args.table,
+                table=table,
                 column=column,
                 bins=cmd.args.bins,
                 with_=cmd.args.with_,

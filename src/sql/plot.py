@@ -26,9 +26,11 @@ from sql import util
 
 
 def _summary_stats(conn, table, column, with_=None):
+    """Compute percentiles and mean for boxplot"""
+
     if not conn:
         conn = sql.connection.Connection.current
-    """Compute percentiles and mean for boxplot"""
+
     template = Template(
         """
     SELECT
@@ -123,9 +125,9 @@ OR  "{{column}}" > {{whishi}}
 # https://github.com/matplotlib/matplotlib/blob/b5ac96a8980fdb9e59c9fb649e0714d776e26701/lib/matplotlib/cbook/__init__.py
 @modify_exceptions
 def _boxplot_stats(conn, table, column, whis=1.5, autorange=False, with_=None):
+    """Compute statistics required to create a boxplot"""
     if not conn:
         conn = sql.connection.Connection.current
-    """Compute statistics required to create a boxplot"""
 
     # calculating stats might fail on other DBs (percentile_disc)
     util.support_only_sql_alchemy_connection("boxplot")

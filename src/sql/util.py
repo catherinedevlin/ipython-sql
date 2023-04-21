@@ -4,6 +4,18 @@ from sql.connection import Connection
 from sql.store import store
 from sql import exceptions
 
+SINGLE_QUOTE = "'"
+DOUBLE_QUOTE = '"'
+
+
+def sanitize_identifier(identifier):
+    if (identifier[0] == SINGLE_QUOTE and identifier[-1] == SINGLE_QUOTE) or (
+        identifier[0] == DOUBLE_QUOTE and identifier[-1] == DOUBLE_QUOTE
+    ):
+        return identifier[1:-1]
+    else:
+        return identifier
+
 
 def convert_to_scientific(value):
     """

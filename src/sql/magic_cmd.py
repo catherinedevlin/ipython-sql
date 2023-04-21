@@ -19,6 +19,7 @@ except ImportError:
 import sql.connection
 from sql import inspect
 import sql.run
+from sql.util import sanitize_identifier
 
 
 class CmdParser(argparse.ArgumentParser):
@@ -94,7 +95,9 @@ class SqlCmdMagic(Magics, Configurable):
             )
 
             args = parser.parse_args(others)
-            return inspect.get_columns(name=args.table, schema=args.schema)
+            return inspect.get_columns(
+                name=sanitize_identifier(args.table), schema=args.schema
+            )
         elif cmd_name == "test":
             parser = CmdParser()
 
