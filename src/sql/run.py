@@ -10,7 +10,7 @@ import html
 import prettytable
 import sqlalchemy
 import sqlparse
-import sql.connection
+from sql.connection import Connection
 from .column_guesser import ColumnGuesserMixin
 
 try:
@@ -22,6 +22,7 @@ from sqlalchemy.orm import Session
 from sql.telemetry import telemetry
 import logging
 import warnings
+from collections.abc import Iterable
 
 
 def unduplicate_field_names(field_names):
@@ -108,22 +109,37 @@ class ResultSet(list, ColumnGuesserMixin):
     def __init__(self, sqlaproxy, config):
         self.config = config
         self.keys = {}
-        if sqlaproxy.returns_rows:
-            self.keys = sqlaproxy.keys()
-            if isinstance(config.autolimit, int) and config.autolimit > 0:
-                list.__init__(self, sqlaproxy.fetchmany(size=config.autolimit))
-            else:
-                list.__init__(self, sqlaproxy.fetchall())
-            self.field_names = unduplicate_field_names(self.keys)
 
-            _style = None
-            if isinstance(config.style, str):
-                _style = prettytable.__dict__[config.style.upper()]
+        is_sql_alchemy_results = not hasattr(sqlaproxy, "description")
 
-            self.pretty = PrettyTable(self.field_names, style=_style)
+        list.__init__(self, [])
+        self.pretty = None
+
+        if is_sql_alchemy_results:
+            should_try_fetch_results = sqlaproxy.returns_rows
         else:
-            list.__init__(self, [])
-            self.pretty = None
+            should_try_fetch_results = True
+
+        if should_try_fetch_results:
+            if is_sql_alchemy_results:
+                self.keys = sqlaproxy.keys()
+            elif isinstance(sqlaproxy.description, Iterable):
+                self.keys = [i[0] for i in sqlaproxy.description]
+            else:
+                self.keys = []
+
+            if len(self.keys) > 0:
+                if isinstance(config.autolimit, int) and config.autolimit > 0:
+                    list.__init__(self, sqlaproxy.fetchmany(size=config.autolimit))
+                else:
+                    list.__init__(self, sqlaproxy.fetchall())
+                self.field_names = unduplicate_field_names(self.keys)
+
+                _style = None
+                if isinstance(config.style, str):
+                    _style = prettytable.__dict__[config.style.upper()]
+
+                self.pretty = PrettyTable(self.field_names, style=_style)
 
     def _repr_html_(self):
         _cell_with_spaces_pattern = re.compile(r"(<td>)( {2,})")
@@ -181,7 +197,7 @@ class ResultSet(list, ColumnGuesserMixin):
         frame = pd.DataFrame(self, columns=(self and self.keys) or [])
         payload[
             "connection_info"
-        ] = sql.connection.Connection.current._get_curr_sqlalchemy_connection_info()
+        ] = Connection.current._get_curr_sqlalchemy_connection_info()
         return frame
 
     @telemetry.log_call("polars-data-frame")
@@ -469,10 +485,19 @@ def run(conn, sql, config):
         else:
             txt = sqlalchemy.sql.text(statement)
             manual_commit = set_autocommit(conn, config)
-            result = conn.session.execute(txt)
+
+            is_custom_connection = Connection.is_custom_connection(conn)
+            if is_custom_connection:
+                txt_ = str(txt)
+            else:
+                txt_ = txt
+            # stringify txt to avoid TypeError:
+            # Boolean value of this clause is not defined
+            result = conn.session.execute(txt_)
         _commit(conn=conn, config=config, manual_commit=manual_commit)
         if result and config.feedback:
-            print(interpret_rowcount(result.rowcount))
+            if hasattr(result, "rowcount"):
+                print(interpret_rowcount(result.rowcount))
 
     resultset = ResultSet(result, config)
     return select_df_type(resultset, config)

@@ -7,6 +7,7 @@ from IPython.core.magic_arguments import argument, magic_arguments
 from IPython.core.error import UsageError
 from sqlglot import select, condition
 from sqlalchemy import text
+from sql import util
 
 from prettytable import PrettyTable
 
@@ -42,6 +43,9 @@ class SqlCmdMagic(Magics, Configurable):
         Raises UsageError in case of an invalid input, executes command otherwise.
         """
 
+        # We relly on SQLAlchemy when inspecting tables
+        util.support_only_sql_alchemy_connection("%sqlcmd")
+
         AVAILABLE_SQLCMD_COMMANDS = ["tables", "columns", "test", "profile"]
 
         if line == "":
@@ -69,7 +73,6 @@ class SqlCmdMagic(Magics, Configurable):
         """
         Command
         """
-
         if cmd_name == "tables":
             parser = CmdParser()
 

@@ -25,10 +25,18 @@ class SQLCommand:
         # is splited in tokens (delimited by spaces), this checks if we have one arg
         one_arg = len(self.args.line) == 1
 
+        is_custom_connection_ = (
+            Connection.is_custom_connection(user_ns.get(self.args.line[0], False))
+            if len(self.args.line) > 0
+            else False
+        )
+
         if (
             one_arg
             and self.args.line[0] in user_ns
-            and isinstance(user_ns[self.args.line[0]], Engine)
+            and (
+                isinstance(user_ns[self.args.line[0]], Engine) or is_custom_connection_
+            )
         ):
             line_for_command = []
             add_conn = True

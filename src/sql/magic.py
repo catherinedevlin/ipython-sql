@@ -291,6 +291,7 @@ class SqlMagic(Magics, Configurable):
         # args.line: contains the line after the magic with all options removed
 
         args = command.args
+
         # Create the interactive slider
         if args.interact and not is_interactive_mode:
             check_installed(["ipywidgets"], "--interactive argument")

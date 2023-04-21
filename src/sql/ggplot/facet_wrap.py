@@ -1,19 +1,7 @@
 from jinja2 import Template
 import math
 import sql.connection
-from sql.store import store
 from sql.telemetry import telemetry
-import sqlalchemy
-
-
-def _run_query(query, with_=None, conn=None):
-    if not conn:
-        conn = sql.connection.Connection.current.session
-
-    if with_:
-        query = str(store.render(query, with_=with_))
-
-    return conn.execute(sqlalchemy.text(query)).fetchall()
 
 
 class facet:
@@ -29,7 +17,10 @@ class facet:
             """
         )
         query = template.render(table=table, column=column)
-        values = _run_query(query, with_=with_)
+
+        conn = sql.connection.Connection.current
+
+        values = conn.execute(query, with_).fetchall()
         n_plots = len(values)
         n_cols = len(values) if len(values) < 3 else 3
         n_rows = math.ceil(n_plots / n_cols)

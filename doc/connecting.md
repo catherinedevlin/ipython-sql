@@ -81,6 +81,25 @@ from sqlalchemy import create_engine
 engine = create_engine(db_url)
 ```
 
+## Connecting to Databases
+
+Check out our guide for connecting to a database:
+
+- [PostgreSQL](integrations/postgres-connect)
+- [ClickHouse](integrations/clickhouse)
+- [MariaDB](integrations/mariadb)
+- [MindsDB](integrations/mindsdb)
+- [MSSQL](integrations/mssql)
+- [MySQL](integrations/mysql)
+- [QuestDB](integrations/questdb)
+
++++
+
+## Secure Connections
+
+
+**It is highly recommended** that you do not pass plain credentials.
+
 ```{code-cell} ipython3
 :tags: [remove-output]
 
@@ -265,75 +284,53 @@ df.to_sql("numbers", engine)
 SELECT * FROM numbers
 ```
 
-+++ {"user_expressions": []}
+## Custom Connection
 
-## Using a URL object
+```{versionadded} 0.7.2
+```
 
-If your URL has too many fields, rt's easier to build it with the `URL` object from SQLAlchemy:
+If you are using a database that is not supported by SQLAlchemy but follows the [DB API 2.0 specification](https://peps.python.org/pep-0249/), you can still use JupySQL.
+
+```{note}
+We currently support `%sql`, `%sqlplot`, and the `ggplot` API when using custom connection. However, please be advised that there may be some features/functionalities that won't be fully compatible with JupySQL.
+```
+
+For this example we'll generate a `DuckDB` connection, using its native `connect` method.
+
+First, let's import the library and initiazlie a new connection
 
 ```{code-cell} ipython3
-from sqlalchemy import create_engine
-from sqlalchemy.engine import URL
+import duckdb
 
-connection_url = URL.create(
-    "mssql+pyodbc",
-    username="sa",
-    password="MyPassword!",
-    host="localhost",
-    port=1433,
-    database="master",
-    query={
-        "driver": "ODBC Driver 18 for SQL Server",
-        "Encrypt": "yes",
-        "TrustServerCertificate": "yes",
-    },
+conn = duckdb.connect()
+```
+
+Now, load `%sql` and initialize it with our DuckDB connection.
+
+```{code-cell} ipython3
+%sql conn
+```
+
+Download some data
+
+```{code-cell} ipython3
+import urllib
+
+urllib.request.urlretrieve(
+    "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv",
+    "penguins.csv",
 )
-
-print(connection_url)
 ```
 
-+++ {"user_expressions": []}
-
-Once you have the URL, you can create an engine and connect:
-
-```python
-engine = create_engine(connection_url)
-%sql engine
-```
-
-+++ {"user_expressions": []}
-
-## Configuration file (DSN)
-
-You can store connection information in a `odbc.ini` configuration file:
-
-```
-[MY_DB] 
-drivername=postgresql
-host=my.remote.host 
-port=5433 
-database=mydatabase 
-username=myuser 
-password=1234
-```
-
-```{important}
-Leave your configuration file out of your git repository by adding it to the `.gitignore` file!
-```
-
-To connect to the database:
-
-```
-%sql --section MY_DB
-```
-
-+++ {"user_expressions": []}
-
-If your configuration file has a different name:
+You're all set
 
 ```{code-cell} ipython3
-%config SqlMagic.dsn_filename='./dsn.ini'
+%sql select * from penguins.csv limit 3
 ```
+
+For a more detailed example please see [QuestDB tutorial](integrations/questdb.ipynb)
+
+## Conclusion
 
 ## Tutorials
 
@@ -345,3 +342,4 @@ Vendor-specific details are available in our tutorials:
 - [MindsDB](integrations/mindsdb)
 - [MSSQL](integrations/mssql)
 - [MySQL](integrations/mysql)
+- [QuestDB](integrations/questdb)

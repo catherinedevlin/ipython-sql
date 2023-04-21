@@ -7,6 +7,8 @@ from sqlalchemy.exc import NoSuchModuleError
 from IPython.core.error import UsageError
 import difflib
 import sqlglot
+from sql.store import store
+from sql.telemetry import telemetry
 
 PLOOMBER_SUPPORT_LINK_STR = (
     "For technical support: https://ploomber.io/community"
@@ -265,10 +267,14 @@ class Connection:
         connect_args = connect_args or {}
 
         if descriptor:
+            is_custom_connection_ = Connection.is_custom_connection(descriptor)
+
             if isinstance(descriptor, Connection):
                 cls.current = descriptor
             elif isinstance(descriptor, Engine):
                 cls.current = Connection(descriptor)
+            elif is_custom_connection_:
+                cls.current = CustomConnection(descriptor, alias=alias)
             else:
                 existing = rough_dict_get(cls.connections, descriptor)
 
@@ -314,7 +320,11 @@ class Connection:
         result = []
         for key in sorted(cls.connections):
             conn = cls.connections[key]
-            engine_url = conn.metadata.bind.url if IS_SQLALCHEMY_ONE else conn.url
+
+            if cls.is_custom_connection(conn):
+                engine_url = conn.url
+            else:
+                engine_url = conn.metadata.bind.url if IS_SQLALCHEMY_ONE else conn.url
 
             prefix = "* " if conn == cls.current else "  "
 
@@ -349,6 +359,35 @@ class Connection:
             )
             conn.session.close()
 
+    def is_custom_connection(conn=None) -> bool:
+        """
+        Checks if given connection is custom
+        """
+        is_custom_connection_ = False
+
+        if conn is None:
+            if not Connection.current:
+                raise RuntimeError("No active connection")
+            else:
+                conn = Connection.current.session
+
+        if isinstance(conn, (CustomConnection, CustomSession)):
+            is_custom_connection_ = True
+        else:
+            # TODO: Better check when user passes a custom
+            # connection
+            if (
+                isinstance(
+                    conn, (sqlalchemy.engine.base.Connection, Connection, str, bool)
+                )
+                or conn.__class__.__name__ == "DataFrame"
+            ):
+                is_custom_connection_ = False
+            else:
+                is_custom_connection_ = True
+
+        return is_custom_connection_
+
     def _get_curr_sqlalchemy_connection_info(self):
         """Get the dialect, driver, and database server version info of current
         connected dialect
@@ -362,7 +401,11 @@ class Connection:
 
         if not self.session:
             return None
-        engine = self.metadata.bind if IS_SQLALCHEMY_ONE else self.session
+
+        try:
+            engine = self.metadata.bind if IS_SQLALCHEMY_ONE else self.session
+        except Exception:
+            engine = self.session
 
         return {
             "dialect": getattr(engine.dialect, "name", None),
@@ -423,6 +466,9 @@ class Connection:
                 identifiers = [*set(identifiers + identifiers_)]
         except ValueError:
             pass
+        except AttributeError:
+            # this might be a custom connection..
+            pass
 
         return identifiers
 
@@ -445,3 +491,84 @@ class Connection:
             query = sqlglot.parse_one(query).sql(dialect=write_dialect)
         finally:
             return query
+
+    def _prepare_query(self, query, with_=None) -> str:
+        """
+        Returns a textual representation of a query based
+        on the current connection
+
+        Parameters
+        ----------
+        query : str
+            SQL query
+
+        with_ : string, default None
+            The key to use in with sql clause
+        """
+        if with_:
+            query = str(store.render(query, with_=with_))
+
+        query = self._transpile_query(query)
+
+        if self.is_custom_connection():
+            query = str(query)
+        else:
+            query = sqlalchemy.sql.text(query)
+
+        return query
+
+    def execute(self, query, with_=None):
+        """
+        Executes SQL query on a given connection
+        """
+        query = self._prepare_query(query, with_)
+        return self.session.execute(query)
+
+
+class CustomSession(sqlalchemy.engine.base.Connection):
+    """
+    Custom sql alchemy session
+    """
+
+    def __init__(self, connection, engine):
+        self.engine = engine
+        self.dialect = dict(
+            {
+                "name": connection.dialect,
+                "driver": connection.dialect,
+                "server_version_info": connection.dialect,
+            }
+        )
+
+    def execute(self, query):
+        cur = self.engine.cursor()
+        cur.execute(query)
+        return cur
+
+
+class CustomConnection(Connection):
+    """
+    Custom connection for unsupported drivers in sqlalchemy
+    """
+
+    @telemetry.log_call("CustomConnection", payload=True)
+    def __init__(self, payload, engine=None, alias=None):
+        try:
+            payload["engine"] = type(engine)
+        except Exception as e:
+            payload["engine_parsing_error"] = str(e)
+
+        if engine is None:
+            raise ValueError("Engine cannot be None")
+
+        connection_name_ = "custom_driver"
+        self.url = str(engine)
+        self.name = connection_name_
+        self.dialect = connection_name_
+        self.session = CustomSession(self, engine)
+
+        self.connections[alias or connection_name_] = self
+
+        self.connect_args = None
+        self.alias = alias
+        Connection.current = self

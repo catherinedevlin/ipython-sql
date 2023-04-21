@@ -1,5 +1,5 @@
 from sql.ggplot import ggplot, aes, geom_boxplot, geom_histogram, facet_wrap
-from matplotlib.testing.decorators import image_comparison, cleanup
+from matplotlib.testing.decorators import image_comparison, _cleanup_cm
 import pytest
 from pathlib import Path
 from urllib.request import urlretrieve
@@ -93,13 +93,13 @@ sex IS NOT NULL
     ).result
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(baseline_images=["boxplot"], extensions=["png"], remove_text=True)
 def test_ggplot_geom_boxplot(yellow_trip_data):
     (ggplot(yellow_trip_data, aes(x="trip_distance")) + geom_boxplot())
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["histogram_default"], extensions=["png"], remove_text=True
 )
@@ -110,7 +110,7 @@ def test_ggplot_geom_histogram(yellow_trip_data):
     )
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["histogram_with_default"], extensions=["png"], remove_text=True
 )
@@ -121,7 +121,7 @@ def test_ggplot_geom_histogram_with(short_trips_data):
     )
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["histogram_custom_color"], extensions=["png"], remove_text=True
 )
@@ -136,7 +136,7 @@ def test_ggplot_geom_histogram_edge_color(short_trips_data):
     )
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["histogram_custom_fill"], extensions=["png"], remove_text=True
 )
@@ -151,7 +151,7 @@ def test_ggplot_geom_histogram_fill(short_trips_data):
     )
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["histogram_custom_fill_and_color"],
     extensions=["png"],
@@ -175,7 +175,7 @@ def test_ggplot_geom_histogram_fill_and_color(short_trips_data):
         ["price"],
     ],
 )
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["histogram_stacked_default"],
     extensions=["png"],
@@ -185,7 +185,7 @@ def test_example_histogram_stacked_default(diamonds_data, x):
     (ggplot(diamonds_data, aes(x=x)) + geom_histogram(bins=10, fill="cut"))
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["histogram_stacked_custom_cmap"],
     extensions=["png"],
@@ -198,7 +198,7 @@ def test_example_histogram_stacked_custom_cmap(diamonds_data):
     )
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["histogram_stacked_custom_color"],
     extensions=["png"],
@@ -211,7 +211,7 @@ def test_example_histogram_stacked_custom_color(diamonds_data):
     )
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["histogram_stacked_custom_color_and_fill"],
     extensions=["png"],
@@ -224,7 +224,7 @@ def test_example_histogram_stacked_custom_color_and_fill(diamonds_data):
     )
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["histogram_stacked_custom_color_and_fill"],
     extensions=["png"],
@@ -238,7 +238,7 @@ def test_ggplot_geom_histogram_fill_with_multi_color_warning(diamonds_data):
         )
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["histogram_stacked_large_bins"],
     extensions=["png"],
@@ -248,7 +248,7 @@ def test_example_histogram_stacked_with_large_bins(diamonds_data):
     (ggplot(diamonds_data, aes(x="price")) + geom_histogram(bins=400, fill="cut"))
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["histogram_categorical"],
     extensions=["png"],
@@ -258,7 +258,7 @@ def test_categorical_histogram(diamonds_data):
     (ggplot(diamonds_data, aes(x=["cut"])) + geom_histogram())
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["histogram_categorical_combined"],
     extensions=["png"],
@@ -268,7 +268,7 @@ def test_categorical_histogram_combined(diamonds_data):
     (ggplot(diamonds_data, aes(x=["color", "carat"])) + geom_histogram(bins=10))
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["histogram_numeric_categorical_combined"],
     extensions=["png"],
@@ -278,7 +278,7 @@ def test_categorical_and_numeric_histogram_combined(diamonds_data):
     (ggplot(diamonds_data, aes(x=["color", "carat"])) + geom_histogram(bins=20))
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["histogram_numeric_categorical_combined_custom_fill"],
     extensions=["png"],
@@ -291,7 +291,7 @@ def test_categorical_and_numeric_histogram_combined_custom_fill(diamonds_data):
     )
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["histogram_numeric_categorical_combined_custom_multi_fill"],
     extensions=["png"],
@@ -304,7 +304,7 @@ def test_categorical_and_numeric_histogram_combined_custom_multi_fill(diamonds_d
     )
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["histogram_numeric_categorical_combined_custom_multi_color"],
     extensions=["png"],
@@ -317,7 +317,7 @@ def test_categorical_and_numeric_histogram_combined_custom_multi_color(diamonds_
     )
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["facet_wrap_default"],
     extensions=["png"],
@@ -331,7 +331,7 @@ def test_facet_wrap_default(penguins_no_nulls):
     )
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["facet_wrap_default_no_legend"],
     extensions=["png"],
@@ -345,7 +345,7 @@ def test_facet_wrap_default_no_legend(penguins_no_nulls):
     )
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["facet_wrap_custom_fill"],
     extensions=["png"],
@@ -363,7 +363,7 @@ def test_facet_wrap_custom_fill(penguins_no_nulls):
     )
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["facet_wrap_custom_fill_and_color"],
     extensions=["png"],
@@ -381,7 +381,7 @@ def test_facet_wrap_custom_fill_and_color(penguins_no_nulls):
     )
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["facet_wrap_custom_stacked_histogram"],
     extensions=["png"],
@@ -395,7 +395,7 @@ def test_facet_wrap_stacked_histogram(diamonds_data):
     )
 
 
-@cleanup
+@_cleanup_cm()
 @image_comparison(
     baseline_images=["facet_wrap_custom_stacked_histogram_cmap"],
     extensions=["png"],

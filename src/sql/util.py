@@ -1,6 +1,5 @@
 from sql import inspect
 import difflib
-import sql.run
 from sql.connection import Connection
 from sql.store import store
 
@@ -83,13 +82,21 @@ def is_table_exists(
 
     if not _is_exist:
         if not ignore_error:
+            try_find_suggestions = not Connection.is_custom_connection(conn)
             expected = []
-            existing_schemas = inspect.get_schema_names()
+            existing_schemas = []
+            existing_tables = []
+
+            if try_find_suggestions:
+                existing_schemas = inspect.get_schema_names()
+
             if schema and schema not in existing_schemas:
                 expected = existing_schemas
                 invalid_input = schema
             else:
-                existing_tables = _get_list_of_existing_tables()
+                if try_find_suggestions:
+                    existing_tables = _get_list_of_existing_tables()
+
                 expected = existing_tables
                 invalid_input = table
 
@@ -178,8 +185,7 @@ def _is_table_exists(table: str, with_: str, conn) -> bool:
             else:
                 query = "SELECT * FROM {0}{1}{0} WHERE 1=0".format(iden, table)
             try:
-                query = conn._transpile_query(query)
-                sql.run.raw_run(conn, query)
+                conn.execute(query)
                 return True
             except Exception:
                 pass
@@ -221,3 +227,11 @@ def flatten(src, ltypes=(list, tuple)):
     if not isinstance(process_list, ltype):
         return tuple(process_list)
     return process_list
+
+
+def support_only_sql_alchemy_connection(command):
+    """
+    Throws an AttributeError if connection is not SQLAlchemy
+    """
+    if Connection.is_custom_connection():
+        raise AttributeError(f"{command} is not supported for a custom engine")

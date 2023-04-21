@@ -8,7 +8,7 @@ package_name = "sql"
 
 [tool.pkgmt.check_links]
 extensions = ["md", "rst", "py", "ipynb"]
-ignore_substrings = ["d37ci6vzurychx.cloudfront.net", "https://bornsql.ca", "binder.ploomber.io"]
+ignore_substrings = ["d37ci6vzurychx.cloudfront.net", "https://bornsql.ca", "binder.ploomber.io", "127.0.0.1", "http://localhost", "https://localhost"]
 
 [tool.nbqa.addopts]
 flake8 = [
