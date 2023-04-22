@@ -164,6 +164,9 @@ def test_table_profile(ip, tmp_empty):
         assert number == str(expected[criteria][2])
         assert word == str(expected[criteria][3])
 
+    # Test sticky column style was injected
+    assert "position: sticky;" in out._table_html
+
 
 def test_table_schema_profile(ip, tmp_empty):
     with sqlite3.connect("a.db") as conn:
