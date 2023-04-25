@@ -1,12 +1,13 @@
 # CHANGELOG
 
-## 0.7.2dev
-* [Feature] Support for DB API 2.0 drivers (#350)
-* [Feature] Improve boxplot performance (#152)
-* [Fix] Updates errors so only the error message is displayed (and traceback is hidden) (#407)
-* [Doc] Add QuestDB tutorial (#350)
-* [Fix] Fixes `%sqlcmd plot` when `--table` or `--column` have spaces (#409)
+## 0.7.2 (2023-04-25)
+
+* [Feature] Support for DB API 2.0 drivers ([#350](https://github.com/ploomber/jupysql/issues/350))
+* [Feature] Improve boxplot performance ([#152](https://github.com/ploomber/jupysql/issues/152))
 * [Feature] Add sticky first column styling to sqlcmd profile command
+* [Fix] Updates errors so only the error message is displayed (and traceback is hidden) ([#407](https://github.com/ploomber/jupysql/issues/407))
+* [Fix] Fixes `%sqlcmd plot` when `--table` or `--column` have spaces ([#409](https://github.com/ploomber/jupysql/issues/409))
+* [Doc] Add QuestDB tutorial ([#350](https://github.com/ploomber/jupysql/issues/350))
 
 ## 0.7.1 (2023-04-19)
 
