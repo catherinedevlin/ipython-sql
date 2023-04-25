@@ -1,6 +1,6 @@
 from .magic import RenderMagic, SqlMagic, load_ipython_extension
 
-__version__ = "0.7.2"
+__version__ = "0.7.3dev"
 
 
 __all__ = [

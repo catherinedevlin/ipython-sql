@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.7.3dev
+
 ## 0.7.2 (2023-04-25)
 
 * [Feature] Support for DB API 2.0 drivers ([#350](https://github.com/ploomber/jupysql/issues/350))
