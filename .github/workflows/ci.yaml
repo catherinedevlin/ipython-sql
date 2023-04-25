@@ -7,8 +7,6 @@ on:
       - 'dev/**'
   pull_request:
 
-
-
 jobs:
   test:
     strategy:
@@ -99,3 +97,30 @@ jobs:
       - name: Check project
         run: |
           pkgmt check
+
+
+  release:
+    needs: [test, test-sqlalchemy-v1, check]
+    if: startsWith(github.ref, 'refs/tags') && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install pkgmt twine wheel --upgrade
+
+      - name: Upload
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+          TAG: ${{  github.ref_name }}
+        run: |
+          echo "tag is $TAG"
+          pkgmt release $TAG --production --yes
