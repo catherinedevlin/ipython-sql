@@ -78,9 +78,9 @@ def is_table_exists(
         if ignore_error:
             return False
         else:
-            raise exceptions.ArgumentError("Table cannot be None")
+            raise exceptions.UsageError("Table cannot be None")
     if not Connection.current:
-        raise RuntimeError("No active connection")
+        raise exceptions.RuntimeError("No active connection")
     if not conn:
         conn = Connection.current
 
@@ -186,7 +186,9 @@ def _is_table_exists(table: str, with_: str, conn) -> bool:
     """
     if not conn:
         conn = Connection.current
+
     identifiers = conn.get_curr_identifiers()
+
     if with_:
         return table in list(store)
     else:
@@ -244,7 +246,7 @@ def flatten(src, ltypes=(list, tuple)):
 
 def support_only_sql_alchemy_connection(command):
     """
-    Throws an AttributeError if connection is not SQLAlchemy
+    Throws a sql.exceptions.RuntimeError if connection is not SQLAlchemy
     """
     if Connection.is_custom_connection():
-        raise AttributeError(f"{command} is not supported for a custom engine")
+        raise exceptions.RuntimeError(f"{command} is not supported for a custom engine")

@@ -39,14 +39,18 @@ So in most circumstances, we only display an error without a traceback. For exam
 %sqlplot
 ```
 
-To implement such behavior, you can use any of the functions defined in `sql.exceptions`, or implement your own. For example, we have an `ArgumentError` that can be raised when users pass incorrect arguments:
+To implement such behavior, you can use any of the functions defined in `sql.exceptions`, or implement your own. For example, we have a `UsageError` that can be raised when users pass incorrect arguments:
 
 ```{code-cell} ipython3
 :tags: [raises-exception]
 
-from sql.exceptions import ArgumentError
+from sql.exceptions import UsageError
 
-raise ArgumentError("something bad happened")
+raise UsageError("something bad happened")
+```
+
+```{important}
+These errors that hide the traceback should only be used in the context of a magic. For example, in our ggplot API (Python-based), we do not hide tracebacks as users might need them to debug their code
 ```
 
 +++ {"user_expressions": []}

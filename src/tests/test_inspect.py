@@ -34,8 +34,11 @@ def sample_db(ip):
 )
 def test_no_active_session(function, monkeypatch):
     monkeypatch.setattr(connection.Connection, "current", None)
-    with pytest.raises(RuntimeError, match="No active connection"):
+
+    with pytest.raises(UsageError, match="No active connection") as excinfo:
         function()
+
+    assert excinfo.value.error_type == "RuntimeError"
 
 
 @pytest.mark.parametrize(
@@ -98,6 +101,8 @@ def test_get_column(sample_db, name, first, second, schema):
 def test_nonexistent_table(sample_db, name, schema, error):
     with pytest.raises(UsageError) as excinfo:
         inspect.get_columns(name, schema)
+
+    assert excinfo.value.error_type == "TableNotFoundError"
     assert error.lower() in str(excinfo.value).lower()
 
 

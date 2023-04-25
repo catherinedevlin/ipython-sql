@@ -7,8 +7,10 @@ from sqlalchemy.exc import NoSuchModuleError
 from IPython.core.error import UsageError
 import difflib
 import sqlglot
+
 from sql.store import store
 from sql.telemetry import telemetry
+from sql import exceptions
 
 PLOOMBER_SUPPORT_LINK_STR = (
     "For technical support: https://ploomber.io/community"
@@ -194,10 +196,6 @@ class Connection:
             f"{e}.{cls._suggest_fix(env_var=False, connect_str=connect_str)}"
         )
 
-    @classmethod
-    def _error_module_not_found(cls, e):
-        return ModuleNotFoundError("test")
-
     def __init__(self, engine, alias=None):
         self.url = engine.url
         self.name = self.assign_name(engine)
@@ -241,7 +239,7 @@ class Connection:
                 )
         except (ModuleNotFoundError, NoSuchModuleError) as e:
             suggestion_str = get_missing_package_suggestion_str(e)
-            raise UsageError(
+            raise exceptions.MissingPackageError(
                 "\n\n".join(
                     [
                         str(e),
@@ -346,9 +344,9 @@ class Connection:
                 descriptor.lower()
             )
         if not conn:
-            raise Exception(
+            raise exceptions.RuntimeError(
                 "Could not close connection because it was not found amongst these: %s"
-                % str(cls.connections.keys())
+                % str(list(cls.connections.keys()))
             )
 
         if descriptor in cls.connections:
@@ -367,7 +365,7 @@ class Connection:
 
         if conn is None:
             if not Connection.current:
-                raise RuntimeError("No active connection")
+                raise exceptions.RuntimeError("No active connection")
             else:
                 conn = Connection.current.session
 

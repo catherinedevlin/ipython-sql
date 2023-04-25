@@ -3,6 +3,7 @@ from prettytable import PrettyTable
 from ploomber_core.exceptions import modify_exceptions
 from sql.connection import Connection
 from sql.telemetry import telemetry
+from sql import exceptions
 import sql.run
 import math
 from sql import util
@@ -14,7 +15,7 @@ def _get_inspector(conn):
         return inspect(conn)
 
     if not Connection.current:
-        raise RuntimeError("No active connection")
+        raise exceptions.RuntimeError("No active connection")
     else:
         return inspect(Connection.current.session)
 

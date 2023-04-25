@@ -21,58 +21,70 @@ def test_sqlstore_getitem():
 
     # Test case 1: Test for a valid key
     store["first"] = "SELECT * FROM a"
-    assert store.__getitem__("first") == "SELECT * FROM a"
+    assert store["first"] == "SELECT * FROM a"
 
     # Test case 2: Test for an invalid key with no matches
-    with pytest.raises(UsageError) as err_info:
-        store.__getitem__("second")
+    with pytest.raises(UsageError) as excinfo:
+        store["second"]
+
+    assert excinfo.value.error_type == "UsageError"
     assert (
-        str(err_info.value)
+        str(excinfo.value)
         == '"second" is not a valid snippet identifier. Valid identifiers are "first".'
     )
 
     # Test case 3: Test for invalid key with close match
-    with pytest.raises(UsageError) as err_info:
-        store.__getitem__("firs")
+    with pytest.raises(UsageError) as excinfo:
+        store["firs"]
+
+    assert excinfo.value.error_type == "UsageError"
     assert (
-        str(err_info.value)
+        str(excinfo.value)
         == '"firs" is not a valid snippet identifier. Did you mean "first"?'
     )
 
     # Test case 4: Test for multiple keys with close match
     store["first2"] = "SELECT * FROM b"
-    with pytest.raises(UsageError) as err_info:
-        store.__getitem__("firs")
+    with pytest.raises(UsageError) as excinfo:
+        store["firs"]
+
+    assert excinfo.value.error_type == "UsageError"
     assert (
-        str(err_info.value)
+        str(excinfo.value)
         == '"firs" is not a valid snippet identifier. Did you mean "first"?'
     )
 
     # Test case 5: Test for multiple keys with no close match
-    with pytest.raises(UsageError) as err_info:
-        store.__getitem__("second")
+    with pytest.raises(UsageError) as excinfo:
+        store["second"]
+
+    assert excinfo.value.error_type == "UsageError"
     assert (
-        str(err_info.value)
+        str(excinfo.value)
         == '"second" is not a valid snippet identifier. '
         + 'Valid identifiers are "first", "first2".'
     )
 
     # Test case 6: Test for empty dictionary:
     store2 = SQLStore()
-    with pytest.raises(UsageError) as err_info:
-        store2.__getitem__("second")
-    assert str(err_info.value) == "No saved SQL"
+    with pytest.raises(UsageError) as excinfo:
+        store2["second"]
+
+    assert excinfo.value.error_type == "UsageError"
+    assert str(excinfo.value) == "No saved SQL"
 
     # Test case 7: Test for special character in key:
     store["$%#"] = "SELECT * FROM a"
-    assert store.__getitem__("$%#") == "SELECT * FROM a"
+    assert store["$%#"] == "SELECT * FROM a"
 
 
 def test_key():
     store = SQLStore()
 
-    with pytest.raises(ValueError):
+    with pytest.raises(UsageError) as excinfo:
         store.store("first", "SELECT * FROM first WHERE x > 20", with_=["first"])
+
+    assert "cannot appear in with_ argument" in str(excinfo.value)
 
 
 @pytest.mark.parametrize(

@@ -191,23 +191,25 @@ def test_is_table_exists_ignore_error(ip, table, expected_result):
 
 
 @pytest.mark.parametrize(
-    "table, expected_error",
+    "table, expected_error, error_type",
     [
-        ("number_table", False),
-        ("test", False),
-        ("author", False),
-        ("empty_table", False),
-        ("numbers1", True),
-        ("test1", True),
-        ("author1", True),
-        ("empty_table1", True),
-        (None, True),
+        ("number_table", False, "TableNotFoundError"),
+        ("test", False, "TableNotFoundError"),
+        ("author", False, "TableNotFoundError"),
+        ("empty_table", False, "TableNotFoundError"),
+        ("numbers1", True, "TableNotFoundError"),
+        ("test1", True, "TableNotFoundError"),
+        ("author1", True, "TableNotFoundError"),
+        ("empty_table1", True, "TableNotFoundError"),
+        (None, True, "UsageError"),
     ],
 )
-def test_is_table_exists(ip, table, expected_error):
+def test_is_table_exists(ip, table, expected_error, error_type):
     if expected_error:
-        with pytest.raises(UsageError):
+        with pytest.raises(UsageError) as excinfo:
             util.is_table_exists(table)
+
+        assert excinfo.value.error_type == error_type
     else:
         util.is_table_exists(table)
 

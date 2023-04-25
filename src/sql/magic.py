@@ -21,6 +21,7 @@ import warnings
 import sql.connection
 import sql.parse
 import sql.run
+from sql import exceptions
 from sql.store import store
 from sql.command import SQLCommand
 from sql.magic_plot import SqlPlotMagic
@@ -33,7 +34,7 @@ from traitlets import Bool, Int, Unicode, Dict, observe
 
 try:
     from pandas.core.frame import DataFrame, Series
-except ImportError:
+except ModuleNotFoundError:
     DataFrame = None
     Series = None
 
@@ -420,19 +421,37 @@ class SqlMagic(Magics, Configurable):
     def _persist_dataframe(self, raw, conn, user_ns, append=False, index=True):
         """Implements PERSIST, which writes a DataFrame to the RDBMS"""
         if not DataFrame:
-            raise ImportError("Must `pip install pandas` to use DataFrames")
+            raise exceptions.MissingPackageError(
+                "You must install pandas to persist results: pip install pandas"
+            )
 
         frame_name = raw.strip(";")
 
-        # Get the DataFrame from the user namespace
+        # invalid identifier
+        if not frame_name.isidentifier():
+            raise exceptions.UsageError(
+                f"Expected {frame_name!r} to be a pd.DataFrame but it's"
+                " not a valid identifier"
+            )
+
+        # missing argument
         if not frame_name:
-            raise SyntaxError("Syntax: %sql --persist <name_of_data_frame>")
-        try:
-            frame = eval(frame_name, user_ns)
-        except SyntaxError:
-            raise SyntaxError("Syntax: %sql --persist <name_of_data_frame>")
+            raise exceptions.UsageError(
+                "Missing argument: %sql --persist <name_of_data_frame>"
+            )
+
+        # undefined variable
+        if frame_name not in user_ns:
+            raise exceptions.UsageError(
+                f"Expected {frame_name!r} to be a pd.DataFrame but it's undefined"
+            )
+
+        frame = user_ns[frame_name]
+
         if not isinstance(frame, DataFrame) and not isinstance(frame, Series):
-            raise TypeError("%s is not a Pandas DataFrame or Series" % frame_name)
+            raise exceptions.TypeError(
+                f"{frame_name!r} is not a Pandas DataFrame or Series"
+            )
 
         # Make a suitable name for the resulting database table
         table_name = frame_name.lower()
@@ -440,7 +459,13 @@ class SqlMagic(Magics, Configurable):
 
         if_exists = "append" if append else "fail"
 
-        frame.to_sql(table_name, conn.session.engine, if_exists=if_exists, index=index)
+        try:
+            frame.to_sql(
+                table_name, conn.session.engine, if_exists=if_exists, index=index
+            )
+        except ValueError as e:
+            raise exceptions.ValueError(e) from e
+
         return "Persisted %s" % table_name
 
 
@@ -458,6 +483,3 @@ def load_ipython_extension(ip):
     ip.register_magics(SqlCmdMagic)
 
     patch_ipython_usage_error(ip)
-
-
-# %%

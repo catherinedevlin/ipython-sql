@@ -3,7 +3,7 @@
 ## 0.7.2dev
 * [Feature] Support for DB API 2.0 drivers (#350)
 * [Feature] Improve boxplot performance (#152)
-* [Fix] Modifies some errors so only the error message is displayed (and traceback is hidden) (#407)
+* [Fix] Updates errors so only the error message is displayed (and traceback is hidden) (#407)
 * [Doc] Add QuestDB tutorial (#350)
 * [Fix] Fixes `%sqlcmd plot` when `--table` or `--column` have spaces (#409)
 * [Feature] Add sticky first column styling to sqlcmd profile command

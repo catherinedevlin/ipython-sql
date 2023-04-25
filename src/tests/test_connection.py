@@ -215,9 +215,11 @@ def test_missing_duckdb_dependencies(cleanup, monkeypatch):
         sys.modules["duckdb"] = None
         sys.modules["duckdb-engine"] = None
 
-        with pytest.raises(UsageError) as error:
+        with pytest.raises(UsageError) as excinfo:
             Connection.from_connect_str("duckdb://")
-        assert "try to install package: duckdb-engine" + str(error.value)
+
+        assert excinfo.value.error_type == "MissingPackageError"
+        assert "try to install package: duckdb-engine" + str(excinfo.value)
 
 
 @pytest.mark.parametrize(
@@ -251,10 +253,11 @@ def test_missing_driver(
 ):
     with patch.dict(sys.modules):
         sys.modules[missing_pkg] = None
-        with pytest.raises(UsageError) as error:
+        with pytest.raises(UsageError) as excinfo:
             Connection.from_connect_str(connect_str)
 
-        assert "try to install package: " + missing_pkg in str(error.value)
+        assert excinfo.value.error_type == "MissingPackageError"
+        assert "try to install package: " + missing_pkg in str(excinfo.value)
 
 
 def test_no_current_connection_and_get_info(monkeypatch, mock_database):

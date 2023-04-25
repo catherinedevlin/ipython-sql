@@ -4,7 +4,6 @@ import argparse
 from IPython.utils.process import arg_split
 from IPython.core.magic import Magics, line_magic, magics_class
 from IPython.core.magic_arguments import argument, magic_arguments
-from IPython.core.error import UsageError
 from sqlglot import select, condition
 from sqlalchemy import text
 from sql import util
@@ -13,13 +12,14 @@ from prettytable import PrettyTable
 
 try:
     from traitlets.config.configurable import Configurable
-except ImportError:
+except ModuleNotFoundError:
     from IPython.config.configurable import Configurable
 
 import sql.connection
 from sql import inspect
 import sql.run
 from sql.util import sanitize_identifier
+from sql import exceptions
 
 
 class CmdParser(argparse.ArgumentParser):
@@ -28,7 +28,7 @@ class CmdParser(argparse.ArgumentParser):
             self._print_message(message, sys.stderr)
 
     def error(self, message):
-        raise UsageError(message)
+        raise exceptions.UsageError(message)
 
 
 @magics_class
@@ -50,7 +50,7 @@ class SqlCmdMagic(Magics, Configurable):
         AVAILABLE_SQLCMD_COMMANDS = ["tables", "columns", "test", "profile"]
 
         if line == "":
-            raise UsageError(
+            raise exceptions.UsageError(
                 "Missing argument for %sqlcmd. "
                 "Valid commands are: {}".format(", ".join(AVAILABLE_SQLCMD_COMMANDS))
             )
@@ -61,7 +61,7 @@ class SqlCmdMagic(Magics, Configurable):
             if command in AVAILABLE_SQLCMD_COMMANDS:
                 return self.execute(command, others)
             else:
-                raise UsageError(
+                raise exceptions.UsageError(
                     f"%sqlcmd has no command: {command!r}. "
                     "Valid commands are: {}".format(
                         ", ".join(AVAILABLE_SQLCMD_COMMANDS)
@@ -152,18 +152,18 @@ class SqlCmdMagic(Magics, Configurable):
             ]
 
             if args.table and not any(COMPARATOR_ARGS):
-                raise UsageError("Please use a valid comparator.")
+                raise exceptions.UsageError("Please use a valid comparator.")
 
             if args.table and any(COMPARATOR_ARGS) and not args.column:
-                raise UsageError("Please pass a column to test.")
+                raise exceptions.UsageError("Please pass a column to test.")
 
             if args.greater and args.greater_or_equal:
-                return ValueError(
+                return exceptions.UsageError(
                     "You cannot use both greater and greater "
                     "than or equal to arguments at the same time."
                 )
             elif args.less_than and args.less_than_or_equal:
-                return ValueError(
+                return exceptions.UsageError(
                     "You cannot use both less and less than "
                     "or equal to arguments at the same time."
                 )
@@ -180,7 +180,7 @@ class SqlCmdMagic(Magics, Configurable):
                         for row in rows[1:]:
                             _pretty.add_row(row)
                         print(_pretty)
-                raise UsageError(
+                raise exceptions.UsageError(
                     "The above values do not not match your test requirements."
                 )
             else:
@@ -222,7 +222,9 @@ def return_test_results(args, conn, query):
         return res
     except Exception as e:
         if "column" in str(e):
-            raise UsageError(f"Referenced column '{args.column}' not found!")
+            raise exceptions.UsageError(
+                f"Referenced column '{args.column}' not found!"
+            ) from e
 
 
 def run_each_individually(args, conn):

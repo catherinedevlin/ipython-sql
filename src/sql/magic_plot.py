@@ -8,7 +8,7 @@ from ploomber_core.exceptions import modify_exceptions
 
 try:
     from traitlets.config.configurable import Configurable
-except ImportError:
+except ModuleNotFoundError:
     from IPython.config.configurable import Configurable
 
 
@@ -65,7 +65,7 @@ class SqlPlotMagic(Magics, Configurable):
             column = cmd.args.column
 
         if not cmd.args.line:
-            raise exceptions.ArgumentError(
+            raise exceptions.UsageError(
                 "Missing the first argument, must be: 'histogram' or 'boxplot'. "
                 "Example: %sqlplot histogram"
             )
@@ -93,6 +93,6 @@ class SqlPlotMagic(Magics, Configurable):
                 conn=None,
             )
         else:
-            raise exceptions.ArgumentError(
+            raise exceptions.UsageError(
                 f"Unknown plot {cmd.args.line[0]!r}. Must be: 'histogram' or 'boxplot'"
             )

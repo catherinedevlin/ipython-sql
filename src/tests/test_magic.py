@@ -14,6 +14,8 @@ from IPython.core.error import UsageError
 from sql.connection import Connection
 from sql.magic import SqlMagic
 from sql.run import ResultSet
+from sql import magic
+
 from conftest import runsql
 
 
@@ -123,6 +125,15 @@ def test_duplicate_column_names_accepted(ip):
     assert ("Brecht", "Brecht") in result
 
 
+def test_persist_missing_pandas(ip, monkeypatch):
+    monkeypatch.setattr(magic, "DataFrame", None)
+
+    ip.run_cell("results = %sql SELECT * FROM test;")
+    ip.run_cell("results_dframe = results.DataFrame()")
+    result = ip.run_cell("%sql --persist sqlite:// results_dframe")
+    assert "pip install pandas" in str(result.error_in_exec)
+
+
 def test_persist(ip):
     runsql(ip, "")
     ip.run_cell("results = %sql SELECT * FROM test;")
@@ -139,6 +150,16 @@ def test_persist_no_index(ip):
     ip.run_cell("%sql --persist sqlite:// results_no_index --no-index")
     persisted = runsql(ip, "SELECT * FROM results_no_index")
     assert persisted == [(1, "foo"), (2, "bar")]
+
+
+def test_persist_invalid_identifier(ip):
+    result = ip.run_cell("%sql --persist sqlite:// not an identifier")
+    assert "not a valid identifier" in str(result.error_in_exec)
+
+
+def test_persist_undefined_variable(ip):
+    result = ip.run_cell("%sql --persist sqlite:// not_a_variable")
+    assert "it's undefined" in str(result.error_in_exec)
 
 
 def test_append(ip):
@@ -162,7 +183,7 @@ def test_persist_non_frame_raises(ip):
     ip.run_cell("not_a_dataframe = 22")
     runsql(ip, "")
     result = ip.run_cell("%sql --persist sqlite:// not_a_dataframe")
-    assert isinstance(result.error_in_exec, TypeError)
+    assert isinstance(result.error_in_exec, UsageError)
     assert (
         "is not a Pandas DataFrame or Series".lower()
         in str(result.error_in_exec).lower()
@@ -172,13 +193,6 @@ def test_persist_non_frame_raises(ip):
 def test_persist_bare(ip):
     result = ip.run_cell("%sql --persist sqlite://")
     assert result.error_in_exec
-
-
-def test_persist_frame_at_its_creation(ip):
-    ip.run_cell("results = %sql SELECT * FROM author;")
-    ip.run_cell("%sql --persist sqlite:// results.DataFrame()")
-    persisted = runsql(ip, "SELECT * FROM results")
-    assert "Shakespeare" in str(persisted)
 
 
 def test_connection_args_enforce_json(ip):
