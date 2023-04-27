@@ -19,7 +19,7 @@ myst:
 
 # Loading and Querying Excel Files
 
-In this how-to guide, we will be using small financial data stored in an Excel file containing over 700 records. The dataset is publicly available [here](https://go.microsoft.com/fwlink/?LinkID=521962). We will use the `read_excel` function from the pandas library to read the Excel file and store it in the database using the `%sql --persist` command of jupysql, which works across multiple databases. For additional compatibility between different databases and jupysql, please check out this [page](https://jupysql.ploomber.io/en/latest/integrations/compatibility.html).
+In this tutorial, we will be using small financial data stored in an Excel file containing over 700 records. The dataset is publicly available [here](https://go.microsoft.com/fwlink/?LinkID=521962). We will use the `read_excel` function from the pandas library to read the Excel file and store it in the database using the `%sql --persist` command of jupysql, which works across multiple databases. For additional compatibility between different databases and jupysql, please check out this [page](../integrations/compatibility.md).
 
 Note: DuckDB doesn't support reading excel files. Their `excel` [extension](https://duckdb.org/docs/extensions/overview) provides excel like formatting.
 
