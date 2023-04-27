@@ -21,9 +21,13 @@ myst:
 
 In this tutorial, we will be using small financial data stored in an Excel file containing over 700 records. The dataset is publicly available [here](https://go.microsoft.com/fwlink/?LinkID=521962). We will use the `read_excel` function from the pandas library to read the Excel file and store it in the database using the `%sql --persist` command of jupysql, which works across multiple databases. For additional compatibility between different databases and jupysql, please check out this [page](../integrations/compatibility.md).
 
-Note: DuckDB doesn't support reading excel files. Their `excel` [extension](https://duckdb.org/docs/extensions/overview) provides excel like formatting.
+```{note}
+DuckDB doesn't support reading excel files. Their `excel` [extension](https://duckdb.org/docs/extensions/overview) provides excel like formatting.
+```
 
-Note: For this tutorial, we aim to showcase the versatility of jupysql as a framework by using `--persist`. However, DuckDB natively supports Pandas DataFrame and you do not need to use `--persist`. With DuckDB, complex queries such as aggregations and joins can run more efficiently on the DataFrame compared to Pandas native functions. You can refer to this [blog](https://duckdb.org/2021/05/14/sql-on-pandas.html) for a detailed comparison (Note: the comparison is based on Pandas v1.\*, not the recently released Pandas v2.\*, which uses PyArrow as a backend). 
+```{note}
+For this tutorial, we aim to showcase the versatility of jupysql as a framework by using `--persist`. However, DuckDB natively supports Pandas DataFrame and you do not need to use `--persist`. With DuckDB, complex queries such as aggregations and joins can run more efficiently on the DataFrame compared to Pandas native functions. You can refer to this [blog](https://duckdb.org/2021/05/14/sql-on-pandas.html) for a detailed comparison (Note: the comparison is based on Pandas v1.\*, not the recently released Pandas v2.\*, which uses PyArrow as a backend). 
+```
 
 Installing dependecies:
 
