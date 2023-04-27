@@ -49,6 +49,7 @@ class SQLCommand:
             add_alias = True
         else:
             add_alias = False
+
         self.command_text = " ".join(line_for_command) + "\n" + cell
 
         if self.args.file:

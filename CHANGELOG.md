@@ -2,6 +2,7 @@
 
 ## 0.7.3dev
 * [Doc] Tutorial on querying excel files with pandas and jupysql ([#423](https://github.com/ploomber/jupysql/pull/423))
+* [Fix] Fix `--alias` when passing an existing engine
 
 ## 0.7.2 (2023-04-25)
 

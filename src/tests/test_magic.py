@@ -1,3 +1,4 @@
+import sqlite3
 import platform
 from pathlib import Path
 import os.path
@@ -504,6 +505,23 @@ def test_close_connection(ip, tmp_empty):
     assert "sqlite:///two.db" not in Connection.connections
 
 
+def test_alias(clean_conns, ip_empty, tmp_empty):
+    ip_empty.run_cell("%sql sqlite:///one.db --alias one")
+    assert {"one"} == set(Connection.connections)
+
+
+def test_alias_existing_engine(clean_conns, ip_empty, tmp_empty):
+    ip_empty.user_global_ns["first"] = create_engine("sqlite:///first.db")
+    ip_empty.run_cell("%sql first --alias one")
+    assert {"one"} == set(Connection.connections)
+
+
+def test_alias_custom_connection(clean_conns, ip_empty, tmp_empty):
+    ip_empty.user_global_ns["first"] = sqlite3.connect(":memory:")
+    ip_empty.run_cell("%sql first --alias one")
+    assert {"one"} == set(Connection.connections)
+
+
 def test_close_connection_with_alias(ip, tmp_empty):
     # open two connections
     ip.run_cell("%sql sqlite:///one.db --alias one")
@@ -517,6 +535,42 @@ def test_close_connection_with_alias(ip, tmp_empty):
     assert "sqlite:///two.db" not in Connection.connections
     assert "one" not in Connection.connections
     assert "two" not in Connection.connections
+
+
+def test_close_connection_with_existing_engine_and_alias(ip, tmp_empty):
+    ip.user_global_ns["first"] = create_engine("sqlite:///first.db")
+    ip.user_global_ns["second"] = create_engine("sqlite:///second.db")
+
+    # open two connections
+    ip.run_cell("%sql first --alias one")
+    ip.run_cell("%sql second --alias two")
+
+    # close them
+    ip.run_cell("%sql -x one")
+    ip.run_cell("%sql --close two")
+
+    assert "sqlite:///first.db" not in Connection.connections
+    assert "sqlite:///second.db" not in Connection.connections
+    assert "first" not in Connection.connections
+    assert "second" not in Connection.connections
+
+
+def test_close_connection_with_custom_connection_and_alias(ip, tmp_empty):
+    ip.user_global_ns["first"] = sqlite3.connect("first.db")
+    ip.user_global_ns["second"] = sqlite3.connect("second.db")
+
+    # open two connections
+    ip.run_cell("%sql first --alias one")
+    ip.run_cell("%sql second --alias two")
+
+    # close them
+    ip.run_cell("%sql -x one")
+    ip.run_cell("%sql --close two")
+
+    assert "sqlite:///first.db" not in Connection.connections
+    assert "sqlite:///second.db" not in Connection.connections
+    assert "first" not in Connection.connections
+    assert "second" not in Connection.connections
 
 
 def test_column_names_visible(ip, tmp_empty):
