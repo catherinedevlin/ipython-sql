@@ -25,6 +25,7 @@ In this tutorial, we will be using small financial data stored in an Excel file 
 DuckDB doesn't support reading excel files. Their `excel` [extension](https://duckdb.org/docs/extensions/overview) provides excel like formatting.
 ```
 
+
 ```{note}
 For this tutorial, we aim to showcase the versatility of jupysql as a framework by using `--persist`. However, DuckDB natively supports Pandas DataFrame and you do not need to use `--persist`. With DuckDB, complex queries such as aggregations and joins can run more efficiently on the DataFrame compared to Pandas native functions. You can refer to this [blog](https://duckdb.org/2021/05/14/sql-on-pandas.html) for a detailed comparison (Note: the comparison is based on Pandas v1.\*, not the recently released Pandas v2.\*, which uses PyArrow as a backend). 
 ```
