@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.7.4dev
+
 ## 0.7.3 (2023-04-28)
 
 * [Fix] Fixing ipython version to 8.12.0 on python 3.8
