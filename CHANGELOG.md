@@ -2,6 +2,8 @@
 
 ## 0.7.5dev
 
+* [Doc] documenting `%sqlcmd tables`/`%sqlcmd columns`
+
 ## 0.7.4 (2023-04-28)
 No changes
 
