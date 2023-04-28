@@ -1,8 +1,10 @@
 # CHANGELOG
 
 ## 0.7.4dev
+No changes
 
 ## 0.7.3 (2023-04-28)
+Never deployed due to a CI error
 
 * [Fix] Fixing ipython version to 8.12.0 on python 3.8
 * [Fix] Fix `--alias` when passing an existing engine
