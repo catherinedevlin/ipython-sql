@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## 0.7.3dev
+* [Fix] Fixing ipython version to 8.12.0 on python 3.8
 * [Doc] Tutorial on querying excel files with pandas and jupysql ([#423](https://github.com/ploomber/jupysql/pull/423))
 * [Fix] Fix `--alias` when passing an existing engine
 
