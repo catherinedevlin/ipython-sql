@@ -1,9 +1,10 @@
 # CHANGELOG
 
-## 0.7.3dev
+## 0.7.3 (2023-04-28)
+
 * [Fix] Fixing ipython version to 8.12.0 on python 3.8
-* [Doc] Tutorial on querying excel files with pandas and jupysql ([#423](https://github.com/ploomber/jupysql/pull/423))
 * [Fix] Fix `--alias` when passing an existing engine
+* [Doc] Tutorial on querying excel files with pandas and jupysql ([#423](https://github.com/ploomber/jupysql/pull/423))
 
 ## 0.7.2 (2023-04-25)
 
@@ -13,7 +14,6 @@
 * [Fix] Updates errors so only the error message is displayed (and traceback is hidden) ([#407](https://github.com/ploomber/jupysql/issues/407))
 * [Fix] Fixes `%sqlcmd plot` when `--table` or `--column` have spaces ([#409](https://github.com/ploomber/jupysql/issues/409))
 * [Doc] Add QuestDB tutorial ([#350](https://github.com/ploomber/jupysql/issues/350))
-
 
 ## 0.7.1 (2023-04-19)
 
