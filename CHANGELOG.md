@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## 0.7.5dev
+* [Feature] Using native DuckDB `.df()` method when using `autopandas` 
 
 * [Doc] documenting `%sqlcmd tables`/`%sqlcmd columns`
 
@@ -13,6 +14,7 @@ Never deployed due to a CI error
 * [Fix] Fixing ipython version to 8.12.0 on python 3.8
 * [Fix] Fix `--alias` when passing an existing engine
 * [Doc] Tutorial on querying excel files with pandas and jupysql ([#423](https://github.com/ploomber/jupysql/pull/423))
+
 
 ## 0.7.2 (2023-04-25)
 

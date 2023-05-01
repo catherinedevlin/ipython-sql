@@ -21,9 +21,9 @@ from sql.run import (
 
 @pytest.fixture
 def mock_conns():
-    Connection.name = str()
-    Connection.dialect = "postgres"
-    return Connection
+    conn = Connection(Mock())
+    conn.session.execution_options.side_effect = ValueError
+    return conn
 
 
 @pytest.fixture
@@ -97,9 +97,12 @@ def test_handle_postgres_special(mock_conns):
 
 def test_set_autocommit(mock_conns, mock_config, caplog):
     caplog.set_level(logging.DEBUG)
+
     output = set_autocommit(mock_conns, mock_config)
+
     with warnings.catch_warnings():
         warnings.simplefilter("error")
+
     assert "The database driver doesn't support such " in caplog.records[0].msg
     assert output is True
 

@@ -124,6 +124,29 @@ class Connection:
     # all connections
     connections = {}
 
+    def __init__(self, engine, alias=None):
+        self.url = engine.url
+        self.name = self.assign_name(engine)
+        self.dialect = self.url.get_dialect()
+        self.engine = engine
+        self.session = engine.connect()
+
+        if IS_SQLALCHEMY_ONE:
+            self.metadata = sqlalchemy.MetaData(bind=engine)
+
+        self.connections[
+            alias
+            or (
+                repr(sqlalchemy.MetaData(bind=engine).bind.url)
+                if IS_SQLALCHEMY_ONE
+                else repr(engine.url)
+            )
+        ] = self
+
+        self.connect_args = None
+        self.alias = alias
+        Connection.current = self
+
     @classmethod
     def _suggest_fix_no_module_found(module_name):
         DEFAULT_PREFIX = "\n\n"
@@ -195,28 +218,6 @@ class Connection:
             "An error happened while creating the connection: "
             f"{e}.{cls._suggest_fix(env_var=False, connect_str=connect_str)}"
         )
-
-    def __init__(self, engine, alias=None):
-        self.url = engine.url
-        self.name = self.assign_name(engine)
-        self.dialect = self.url.get_dialect()
-        self.session = engine.connect()
-
-        if IS_SQLALCHEMY_ONE:
-            self.metadata = sqlalchemy.MetaData(bind=engine)
-
-        self.connections[
-            alias
-            or (
-                repr(sqlalchemy.MetaData(bind=engine).bind.url)
-                if IS_SQLALCHEMY_ONE
-                else repr(engine.url)
-            )
-        ] = self
-
-        self.connect_args = None
-        self.alias = alias
-        Connection.current = self
 
     @classmethod
     def from_connect_str(
