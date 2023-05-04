@@ -35,7 +35,9 @@ jobs:
           source ~/.bashrc
 
           pip install ".[integration]"
+          pip install "sqlalchemy>=2"
       - name: Integration Test
         run:
           # Run the integration test by pytest marker
+          python -c "import sqlalchemy; print('Sqlalchemy version ', sqlalchemy.__version__)"
           pytest src/tests/integration --verbose
