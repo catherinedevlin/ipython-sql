@@ -1,6 +1,7 @@
 import pyodbc
 import pytest
 from matplotlib import pyplot as plt
+from IPython.core.error import UsageError
 
 
 def test_query_count(ip_with_MSSQL, test_table_name_dict):
@@ -112,3 +113,17 @@ def test_sqlplot_boxplot(ip_with_MSSQL, cell):
     out = ip_with_MSSQL.run_cell(cell)
 
     assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
+
+
+def test_unsupported_function(ip_with_MSSQL, test_table_name_dict):
+    # clean current Axes
+    plt.cla()
+    out = ip_with_MSSQL.run_cell(
+        f"%sqlplot boxplot --table " f"{test_table_name_dict['taxi']} --column x"
+    )
+    assert isinstance(out.error_in_exec, UsageError)
+    assert "Ensure that percentile_disc function is available" in str(out.error_in_exec)
+    assert (
+        "If you need help solving this issue, "
+        "send us a message: https://ploomber.io/community" in str(out.error_in_exec)
+    )

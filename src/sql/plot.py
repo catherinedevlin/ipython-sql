@@ -6,6 +6,8 @@ from ploomber_core.exceptions import modify_exceptions
 from jinja2 import Template
 
 from sql.util import flatten
+from sqlalchemy.exc import ProgrammingError
+from sql import exceptions
 
 try:
     import matplotlib.pyplot as plt
@@ -30,6 +32,7 @@ def _summary_stats(conn, table, column, with_=None):
 
     if not conn:
         conn = sql.connection.Connection.current
+    driver = conn._get_curr_sqlalchemy_connection_info()["driver"]
 
     template = Template(
         """
@@ -44,7 +47,16 @@ def _summary_stats(conn, table, column, with_=None):
 
     query = template.render(table=table, column=column)
 
-    values = conn.execute(query, with_).fetchone()
+    try:
+        values = conn.execute(query, with_).fetchone()
+    except ProgrammingError as e:
+        print(e)
+        raise exceptions.RuntimeError(
+            f"\nEnsure that percentile_disc function is available on {driver}."
+        )
+    except Exception as e:
+        raise e
+
     keys = ["q1", "med", "q3", "mean", "N"]
     return {k: float(v) for k, v in zip(keys, flatten(values))}
 
