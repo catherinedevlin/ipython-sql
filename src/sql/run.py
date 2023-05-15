@@ -25,6 +25,8 @@ import logging
 import warnings
 from collections.abc import Iterable
 
+DEFAULT_DISPLAYLIMIT_VALUE = 10
+
 
 def unduplicate_field_names(field_names):
     """Append a number to duplicate field names to make them unique."""
@@ -154,12 +156,17 @@ class ResultSet(ColumnGuesserMixin):
             # to create clickable links
             result = html.unescape(result)
             result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
-            if self.config.displaylimit and len(self) > self.config.displaylimit:
+            if len(self) > self.pretty.row_count:
                 HTML = (
                     '%s\n<span style="font-style:italic;text-align:center;">'
                     "%d rows, truncated to displaylimit of %d</span>"
+                    "<br>"
+                    '<span style="font-style:italic;text-align:center;">'
+                    "If you want to see more, please visit "
+                    '<a href="https://jupysql.ploomber.io/en/latest/api/configuration.html#displaylimit">displaylimit</a>'  # noqa: E501
+                    " configuration</span>"
                 )
-                result = HTML % (result, len(self), self.config.displaylimit)
+                result = HTML % (result, len(self), self.pretty.row_count)
             return result
         else:
             return None
@@ -562,7 +569,7 @@ def raw_run(conn, sql):
 class PrettyTable(prettytable.PrettyTable):
     def __init__(self, *args, **kwargs):
         self.row_count = 0
-        self.displaylimit = None
+        self.displaylimit = DEFAULT_DISPLAYLIMIT_VALUE
         return super(PrettyTable, self).__init__(*args, **kwargs)
 
     def add_rows(self, data):
@@ -571,7 +578,7 @@ class PrettyTable(prettytable.PrettyTable):
         self.clear_rows()
         self.displaylimit = data.config.displaylimit
         if self.displaylimit == 0:
-            self.displaylimit = None  # TODO: remove this to make 0 really 0
+            self.displaylimit = None
         if self.displaylimit in (None, 0):
             self.row_count = len(data)
         else:

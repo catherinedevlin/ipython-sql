@@ -30,7 +30,7 @@ from sql._patch import patch_ipython_usage_error
 from ploomber_core.dependencies import check_installed
 
 from traitlets.config.configurable import Configurable
-from traitlets import Bool, Int, Unicode, Dict, observe
+from traitlets import Bool, Int, TraitError, Unicode, Dict, observe, validate
 
 try:
     from pandas.core.frame import DataFrame, Series
@@ -94,7 +94,7 @@ class SqlMagic(Magics, Configurable):
         help="Don't display the full traceback on SQL Programming Error",
     )
     displaylimit = Int(
-        None,
+        sql.run.DEFAULT_DISPLAYLIMIT_VALUE,
         config=True,
         allow_none=True,
         help=(
@@ -143,6 +143,26 @@ class SqlMagic(Magics, Configurable):
 
         # Add ourself to the list of module configurable via %config
         self.shell.configurables.append(self)
+
+    # To verify displaylimit is valid positive integer
+    # If:
+    #   None -> We treat it as 0 (no limit)
+    #   Positive Integer -> Pass
+    #   Negative Integer -> raise Error
+    @validate("displaylimit")
+    def _valid_displaylimit(self, proposal):
+        if proposal["value"] is None:
+            print("displaylimit: Value None will be treated as 0 (no limit)")
+            return 0
+        try:
+            value = int(proposal["value"])
+            if value < 0:
+                raise TraitError(
+                    "{}: displaylimit cannot be a negative integer".format(value)
+                )
+            return value
+        except ValueError:
+            raise TraitError("{}: displaylimit is not an integer".format(value))
 
     @observe("autopandas", "autopolars")
     def _mutex_autopandas_autopolars(self, change):

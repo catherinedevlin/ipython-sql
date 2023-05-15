@@ -1,3 +1,4 @@
+import logging
 import sqlite3
 import platform
 from pathlib import Path
@@ -231,15 +232,31 @@ def test_connection_args_double_quotes(ip):
 #     assert 'Shakespeare' in str(persisted)
 
 
-@pytest.mark.parametrize("value", ["None", "0"])
-def test_displaylimit_disabled(ip, value):
-    ip.run_line_magic("config", "SqlMagic.autolimit = None")
+def test_displaylimit_no_limit(ip):
+    ip.run_line_magic("config", "SqlMagic.displaylimit = 0")
 
-    ip.run_line_magic("config", f"SqlMagic.displaylimit = {value}")
-    result = runsql(ip, "SELECT * FROM author;")
+    out = ip.run_cell("%sql SELECT * FROM number_table;")
+    assert out.result == [
+        (4, -2),
+        (-5, 0),
+        (2, 4),
+        (0, 2),
+        (-5, -1),
+        (-2, -3),
+        (-2, -3),
+        (-4, 2),
+        (2, -5),
+        (4, 3),
+    ]
 
-    assert "Brecht" in result._repr_html_()
-    assert "Shakespeare" in result._repr_html_()
+
+def test_displaylimit_default(ip):
+    # Insert extra data to make number_table bigger (over 10 to see truncated string)
+    ip.run_cell("%sql INSERT INTO number_table VALUES (4, 3)")
+    ip.run_cell("%sql INSERT INTO number_table VALUES (4, 3)")
+
+    out = runsql(ip, "SELECT * FROM number_table;")
+    assert "truncated to displaylimit of 10" in out._repr_html_()
 
 
 def test_displaylimit(ip):
@@ -250,6 +267,88 @@ def test_displaylimit(ip):
 
     assert "Brecht" in result._repr_html_()
     assert "Shakespeare" not in result._repr_html_()
+
+
+@pytest.mark.parametrize("config_value, expected_length", [(3, 3), (6, 6)])
+def test_displaylimit_enabled_truncated_length(ip, config_value, expected_length):
+    # Insert extra data to make number_table bigger (over 10 to see truncated string)
+    ip.run_cell("%sql INSERT INTO number_table VALUES (4, 3)")
+    ip.run_cell("%sql INSERT INTO number_table VALUES (4, 3)")
+
+    ip.run_cell(f"%config SqlMagic.displaylimit = {config_value}")
+    out = runsql(ip, "SELECT * FROM number_table;")
+    assert f"truncated to displaylimit of {expected_length}" in out._repr_html_()
+
+
+@pytest.mark.parametrize("config_value", [(None), (0)])
+def test_displaylimit_enabled_no_limit(
+    ip,
+    config_value,
+):
+    # Insert extra data to make number_table bigger (over 10 to see truncated string)
+    ip.run_cell("%sql INSERT INTO number_table VALUES (4, 3)")
+    ip.run_cell("%sql INSERT INTO number_table VALUES (4, 3)")
+
+    ip.run_cell(f"%config SqlMagic.displaylimit = {config_value}")
+    out = runsql(ip, "SELECT * FROM number_table;")
+    assert "truncated to displaylimit of " not in out._repr_html_()
+
+
+@pytest.mark.parametrize(
+    "config_value, expected_error_msg",
+    [
+        (-1, "displaylimit cannot be a negative integer"),
+        (-2, "displaylimit cannot be a negative integer"),
+        (-2.5, "The 'displaylimit' trait of a SqlMagic instance expected an int"),
+        (
+            "'some_string'",
+            "The 'displaylimit' trait of a SqlMagic instance expected an int",
+        ),
+    ],
+)
+def test_displaylimit_enabled_with_invalid_values(
+    ip, config_value, expected_error_msg, caplog
+):
+    with caplog.at_level(logging.ERROR):
+        ip.run_cell(f"%config SqlMagic.displaylimit = {config_value}")
+
+    assert expected_error_msg in caplog.text
+
+
+@pytest.mark.parametrize(
+    "query_clause, expected_truncated_length",
+    [
+        # With limit
+        ("SELECT * FROM number_table", 12),
+        ("SELECT * FROM number_table LIMIT 5", None),
+        ("SELECT * FROM number_table LIMIT 10", None),
+        ("SELECT * FROM number_table LIMIT 11", 11),
+        # With conditions
+        ("SELECT * FROM number_table WHERE x > 0", None),
+        ("SELECT * FROM number_table WHERE x < 0", None),
+        ("SELECT * FROM number_table WHERE y < 0", None),
+        ("SELECT * FROM number_table WHERE y > 0", None),
+    ],
+)
+@pytest.mark.parametrize("is_saved_by_cte", [(True, False)])
+def test_displaylimit_with_conditional_clause(
+    ip, query_clause, expected_truncated_length, is_saved_by_cte
+):
+    # Insert extra data to make number_table bigger (over 10 to see truncated string)
+    ip.run_cell("%sql INSERT INTO number_table VALUES (4, 3)")
+    ip.run_cell("%sql INSERT INTO number_table VALUES (4, 3)")
+
+    if is_saved_by_cte:
+        ip.run_cell(f"%sql --save saved_cte --no-execute {query_clause}")
+        out = ip.run_line_magic("sql", "--with saved_cte SELECT * from saved_cte")
+    else:
+        out = runsql(ip, query_clause)
+
+    if expected_truncated_length:
+        assert (
+            f"{expected_truncated_length} rows, truncated to displaylimit of 10"
+            in out._repr_html_()
+        )
 
 
 def test_column_local_vars(ip):

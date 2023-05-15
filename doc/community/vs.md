@@ -16,3 +16,4 @@ If you're migrating from `ipython-sql` to JupySQL, these are the differences (in
 - Using `%sqlcmd tables` and `%sqlcmd columns --table/-t` user can quickly explore tables in the database and the columns each table has. [Click here](../user-guide/tables-columns) to learn more.
 - [Polars Integration](../integrations/polars) to convert query results to `polars.DataFrame`. `%config SqlMagic.autopolars` can be used to automatically return Polars DataFrames instead of regular result sets.
 - Integration tests with PostgreSQL, MariaDB, MySQL, SQLite and DuckDB.
+- The configuration default value of SqlMagic.displaylimit is different, in JupySQL is `10`, whereas in ipython-sql is `None`
