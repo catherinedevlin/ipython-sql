@@ -127,6 +127,23 @@ databaseConfig = {
             "role": "SYSADMIN",
         },
     },
+    "cockroach": {
+        "drivername": "cockroachdb+psycopg2",
+        "username": "root",
+        "password": None,
+        # database/schema
+        "database": "defaultdb",
+        "host": "localhost",
+        "port": "26257",
+        "alias": "cockroachTest",
+        "query": {"sslmode": "disable"},
+        "docker_ct": {
+            "name": "cockroach",
+            "image": "cockroachdb/cockroach:latest",
+            "ports": {26257: 26257, 8080: 8080},
+            "command": "start-single-node --insecure",
+        },
+    },
 }
 
 
@@ -166,6 +183,7 @@ def database_ready(
     t0 = time.time()
     while time.time() - t0 < timeout:
         try:
+            print("genereated URL: ", _get_database_url(database))
             eng = sqlalchemy.create_engine(_get_database_url(database)).connect()
             eng.close()
             return True
@@ -327,10 +345,43 @@ def mssql(is_bypass_init=False):
             yield container
 
 
+@contextmanager
+def cockroach(is_bypass_init=False):
+    if is_bypass_init:
+        yield None
+        return
+    db_config = DatabaseConfigHelper.get_database_config("cockroach")
+    try:
+        client = docker.from_env(version="auto")
+        client.containers.prune()
+        print("Curr: ", client.containers.list(all=True))
+        curr = client.containers.get(db_config["docker_ct"]["name"])
+        print("use existing container", curr)
+        yield curr
+    except errors.NotFound:
+        print("Creating new container: Cockroach")
+        with new_container(
+            new_container_name=db_config["docker_ct"]["name"],
+            image_name=db_config["docker_ct"]["image"],
+            ports=db_config["docker_ct"]["ports"],
+            ready_test=lambda: database_ready(database="cockroach"),
+            # ready_test=lambda: time.sleep(10000000) or True,
+            # healthcheck={
+            #     "test": "/opt/mssql-tools/bin/sqlcmd "
+            #     "-U $DB_USER -P $SA_PASSWORD "
+            #     "-Q 'select 1' -b -o /dev/null",
+            #     "timeout": 5000000000,
+            # },
+            command=db_config["docker_ct"]["command"],
+        ) as container:
+            yield container
+
+
 def main():
     print("Starting test containers...")
 
-    with postgres(), mysql(), mariadb(), mssql():
+    with cockroach():
+        # with postgres(), mysql(), mariadb(), mssql():
         print("Press CTRL+C to exit")
         try:
             while True:
