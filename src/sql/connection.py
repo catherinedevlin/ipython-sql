@@ -3,7 +3,7 @@ from difflib import get_close_matches
 
 import sqlalchemy
 from sqlalchemy.engine import Engine
-from sqlalchemy.exc import NoSuchModuleError
+from sqlalchemy.exc import NoSuchModuleError, OperationalError
 from IPython.core.error import UsageError
 import difflib
 import sqlglot
@@ -11,10 +11,11 @@ import sqlglot
 from sql.store import store
 from sql.telemetry import telemetry
 from sql import exceptions
+from sql.error_message import detail
+from ploomber_core.exceptions import modify_exceptions
 
-PLOOMBER_SUPPORT_LINK_STR = (
-    "For technical support: https://ploomber.io/community"
-    "\nDocumentation: https://jupysql.ploomber.io/en/latest/connecting.html"
+PLOOMBER_DOCS_LINK_STR = (
+    "Documentation: https://jupysql.ploomber.io/en/latest/connecting.html"
 )
 IS_SQLALCHEMY_ONE = int(sqlalchemy.__version__.split(".")[0]) == 1
 
@@ -129,19 +130,19 @@ class Connection:
         self.name = self.assign_name(engine)
         self.dialect = self.url.get_dialect()
         self.engine = engine
-        self.session = engine.connect()
 
         if IS_SQLALCHEMY_ONE:
             self.metadata = sqlalchemy.MetaData(bind=engine)
 
-        self.connections[
-            alias
-            or (
-                repr(sqlalchemy.MetaData(bind=engine).bind.url)
-                if IS_SQLALCHEMY_ONE
-                else repr(engine.url)
-            )
-        ] = self
+        url = (
+            repr(sqlalchemy.MetaData(bind=engine).bind.url)
+            if IS_SQLALCHEMY_ONE
+            else repr(engine.url)
+        )
+
+        self.session = self._create_session(engine, url)
+
+        self.connections[alias or url] = self
 
         self.connect_args = None
         self.alias = alias
@@ -156,6 +157,21 @@ class Connection:
         suggest_str = "Install X package and try again"
         options = [f"{prefix}{suffix}", suggest_str]
         return "\n\n".join(options)
+
+    @classmethod
+    @modify_exceptions
+    def _create_session(cls, engine, connect_str):
+        try:
+            session = engine.connect()
+            return session
+        except OperationalError as e:
+            detailed_msg = detail(e)
+            if detailed_msg is not None:
+                raise exceptions.UsageError(detailed_msg)
+            else:
+                print(e)
+        except Exception as e:
+            raise cls._error_invalid_connection_info(e, connect_str) from e
 
     @classmethod
     def _suggest_fix(cls, env_var, connect_str=None):
@@ -203,21 +219,25 @@ class Connection:
         if len(options) >= 3:
             options.insert(-1, "OR")
 
-        options.append(PLOOMBER_SUPPORT_LINK_STR)
+        options.append(PLOOMBER_DOCS_LINK_STR)
 
         return "\n\n".join(options)
 
     @classmethod
     def _error_no_connection(cls):
         """Error when there isn't any connection"""
-        return UsageError("No active connection." + cls._suggest_fix(env_var=True))
+        err = UsageError("No active connection." + cls._suggest_fix(env_var=True))
+        err.modify_exception = True
+        return err
 
     @classmethod
     def _error_invalid_connection_info(cls, e, connect_str):
-        return UsageError(
+        err = UsageError(
             "An error happened while creating the connection: "
             f"{e}.{cls._suggest_fix(env_var=False, connect_str=connect_str)}"
         )
+        err.modify_exception = True
+        return err
 
     @classmethod
     def from_connect_str(
@@ -245,7 +265,7 @@ class Connection:
                     [
                         str(e),
                         suggestion_str,
-                        PLOOMBER_SUPPORT_LINK_STR,
+                        PLOOMBER_DOCS_LINK_STR,
                     ]
                 )
             ) from e

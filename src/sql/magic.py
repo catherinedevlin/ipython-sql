@@ -29,6 +29,7 @@ from sql.magic_cmd import SqlCmdMagic
 from sql._patch import patch_ipython_usage_error
 from ploomber_core.dependencies import check_installed
 
+from sql.error_message import detail
 from traitlets.config.configurable import Configurable
 from traitlets import Bool, Int, TraitError, Unicode, Dict, observe, validate
 
@@ -281,6 +282,7 @@ class SqlMagic(Magics, Configurable):
         )
 
     @telemetry.log_call("execute", payload=True)
+    @modify_exceptions
     def _execute(self, payload, line, cell, local_ns, is_interactive_mode=False):
         def interactive_execute_wrapper(**kwargs):
             for key, value in kwargs.items():
@@ -429,11 +431,18 @@ class SqlMagic(Magics, Configurable):
         # JA: added DatabaseError for MySQL
         except (ProgrammingError, OperationalError, DatabaseError) as e:
             # Sqlite apparently return all errors as OperationalError :/
-
+            detailed_msg = detail(e, command.sql)
             if self.short_errors:
-                print(e)
+                if detailed_msg is not None:
+                    err = exceptions.UsageError(detailed_msg)
+                    raise err
+                else:
+                    print(e)
             else:
-                raise
+                if detailed_msg is not None:
+                    print(detailed_msg)
+                e.modify_exception = True
+                raise e
 
     legal_sql_identifier = re.compile(r"^[A-Za-z0-9#_$]+")
 

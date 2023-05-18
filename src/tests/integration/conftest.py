@@ -131,6 +131,15 @@ def ip_with_postgreSQL(ip_empty, setup_postgreSQL):
     ip_empty.run_cell("%sql -x " + alias)
 
 
+@pytest.fixture
+def postgreSQL_config_incorrect_pwd(ip_empty, setup_postgreSQL):
+    configKey = "postgreSQL"
+    alias = _testing.DatabaseConfigHelper.get_database_config(configKey)["alias"]
+    url = _testing.DatabaseConfigHelper.get_database_url(configKey)
+    url = url.replace(":ploomber_app_password", "")
+    return alias, url
+
+
 @pytest.fixture(scope="session")
 def setup_mySQL(test_table_name_dict, skip_on_live_mode):
     with _testing.mysql():

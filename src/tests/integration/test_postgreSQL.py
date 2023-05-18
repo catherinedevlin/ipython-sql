@@ -17,3 +17,16 @@ def test_auto_commit_mode_on(ip_with_postgreSQL, capsys):
     assert out_after_creating.error_in_exec is None
     assert any(row[0] == "new_db" for row in out_all_dbs)
     assert "CREATE DATABASE cannot run inside a transaction block" not in out
+
+
+def test_postgres_error(ip_empty, postgreSQL_config_incorrect_pwd):
+    alias, url = postgreSQL_config_incorrect_pwd
+
+    # Select database engine
+    out = ip_empty.run_cell("%sql " + url + " --alias " + alias)
+    assert "Review our DB connection via URL strings guide" in str(out.error_in_exec)
+    assert "Original error message from DB driver" in str(out.error_in_exec)
+    assert (
+        "If you need help solving this issue, "
+        "send us a message: https://ploomber.io/community" in str(out.error_in_exec)
+    )

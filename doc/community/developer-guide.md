@@ -61,6 +61,16 @@ The internal implementation of `sql.exceptions` is a workaround due to some IPyt
 
 +++
 
+### Handling common errors
+
+Currently, these common errors are handled by providing more meaningful error messages:
+
+* Syntax error in SQL query - The SQL query is parsed using `sqlglot` and possible syntax issues or query suggestions are provided to the user. This raises a `UsageError` with the message.
+* Missing password when connecting to PostgreSQL - Displays guide on DB connections
+* Invalid connection strings when connecting to DuckDB.
+
++++
+
 ## Unit testing
 
 ### Running tests
