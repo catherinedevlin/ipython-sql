@@ -1,9 +1,8 @@
 import shutil
 import pandas as pd
 import pytest
-from sqlalchemy import MetaData, create_engine
+from sqlalchemy import MetaData, Table, create_engine
 from sql import _testing
-from sqlalchemy.ext.declarative import declarative_base
 import uuid
 
 
@@ -55,12 +54,8 @@ def test_table_name_dict():
 
 
 def drop_table(engine, table_name):
-    Base = declarative_base()
-    metadata = MetaData()
-    metadata.reflect(bind=engine)
-    table = metadata.tables[table_name]
-    if table is not None:
-        Base.metadata.drop_all(engine, [table], checkfirst=True)
+    tbl = Table(table_name, MetaData(), autoload_with=engine)
+    tbl.drop(engine, checkfirst=False)
 
 
 def load_taxi_data(engine, table_name, index=True):
@@ -143,7 +138,9 @@ def postgreSQL_config_incorrect_pwd(ip_empty, setup_postgreSQL):
 @pytest.fixture(scope="session")
 def setup_mySQL(test_table_name_dict, skip_on_live_mode):
     with _testing.mysql():
-        engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("mySQL"))
+        engine = create_engine(
+            _testing.DatabaseConfigHelper.get_database_url("mySQL"),
+        )
         # Load pre-defined datasets
         load_generic_testing_data(engine, test_table_name_dict)
         yield engine

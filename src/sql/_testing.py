@@ -148,7 +148,7 @@ client = docker.from_env()
 
 def database_ready(
     database,
-    timeout=20,
+    timeout=60,
     poll_freq=0.5,
 ):
     """Wait until the container is ready to receive connections.
