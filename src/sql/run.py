@@ -179,7 +179,8 @@ class ResultSet(ColumnGuesserMixin):
             yield result
 
     def __str__(self, *arg, **kwarg):
-        self.pretty.add_rows(self)
+        if self.pretty:
+            self.pretty.add_rows(self)
         return str(self.pretty or "")
 
     def __repr__(self) -> str:
