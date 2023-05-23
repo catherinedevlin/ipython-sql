@@ -3,7 +3,6 @@ from collections.abc import MutableMapping
 from jinja2 import Template
 from ploomber_core.exceptions import modify_exceptions
 import sql.connection
-import warnings
 import difflib
 
 from sql import exceptions
@@ -93,12 +92,11 @@ class SQLQuery:
         self._with_ = with_ or []
 
         if any("-" in x for x in self._with_):
-            warnings.warn(
-                "Using hyphens will be deprecated soon, "
-                "please use "
+            raise exceptions.UsageError(
+                "Using hyphens is not allowed. "
+                "Please use "
                 + ", ".join(self._with_).replace("-", "_")
                 + " instead for the with argument.",
-                FutureWarning,
             )
 
     def __str__(self) -> str:

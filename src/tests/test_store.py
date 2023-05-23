@@ -1,7 +1,7 @@
 import pytest
 from sql.connection import Connection
 from IPython.core.error import UsageError
-from sql.store import SQLStore
+from sql.store import SQLStore, SQLQuery
 from sqlalchemy import create_engine
 
 
@@ -76,6 +76,15 @@ def test_sqlstore_getitem():
     # Test case 7: Test for special character in key:
     store["$%#"] = "SELECT * FROM a"
     assert store["$%#"] == "SELECT * FROM a"
+
+
+def test_hyphen():
+    store = SQLStore()
+
+    with pytest.raises(UsageError) as excinfo:
+        SQLQuery(store, "SELECT * FROM a", with_=["first-"])
+
+    assert "Using hyphens is not allowed." in str(excinfo.value)
 
 
 def test_key():
