@@ -21,7 +21,7 @@ myst:
 
 +++
 
-To enable syntaxt highlighting, install `jupysql-plugin`:
+To enable syntax highlighting, install `jupysql-plugin`:
 
 ```sh
 pip install jupysql-plugin --upgrade

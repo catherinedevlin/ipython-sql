@@ -50,6 +50,7 @@ parts:
     - file: howto/syntax-highlighting
     - file: howto/csv
     - file: howto/autocompletion
+    - file: howto/format-sql
 
   - caption: Tutorials
     chapters:
