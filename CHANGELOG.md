@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.7.6dev
+
 ## 0.7.5 (2023-05-24)
 
 * [Feature] Using native DuckDB `.df()` method when using `autopandas`
