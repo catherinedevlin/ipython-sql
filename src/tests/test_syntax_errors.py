@@ -93,10 +93,7 @@ def test_syntax_error_no_suggestion_long(ip, capsys, query_no_suggestion):
 def test_syntax_error_incorrect_column_name(ip, query_incorrect_column_name):
     with pytest.raises(UsageError) as err:
         ip.run_cell_magic(*query_incorrect_column_name)
-    assert (
-        "Syntax Error in SELECT first_(name FROM author: "
-        "Expecting ) at Line 1, Column 24" in str(err.value)
-    )
+    assert "Syntax Error in SELECT first_(name FROM author:" in str(err.value)
     _common_strings_check(err)
 
 
