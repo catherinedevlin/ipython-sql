@@ -1,23 +1,24 @@
 # CHANGELOG
 
-## 0.7.5dev
-* [Feature] Using native DuckDB `.df()` method when using `autopandas`
-* [Doc] documenting `%sqlcmd tables`/`%sqlcmd columns`
-* [Feature] Better error messages when function used in plotting API unsupported by DB driver (#159)
-* [Fix] Fix the default value of %config SqlMagic.displaylimit to 10 (#462)
-* [Feature] Detailed error messages when syntax error in SQL query, postgres connection password missing or inaccessible, invalid DuckDB connection string (#229)
+## 0.7.5 (2023-05-24)
 
+* [Feature] Using native DuckDB `.df()` method when using `autopandas`
+* [Feature] Better error messages when function used in plotting API unsupported by DB driver ([#159](https://github.com/ploomber/jupysql/issues/159))
+* [Feature] Detailed error messages when syntax error in SQL query, postgres connection password missing or inaccessible, invalid DuckDB connection string ([#229](https://github.com/ploomber/jupysql/issues/229))
+* [Fix] Fix the default value of %config SqlMagic.displaylimit to 10 ([#462](https://github.com/ploomber/jupysql/issues/462))
+* [Doc] documenting `%sqlcmd tables`/`%sqlcmd columns`
 
 ## 0.7.4 (2023-04-28)
+
 No changes
 
 ## 0.7.3 (2023-04-28)
+
 Never deployed due to a CI error
 
 * [Fix] Fixing ipython version to 8.12.0 on python 3.8
 * [Fix] Fix `--alias` when passing an existing engine
 * [Doc] Tutorial on querying excel files with pandas and jupysql ([#423](https://github.com/ploomber/jupysql/pull/423))
-
 
 ## 0.7.2 (2023-04-25)
 
