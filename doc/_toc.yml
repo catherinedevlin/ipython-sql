@@ -57,6 +57,7 @@ parts:
     - file: tutorials/duckdb-github
     - file: tutorials/etl
     - file: tutorials/excel
+    - file: tutorials/product-analytics
 
   - caption: Community
     chapters:
