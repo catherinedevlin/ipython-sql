@@ -8,8 +8,12 @@ on:
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
   pull_request:
-
+      
 jobs:
+  integration-test-live:
+    uses: ./.github/workflows/ci-integration-db-live.yaml
+  integration-test-non-live:
+    uses: ./.github/workflows/ci-integration-db.yaml
   test:
     strategy:
       matrix:
@@ -102,7 +106,7 @@ jobs:
 
 
   release:
-    needs: [test, test-sqlalchemy-v1, check]
+    needs: [test, test-sqlalchemy-v1, check, integration-test-non-live, integration-test-live]
     if: startsWith(github.ref, 'refs/tags') && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
 

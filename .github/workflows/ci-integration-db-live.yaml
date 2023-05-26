@@ -6,7 +6,7 @@ on:
       - master
       - 'dev/**'
   pull_request:
-
+  workflow_call:
 
 jobs:
   database-live-integration-test:

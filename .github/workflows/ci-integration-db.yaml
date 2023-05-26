@@ -1,12 +1,11 @@
 name: CI - DB Integration - Local
-
 on:
   push:
     branches:
       - master
       - 'dev/**'
   pull_request:
-
+  workflow_call:
 
 jobs:
   database-integration-test:
