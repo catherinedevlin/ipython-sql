@@ -802,6 +802,9 @@ An error happened while creating the connection: connect(): incompatible functio
 
 Invoked with: kwargs: host='invalid_db'.
 
+Perhaps you meant to use the 'duckdb' db 
+To find more information regarding connection: https://jupysql.ploomber.io/en/latest/integrations/duckdb.html
+
 To fix it:
 
 Pass a valid connection string:

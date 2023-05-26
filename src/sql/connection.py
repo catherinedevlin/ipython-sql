@@ -51,6 +51,19 @@ MISSING_PACKAGE_LIST_EXCEPT_MATCHERS = {
 
 DIALECT_NAME_SQLALCHEMY_TO_SQLGLOT_MAPPING = {"postgresql": "postgres", "mssql": "tsql"}
 
+# All the DBs and their respective documentation links
+DB_DOCS_LINKS = {
+    "duckdb": "https://jupysql.ploomber.io/en/latest/integrations/duckdb.html",
+    "mysql": "https://jupysql.ploomber.io/en/latest/integrations/mysql.html",
+    "mssql": "https://jupysql.ploomber.io/en/latest/integrations/mssql.html",
+    "mariadb": "https://jupysql.ploomber.io/en/latest/integrations/mariadb.html",
+    "clickhouse": "https://jupysql.ploomber.io/en/latest/integrations/clickhouse.html",
+    "postgressql": (
+        "https://jupysql.ploomber.io/en/latest/integrations/postgres-connect.html"
+    ),
+    "questdb": "https://jupysql.ploomber.io/en/latest/integrations/questdb.html",
+}
+
 
 def extract_module_name_from_ModuleNotFoundError(e):
     return e.name
@@ -180,20 +193,32 @@ class Connection:
         to tell them how to pass the connection string
         """
         DEFAULT_PREFIX = "\n\n"
+        prefix = ""
 
         if connect_str:
             matches = get_close_matches(connect_str, list(cls.connections), n=1)
+            matches_db = get_close_matches(
+                connect_str.lower(), list(DB_DOCS_LINKS.keys()), cutoff=0.3, n=1
+            )
 
             if matches:
-                prefix = (
+                prefix = prefix + (
                     "\n\nPerhaps you meant to use the existing "
-                    f"connection: %sql {matches[0]!r}?\n\n"
+                    f"connection: %sql {matches[0]!r}?"
                 )
 
-            else:
+            if matches_db:
+                prefix = prefix + (
+                    f"\n\nPerhaps you meant to use the {matches_db[0]!r} db \n"
+                    f"To find more information regarding connection: "
+                    f"{DB_DOCS_LINKS[matches_db[0]]}\n\n"
+                )
+
+            if not matches and not matches_db:
                 prefix = DEFAULT_PREFIX
         else:
             matches = None
+            matches_db = None
             prefix = DEFAULT_PREFIX
 
         connection_string = (
