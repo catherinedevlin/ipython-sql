@@ -25,6 +25,7 @@ def test_parse_no_sql():
         "connection": "will:longliveliz@localhost/shakes",
         "sql": "",
         "result_var": None,
+        "return_result_var": False,
     }
 
 
@@ -36,6 +37,7 @@ def test_parse_with_sql():
         "connection": "postgresql://will:longliveliz@localhost/shakes",
         "sql": "SELECT * FROM work",
         "result_var": None,
+        "return_result_var": False,
     }
 
 
@@ -44,6 +46,7 @@ def test_parse_sql_only():
         "connection": "",
         "sql": "SELECT * FROM work",
         "result_var": None,
+        "return_result_var": False,
     }
 
 
@@ -52,6 +55,7 @@ def test_parse_postgresql_socket_connection():
         "connection": "postgresql:///shakes",
         "sql": "SELECT * FROM work",
         "result_var": None,
+        "return_result_var": False,
     }
 
 
@@ -61,6 +65,7 @@ def test_expand_environment_variables_in_connection():
         "connection": "postgresql:///shakes",
         "sql": "SELECT * FROM work",
         "result_var": None,
+        "return_result_var": False,
     }
 
 
@@ -69,6 +74,16 @@ def test_parse_shovel_operator():
         "connection": "",
         "sql": "SELECT * FROM work",
         "result_var": "dest",
+        "return_result_var": False,
+    }
+
+
+def test_parse_return_shovel_operator():
+    assert parse("dest= << SELECT * FROM work", empty_config) == {
+        "connection": "",
+        "sql": "SELECT * FROM work",
+        "result_var": "dest",
+        "return_result_var": True,
     }
 
 
@@ -77,6 +92,7 @@ def test_parse_connect_plus_shovel():
         "connection": "sqlite://",
         "sql": "SELECT * FROM work",
         "result_var": "dest",
+        "return_result_var": False,
     }
 
 
@@ -85,6 +101,7 @@ def test_parse_early_newlines():
         "connection": "",
         "sql": "--comment\nSELECT *\n--comment\nFROM work",
         "result_var": None,
+        "return_result_var": False,
     }
 
 
@@ -93,6 +110,7 @@ def test_parse_connect_shovel_over_newlines():
         "connection": "sqlite://",
         "sql": "SELECT *\nFROM work",
         "result_var": "dest",
+        "return_result_var": False,
     }
 
 

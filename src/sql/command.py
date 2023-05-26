@@ -96,5 +96,10 @@ class SQLCommand:
         """Returns the result_var"""
         return self.parsed["result_var"]
 
+    @property
+    def return_result_var(self):
+        """Returns the return_result_var"""
+        return self.parsed["return_result_var"]
+
     def _var_expand(self, sql, user_ns, magic):
         return Template(sql).render(user_ns)

@@ -144,6 +144,14 @@ can be used in multi-line ``%%sql``:
 FROM languages
 ```
 
+The `myvar= <<` syntax captures query results in a local variable as well as
+returning the results.
+
+```{code-cell} ipython3
+%%sql lang= << SELECT *
+FROM languages
+```
+
 +++
 
 ## Considerations

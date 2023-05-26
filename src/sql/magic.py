@@ -423,6 +423,8 @@ class SqlMagic(Magics, Configurable):
             else:
                 if command.result_var:
                     self.shell.user_ns.update({command.result_var: result})
+                    if command.return_result_var:
+                        return result
                     return None
 
                 # Return results into the default ipython _ variable

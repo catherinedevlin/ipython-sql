@@ -2,6 +2,8 @@
 
 ## 0.7.6dev
 
+* [Feature] Support for printing capture variables using `=<<` syntax (by [@jorisroovers](https://github.com/jorisroovers))
+
 ## 0.7.5 (2023-05-24)
 
 * [Feature] Using native DuckDB `.df()` method when using `autopandas`

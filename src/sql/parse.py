@@ -38,7 +38,12 @@ def parse(cell, config):
     connection string and `<<` operator in.
     """
 
-    result = {"connection": "", "sql": "", "result_var": None}
+    result = {
+        "connection": "",
+        "sql": "",
+        "result_var": None,
+        "return_result_var": False,
+    }
 
     pieces = cell.split(None, 1)
     if not pieces:
@@ -51,7 +56,12 @@ def parse(cell, config):
 
     pieces = cell.split(None, 2)
     if len(pieces) > 1 and pieces[1] == "<<":
-        result["result_var"] = pieces[0]
+        if pieces[0].endswith("="):
+            result["result_var"] = pieces[0][:-1]
+            result["return_result_var"] = True
+        else:
+            result["result_var"] = pieces[0]
+
         if len(pieces) == 2:
             return result
         cell = pieces[2]

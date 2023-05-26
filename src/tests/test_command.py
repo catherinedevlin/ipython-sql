@@ -13,16 +13,41 @@ def sql_magic(ip):
 
 
 @pytest.mark.parametrize(
-    "line, cell, parsed_sql, parsed_connection, parsed_result_var",
+    (
+        "line, cell, parsed_sql, parsed_connection, parsed_result_var,"
+        "parsed_return_result_var"
+    ),
     [
-        ("something --no-execute", "", "something", "", None),
-        ("sqlite://", "", "", "sqlite://", None),
-        ("SELECT * FROM TABLE", "", "SELECT * FROM TABLE", "", None),
-        ("SELECT * FROM", "TABLE", "SELECT * FROM\nTABLE", "", None),
-        ("my_var << SELECT * FROM table", "", "SELECT * FROM table", "", "my_var"),
-        ("my_var << SELECT *", "FROM table", "SELECT *\nFROM table", "", "my_var"),
-        ("[db]", "", "", "sqlite://", None),
-        ("--persist df", "", "df", "", None),
+        ("something --no-execute", "", "something", "", None, False),
+        ("sqlite://", "", "", "sqlite://", None, False),
+        ("SELECT * FROM TABLE", "", "SELECT * FROM TABLE", "", None, False),
+        ("SELECT * FROM", "TABLE", "SELECT * FROM\nTABLE", "", None, False),
+        (
+            "my_var << SELECT * FROM table",
+            "",
+            "SELECT * FROM table",
+            "",
+            "my_var",
+            False,
+        ),
+        (
+            "my_var << SELECT *",
+            "FROM table",
+            "SELECT *\nFROM table",
+            "",
+            "my_var",
+            False,
+        ),
+        (
+            "my_var= << SELECT * FROM table",
+            "",
+            "SELECT * FROM table",
+            "",
+            "my_var",
+            True,
+        ),
+        ("[db]", "", "", "sqlite://", None, False),
+        ("--persist df", "", "df", "", None, False),
     ],
     ids=[
         "arg-with-option",
@@ -31,6 +56,7 @@ def sql_magic(ip):
         "sql-query-in-line-and-cell",
         "parsed-var-single-line",
         "parsed-var-multi-line",
+        "parsed-return-var-single-line",
         "config",
         "persist-dataframe",
     ],
@@ -43,6 +69,7 @@ def test_parsed(
     parsed_sql,
     parsed_connection,
     parsed_result_var,
+    parsed_return_result_var,
     tmp_empty,
 ):
     # needed for the last test case
@@ -58,6 +85,7 @@ drivername = sqlite
     assert cmd.parsed == {
         "connection": parsed_connection,
         "result_var": parsed_result_var,
+        "return_result_var": parsed_return_result_var,
         "sql": parsed_sql,
         "sql_original": parsed_sql,
     }
@@ -88,6 +116,7 @@ SELECT * FROM author_one"
     assert cmd.parsed == {
         "connection": "",
         "result_var": None,
+        "return_result_var": False,
         "sql": sql,
         "sql_original": sql_original,
     }
@@ -104,6 +133,7 @@ def test_parsed_sql_when_using_file(ip, sql_magic, tmp_empty):
     assert cmd.parsed == {
         "connection": "",
         "result_var": None,
+        "return_result_var": False,
         "sql": "SELECT * FROM author\n",
         "sql_original": "SELECT * FROM author\n",
     }
@@ -162,6 +192,7 @@ def test_parse_sql_when_passing_engine(ip, sql_magic, tmp_empty, line):
     assert cmd.parsed == {
         "connection": engine,
         "result_var": None,
+        "return_result_var": False,
         "sql": sql_expected,
         "sql_original": sql_expected,
     }
