@@ -33,6 +33,8 @@ parts:
       - file: integrations/compatibility
       - file: integrations/questdb
       - file: integrations/oracle
+      - file: integrations/trinodb
+
 
   - caption: API Reference
     chapters:
