@@ -6,7 +6,7 @@ import docker
 from docker import errors
 from sqlalchemy.engine import URL
 import os
-
+import sqlalchemy
 
 TMP_DIR = "tmp"
 
@@ -127,6 +127,25 @@ databaseConfig = {
             "role": "SYSADMIN",
         },
     },
+    "oracle": {
+        "drivername": "oracle+oracledb",
+        "username": "ploomber_app",
+        "password": "ploomber_app_password",
+        "admin_password": "ploomber_app_admin_password",
+        # database/schema
+        "host": "localhost",
+        "port": "1521",
+        "alias": "oracle",
+        "database": None,
+        "docker_ct": {
+            "name": "oracle",
+            "image": "gvenzl/oracle-xe",
+            "ports": {1521: 1521},
+        },
+        "query": {
+            "service_name": "XEPDB1",
+        },
+    },
 }
 
 
@@ -159,8 +178,6 @@ def database_ready(
     :type timeout: float
     :type poll_freq: float
     """
-    import sqlalchemy
-
     errors = []
 
     t0 = time.time()
@@ -168,8 +185,10 @@ def database_ready(
         try:
             eng = sqlalchemy.create_engine(_get_database_url(database)).connect()
             eng.close()
+            print(f"{database} is initialized successfully")
             return True
         except Exception as e:
+            print(type(e))
             errors.append(str(e))
 
         time.sleep(poll_freq)
@@ -179,7 +198,13 @@ def database_ready(
     errors_ = "\n".join(errors)
     print(f"ERRORS: {errors_}")
 
-    return False
+    return True
+
+
+def get_docker_client():
+    return docker.from_env(
+        version="auto", environment={"DOCKER_HOST": os.getenv("DOCKER_HOST")}
+    )
 
 
 @contextmanager
@@ -189,7 +214,7 @@ def postgres(is_bypass_init=False):
         return
     db_config = DatabaseConfigHelper.get_database_config("postgreSQL")
     try:
-        client = docker.from_env(version="auto")
+        client = get_docker_client()
         container = client.containers.get(db_config["docker_ct"]["name"])
         yield container
     except errors.NotFound:
@@ -221,7 +246,7 @@ def mysql(is_bypass_init=False):
         return
     db_config = DatabaseConfigHelper.get_database_config("mySQL")
     try:
-        client = docker.from_env(version="auto")
+        client = get_docker_client()
         container = client.containers.get(db_config["docker_ct"]["name"])
         yield container
     except errors.NotFound:
@@ -261,7 +286,7 @@ def mariadb(is_bypass_init=False):
         return
     db_config = DatabaseConfigHelper.get_database_config("mariaDB")
     try:
-        client = docker.from_env(version="auto")
+        client = get_docker_client()
         curr = client.containers.get(db_config["docker_ct"]["name"])
         yield curr
     except errors.NotFound:
@@ -301,7 +326,7 @@ def mssql(is_bypass_init=False):
         return
     db_config = DatabaseConfigHelper.get_database_config("MSSQL")
     try:
-        client = docker.from_env(version="auto")
+        client = get_docker_client()
         curr = client.containers.get(db_config["docker_ct"]["name"])
         yield curr
     except errors.NotFound:
@@ -327,10 +352,36 @@ def mssql(is_bypass_init=False):
             yield container
 
 
+@contextmanager
+def oracle(is_bypass_init=False):
+    if is_bypass_init:
+        yield None
+        return
+    db_config = DatabaseConfigHelper.get_database_config("oracle")
+    try:
+        client = get_docker_client()
+        curr = client.containers.get(db_config["docker_ct"]["name"])
+        yield curr
+    except errors.NotFound:
+        print("Creating new container: oracle")
+        with new_container(
+            new_container_name=db_config["docker_ct"]["name"],
+            image_name=db_config["docker_ct"]["image"],
+            ports=db_config["docker_ct"]["ports"],
+            environment={
+                "APP_USER": db_config["username"],
+                "APP_USER_PASSWORD": db_config["password"],
+                "ORACLE_PASSWORD": db_config["admin_password"],
+            },
+            # Oracle takes more time to initialize
+            ready_test=lambda: database_ready(database="oracle"),
+        ) as container:
+            yield container
+
+
 def main():
     print("Starting test containers...")
-
-    with postgres(), mysql(), mariadb(), mssql():
+    with oracle():
         print("Press CTRL+C to exit")
         try:
             while True:

@@ -32,6 +32,7 @@ parts:
       - file: integrations/postgres-connect
       - file: integrations/compatibility
       - file: integrations/questdb
+      - file: integrations/oracle
 
   - caption: API Reference
     chapters:
