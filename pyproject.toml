@@ -23,4 +23,4 @@ flake8 = [
 
 [tool.codespell]
 skip = '.git,_build,build,*.drawio,*.ipynb'
-ignore-words-list = 'whis,postgressql'
+ignore-words-list = 'whis'

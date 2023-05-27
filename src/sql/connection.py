@@ -58,7 +58,7 @@ DB_DOCS_LINKS = {
     "mssql": "https://jupysql.ploomber.io/en/latest/integrations/mssql.html",
     "mariadb": "https://jupysql.ploomber.io/en/latest/integrations/mariadb.html",
     "clickhouse": "https://jupysql.ploomber.io/en/latest/integrations/clickhouse.html",
-    "postgressql": (
+    "postgresql": (
         "https://jupysql.ploomber.io/en/latest/integrations/postgres-connect.html"
     ),
     "questdb": "https://jupysql.ploomber.io/en/latest/integrations/questdb.html",

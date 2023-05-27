@@ -102,7 +102,7 @@ will create a table name in the database from the named DataFrame.   Or use `--a
 
 ### `--persist-replace`
 
-The `--persist-replace` performs the similiar functionaility with `--persist`,
+The `--persist-replace` performs the similar functionality with `--persist`,
 but it will drop the existing table before inserting the new table
 
 #### Declare the dataframe again
