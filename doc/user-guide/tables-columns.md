@@ -80,7 +80,7 @@ Use `%sqlcmd columns --table/-t` to get the columns for the given table.
 %sqlcmd columns -t people
 ```
 
-If the table isn't in the defautl schema, pass `--schema/-s`. Let's create a new table in a new schema:
+If the table isn't in the default schema, pass `--schema/-s`. Let's create a new table in a new schema:
 
 ```{code-cell} ipython3
 :tags: [hide-output]

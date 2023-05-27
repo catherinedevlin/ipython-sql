@@ -93,7 +93,7 @@ def _nonbreaking_spaces(match_obj):
     Make spaces visible in HTML by replacing all `` `` with ``&nbsp;``
 
     Call with a ``re`` match object.  Retain group 1, replace group 2
-    with nonbreaking speaces.
+    with nonbreaking spaces.
     """
     spaces = "&nbsp;" * len(match_obj.group(2))
     return "%s%s" % (match_obj.group(1), spaces)
@@ -255,7 +255,7 @@ class ResultSet(ColumnGuesserMixin):
                       from each other in pie labels
         title: Plot title, defaults to name of value column
 
-        Any additional keyword arguments will be passsed
+        Any additional keyword arguments will be passed
         through to ``matplotlib.pylab.pie``.
         """
         self.guess_pie_columns(xlabel_sep=key_word_sep)
@@ -283,7 +283,7 @@ class ResultSet(ColumnGuesserMixin):
         ----------
         title: Plot title, defaults to names of Y value columns
 
-        Any additional keyword arguments will be passsed
+        Any additional keyword arguments will be passed
         through to ``matplotlib.pylab.plot``.
         """
         import matplotlib.pylab as plt
@@ -324,7 +324,7 @@ class ResultSet(ColumnGuesserMixin):
         key_word_sep: string used to separate column values
                       from each other in labels
 
-        Any additional keyword arguments will be passsed
+        Any additional keyword arguments will be passed
         through to ``matplotlib.pylab.bar``.
         """
         import matplotlib.pylab as plt

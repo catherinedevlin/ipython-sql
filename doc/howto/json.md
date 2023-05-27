@@ -203,7 +203,7 @@ print_json(row.schema_likes)
 
 ## Store snippets
 
-You can use JupySQL's `--save` feature to store a SQL snippet so you can keep your queries succint:
+You can use JupySQL's `--save` feature to store a SQL snippet so you can keep your queries succinct:
 
 ```{code-cell} ipython3
 %%sql --save clean_data_json

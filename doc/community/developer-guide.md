@@ -224,7 +224,7 @@ pkgmt setup
 # activate environment
 conda activate jupysql
 
-# install depdencies
+# install dependencies
 pip install -e '.[integration]'
 ```
 
@@ -306,9 +306,9 @@ print("Transpiled result: ")
 conn._transpile_query(general_sql)
 ```
 
-### Approach 2 - Provide SQL Clause based on specfic database 
+### Approach 2 - Provide SQL Clause based on specific database 
 
-Sometimes the SQL Clause might be complex, we can also write the SQL Clause based on one specfic database and transpile it.
+Sometimes the SQL Clause might be complex, we can also write the SQL Clause based on one specific database and transpile it.
 
 For example, the `TO_TIMESTAMP` keyword is only defined in duckdb, but we want to also apply this SQL clause to other database.
 

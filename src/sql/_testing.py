@@ -193,7 +193,7 @@ def database_ready(
 
         time.sleep(poll_freq)
 
-    # print all the errors so we know what's goin on since failing to connect might be
+    # print all the errors so we know what's going on since failing to connect might be
     # to some misconfiguration error
     errors_ = "\n".join(errors)
     print(f"ERRORS: {errors_}")

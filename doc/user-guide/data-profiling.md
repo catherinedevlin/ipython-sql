@@ -24,7 +24,7 @@ pip install jupysql --upgrade
 
 When dealing with a new dataset, it's crucial for practitioners to have a comprehensive understanding of the data in a timely manner. This involves exploring and summarizing the dataset efficiently to extract valuable insights. However, this can be a time-consuming process. Fortunately, `%sqlcmd profile` offers an easy way to generate statistics and descriptive information, enabling practitioners to quickly gain a deeper understanding of the dataset.
 
-Availble statistics:
+Available statistics:
 
 * The count of non empty values
 * The number of unique values

@@ -21,7 +21,7 @@ pip install jupysql --upgrade
 ```
 
 
-Interactive command allows you to visualize and manipulate widget and interact with your SQL cluase.
+Interactive command allows you to visualize and manipulate widget and interact with your SQL clause.
 We will demonstrate how to create widgets and dynamically query the dataset.
 
 ```{note}
@@ -92,7 +92,7 @@ bill_length_mm_lower_bound = widgets.FloatSlider(
 
 ## Complete Example
 
-To demostrate the way to combine basic data type and ipywidgets into our interactive SQL Clause
+To demonstrate the way to combine basic data type and ipywidgets into our interactive SQL Clause
 
 ```{code-cell} ipython3
 body_mass_lower_bound = 3600

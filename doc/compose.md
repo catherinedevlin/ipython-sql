@@ -105,7 +105,7 @@ OR Name LIKE '%metal%'
 
 Join the filtered genres and tracks, so we only get Rock and Metal tracks, and save the query as `track_fav`
 
-Note that we are using `--with`; this will retrieve previously saved queries, and preprend them (using CTEs), then, we save the query in `track_fav` .
+Note that we are using `--with`; this will retrieve previously saved queries, and prepend them (using CTEs), then, we save the query in `track_fav` .
 
 ```{code-cell} ipython3
 %%sql --with genres_fav --with tracks_with_info --save track_fav

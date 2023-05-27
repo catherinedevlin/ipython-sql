@@ -24,7 +24,7 @@ def run_around_tests(tmpdir_factory):
     # Create tmp folder
     my_tmpdir = tmpdir_factory.mktemp("tmp")
     yield my_tmpdir
-    # Destory tmp folder
+    # Destroy tmp folder
     shutil.rmtree(str(my_tmpdir))
 
 

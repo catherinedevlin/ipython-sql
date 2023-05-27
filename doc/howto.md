@@ -382,7 +382,7 @@ LIMIT 3
 
 ## Ignore deprecation warnings
 
-We display warnings to let you know when the API will change so you have enough time to update your code, if you want to supress this warnings, add this at the top of your notebook:
+We display warnings to let you know when the API will change so you have enough time to update your code, if you want to suppress this warnings, add this at the top of your notebook:
 
 ```{code-cell} ipython3
 import warnings

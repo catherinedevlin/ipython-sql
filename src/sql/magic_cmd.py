@@ -44,7 +44,7 @@ class SqlCmdMagic(Magics, Configurable):
         Raises UsageError in case of an invalid input, executes command otherwise.
         """
 
-        # We relly on SQLAlchemy when inspecting tables
+        # We rely on SQLAlchemy when inspecting tables
         util.support_only_sql_alchemy_connection("%sqlcmd")
 
         AVAILABLE_SQLCMD_COMMANDS = ["tables", "columns", "test", "profile"]

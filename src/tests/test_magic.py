@@ -738,7 +738,7 @@ def test_pass_existing_engine(ip, tmp_empty):
     assert result == [(10, "foo"), (20, "bar")]
 
 
-# theres some weird shared state with this one, moving it to the end
+# there's some weird shared state with this one, moving it to the end
 def test_autolimit(ip):
     # test table has two rows
     ip.run_line_magic("config", "SqlMagic.autolimit = 0")

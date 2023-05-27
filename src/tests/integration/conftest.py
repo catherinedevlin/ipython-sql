@@ -30,7 +30,7 @@ def get_database_config_helper():
 
 
 """
-Create the temporary folder to keep some static database storage files & destory later
+Create the temporary folder to keep some static database storage files & destroy later
 """
 
 
@@ -39,7 +39,7 @@ def run_around_tests(tmpdir_factory):
     # Create tmp folder
     my_tmpdir = tmpdir_factory.mktemp(_testing.DatabaseConfigHelper.get_tmp_dir())
     yield my_tmpdir
-    # Destory tmp folder
+    # Destroy tmp folder
     shutil.rmtree(str(my_tmpdir))
 
 

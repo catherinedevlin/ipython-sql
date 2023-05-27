@@ -179,7 +179,7 @@ Let's install the required package:
 %pip install jupysql duckdb duckdb-engine pyarrow --quiet
 ```
 
-Now, we download a sample data: NYC Taxi data splitted in 3 parquet files:
+Now, we download a sample data: NYC Taxi data split in 3 parquet files:
 
 ```{code-cell} ipython3
 N_MONTHS = 3
