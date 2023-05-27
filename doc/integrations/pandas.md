@@ -1,8 +1,8 @@
 ---
 jupytext:
-  notebook_metadata_filter: myst
   cell_metadata_filter: -all
   formats: md:myst
+  notebook_metadata_filter: myst
   text_representation:
     extension: .md
     format_name: myst
@@ -14,7 +14,8 @@ kernelspec:
   name: python3
 myst:
   html_meta:
-    description lang=en: Convert outputs from SQL queries to pandas data frames using JupySQL
+    description lang=en: Convert outputs from SQL queries to pandas data frames using
+      JupySQL
     keywords: jupyter, sql, jupysql, pandas
     property=og:locale: en_US
 ---
@@ -86,7 +87,9 @@ df
 
 +++
 
-The `--persist` argument, with the name of a  DataFrame object in memory, 
+### `--persist`
+
+The `--persist` argument, with the name of a DataFrame object in memory, 
 will create a table name in the database from the named DataFrame.   Or use `--append` to add rows to an existing  table by that name.
 
 ```{code-cell} ipython3
@@ -97,6 +100,27 @@ will create a table name in the database from the named DataFrame.   Or use `--a
 %sql SELECT * FROM df;
 ```
 
-```{code-cell} ipython3
+### `--persist-replace`
 
+The `--persist-replace` performs the similiar functionaility with `--persist`,
+but it will drop the existing table before inserting the new table
+
+#### Declare the dataframe again
+
+```{code-cell} ipython3
+df = %sql SELECT * FROM writer LIMIT 1
+df
 ```
+
+#### Use `--persist-replace`
+
+```{code-cell} ipython3
+%sql --persist-replace df
+```
+
+#### df table is overridden
+
+```{code-cell} ipython3
+%sql SELECT * FROM df;
+```
+
