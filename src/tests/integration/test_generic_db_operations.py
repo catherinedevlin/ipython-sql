@@ -245,7 +245,6 @@ def test_telemetry_execute_command_has_connection_info(
                 reason="Something wrong with sqlplot histogram in snowflake"
             ),
         ),
-        ("ip_with_oracle"),
     ],
 )
 def test_sqlplot_histogram(ip_with_dynamic_db, cell, request, test_table_name_dict):

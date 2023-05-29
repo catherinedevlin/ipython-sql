@@ -74,3 +74,40 @@ def test_sqlplot_histogram(ip_with_oracle, cell, request, test_table_name_dict):
     out = ip_with_oracle.run_cell(cell)
 
     assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
+
+
+@pytest.mark.xfail(
+    reason="Known table parameter issue with oracledb, \
+                   addressing in #506"
+)
+@pytest.mark.parametrize(
+    "cell",
+    [
+        "%sqlplot boxplot --with plot_something_subset \
+        --table plot_something_subset --column x",
+        "%sqlplot box --with plot_something_subset \
+        --table plot_something_subset --column x",
+        "%sqlplot boxplot --with plot_something_subset \
+        --table plot_something_subset --column x --orient h",
+        "%sqlplot boxplot --with plot_something_subset \
+        --table plot_something_subset --column x",
+    ],
+    ids=[
+        "boxplot",
+        "box",
+        "boxplot-with-horizontal",
+        "boxplot-with",
+    ],
+)
+def test_sqlplot_boxplot(ip_with_oracle, cell, request, test_table_name_dict):
+    # clean current Axes
+    plt.cla()
+    ip_with_oracle.run_cell(
+        f"%sql --save plot_something_subset --no-execute\
+          SELECT * from {test_table_name_dict['plot_something']} \
+            FETCH FIRST 3 ROWS ONLY"
+    )
+
+    out = ip_with_oracle.run_cell(cell)
+
+    assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
