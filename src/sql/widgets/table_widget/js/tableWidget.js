@@ -348,7 +348,7 @@ function initTable() {
     options.map(option => `<option value=${option}>${option}</option>`);
 
 
-    let ths = columns.map(col => `<th>${col}</th>`).join("");
+    let ths_ = columns.map(col => `<th>${col}</th>`).join("");
 
     let table = `
     <div>
@@ -371,7 +371,7 @@ function initTable() {
     >
         <thead>
             <tr>
-                ${ths}
+                ${ths_}
             </tr>
         </thead>
 
@@ -418,11 +418,11 @@ function initTable() {
 function initializeTableRows(tableContainer, rowsPerPage, rows) {
     updateTable(rows, 0,
         tableContainer.querySelector("table"));
-    // update ths to make sure order columns
+    // update ths_ to make sure order columns
     // are matching the data
     if (rows.length > 0) {
         let row = rows[0];
-        let ths =
+        let ths_ =
         Object.keys(row).map(col =>
         `<th>
             <div style="display: inline-flex; height: 40px">
@@ -465,7 +465,7 @@ function initializeTableRows(tableContainer, rowsPerPage, rows) {
 
             </th>`).join("");
         let thead = tableContainer.querySelector("thead")
-        thead.innerHTML = ths
+        thead.innerHTML = ths_
     }
 }
 
