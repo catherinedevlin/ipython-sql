@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.7.7dev
+
 ## 0.7.6 (2023-05-29)
 
 * [Feature] Add `%sqlcmd explore` to explore tables interactively ([#330](https://github.com/ploomber/jupysql/issues/330))
