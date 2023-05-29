@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## 0.7.6dev
+* [Feature] Add `%sqlcmd explore` to explore tables interactively (#330)
 
 * [Fix] Fix error when checking if custom connection was PEP 249 Compliant (#517)
 * [Feature] Support for printing capture variables using `=<<` syntax (by [@jorisroovers](https://github.com/jorisroovers))

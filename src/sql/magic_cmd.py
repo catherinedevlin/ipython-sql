@@ -21,6 +21,9 @@ import sql.run
 from sql.util import sanitize_identifier
 from sql import exceptions
 
+from sql.widgets import TableWidget
+from IPython.display import display
+
 
 class CmdParser(argparse.ArgumentParser):
     def exit(self, status=0, message=None):
@@ -47,7 +50,7 @@ class SqlCmdMagic(Magics, Configurable):
         # We rely on SQLAlchemy when inspecting tables
         util.support_only_sql_alchemy_connection("%sqlcmd")
 
-        AVAILABLE_SQLCMD_COMMANDS = ["tables", "columns", "test", "profile"]
+        AVAILABLE_SQLCMD_COMMANDS = ["tables", "columns", "test", "profile", "explore"]
 
         if line == "":
             raise exceptions.UsageError(
@@ -209,6 +212,16 @@ class SqlCmdMagic(Magics, Configurable):
                     f.write(report._repr_html_())
 
             return report
+
+        elif cmd_name == "explore":
+            parser = CmdParser()
+            parser.add_argument(
+                "-t", "--table", type=str, help="Table name", required=True
+            )
+            args = parser.parse_args(others)
+
+            table_widget = TableWidget(args.table)
+            display(table_widget)
 
 
 def return_test_results(args, conn, query):

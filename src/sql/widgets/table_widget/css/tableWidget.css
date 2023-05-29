@@ -1,0 +1,23 @@
+.sort-button {
+    background: none;
+    border: none;
+}
+
+.sort-button.selected {
+    background: #efefef;
+    border: 1px solid #767676;
+}
+
+.pages-buttons button.selected {
+    background: #efefef;
+    border: 1px solid #767676;
+    border-radius: 2px;
+}
+.pages-buttons button {
+    background: none;
+    border: none;
+    padding: 0 10px;
+}
+.jupysql-table-widget {
+    display: inline;
+}

@@ -1,6 +1,7 @@
+from datetime import datetime
 import pytest
 from sql import util
-
+import json
 from IPython.core.error import UsageError
 
 ERROR_MESSAGE = "Table cannot be None"
@@ -281,3 +282,165 @@ def test_flatten(src, ltypes, expected):
         assert util.flatten(src, ltypes) == expected
     else:
         assert util.flatten(src) == expected
+
+
+@pytest.mark.parametrize(
+    "table, offset, n_rows, expected_rows, expected_columns",
+    [
+        ("number_table", 0, 0, [], ["x", "y"]),
+        ("number_table", 5, 0, [], ["x", "y"]),
+        ("number_table", 50, 0, [], ["x", "y"]),
+        ("number_table", 50, 10, [], ["x", "y"]),
+        (
+            "number_table",
+            2,
+            10,
+            [(2, 4), (0, 2), (-5, -1), (-2, -3), (-2, -3), (-4, 2), (2, -5), (4, 3)],
+            ["x", "y"],
+        ),
+        (
+            "number_table",
+            2,
+            100,
+            [(2, 4), (0, 2), (-5, -1), (-2, -3), (-2, -3), (-4, 2), (2, -5), (4, 3)],
+            ["x", "y"],
+        ),
+        ("number_table", 0, 2, [(4, -2), (-5, 0)], ["x", "y"]),
+        ("number_table", 2, 2, [(2, 4), (0, 2)], ["x", "y"]),
+        (
+            "number_table",
+            2,
+            5,
+            [(2, 4), (0, 2), (-5, -1), (-2, -3), (-2, -3)],
+            ["x", "y"],
+        ),
+        ("empty_table", 2, 5, [], ["column", "another"]),
+    ],
+)
+def test_fetch_sql_with_pagination_no_sort(
+    ip, table, offset, n_rows, expected_rows, expected_columns
+):
+    rows, columns = util.fetch_sql_with_pagination(table, offset, n_rows)
+
+    assert rows == expected_rows
+    assert columns == expected_columns
+
+
+@pytest.mark.parametrize(
+    "table, offset, n_rows, sort_by, order_by, expected_rows, expected_columns",
+    [
+        ("number_table", 0, 0, "x", "DESC", [], ["x", "y"]),
+        ("number_table", 5, 0, "x", "DESC", [], ["x", "y"]),
+        ("number_table", 50, 0, "y", "ASC", [], ["x", "y"]),
+        ("number_table", 50, 10, "y", "ASC", [], ["x", "y"]),
+        ("number_table", 0, 2, "x", "DESC", [(4, -2), (4, 3)], ["x", "y"]),
+        ("number_table", 0, 2, "x", "ASC", [(-5, 0), (-5, -1)], ["x", "y"]),
+        ("empty_table", 2, 5, "column", "ASC", [], ["column", "another"]),
+        ("number_table", 2, 2, "x", "ASC", [(-4, 2), (-2, -3)], ["x", "y"]),
+        ("number_table", 2, 2, "x", "DESC", [(2, 4), (2, -5)], ["x", "y"]),
+        (
+            "number_table",
+            2,
+            10,
+            "x",
+            "DESC",
+            [(2, 4), (2, -5), (0, 2), (-2, -3), (-2, -3), (-4, 2), (-5, 0), (-5, -1)],
+            ["x", "y"],
+        ),
+        (
+            "number_table",
+            2,
+            100,
+            "x",
+            "DESC",
+            [(2, 4), (2, -5), (0, 2), (-2, -3), (-2, -3), (-4, 2), (-5, 0), (-5, -1)],
+            ["x", "y"],
+        ),
+        (
+            "number_table",
+            2,
+            5,
+            "y",
+            "ASC",
+            [(-2, -3), (4, -2), (-5, -1), (-5, 0), (0, 2)],
+            ["x", "y"],
+        ),
+    ],
+)
+def test_fetch_sql_with_pagination_with_sort(
+    ip, table, offset, n_rows, sort_by, order_by, expected_rows, expected_columns
+):
+    rows, columns = util.fetch_sql_with_pagination(
+        table, offset, n_rows, sort_by, order_by
+    )
+
+    assert rows == expected_rows
+    assert columns == expected_columns
+
+
+@pytest.mark.parametrize(
+    "table",
+    ["no_such_table", ""],
+)
+def test_fetch_sql_with_pagination_no_table_error(ip, table):
+    with pytest.raises(UsageError) as excinfo:
+        util.fetch_sql_with_pagination(table, 0, 2)
+
+    assert excinfo.value.error_type == "TableNotFoundError"
+
+
+def test_fetch_sql_with_pagination_none_table(ip):
+    with pytest.raises(UsageError) as excinfo:
+        util.fetch_sql_with_pagination(None, 0, 2)
+
+    assert excinfo.value.error_type == "UsageError"
+
+
+date_format = "%Y-%m-%d %H:%M:%S"
+
+
+@pytest.mark.parametrize(
+    "rows, columns, expected_json",
+    [
+        ([(1, 2), (3, 4)], ["x", "y"], [{"x": 1, "y": 2}, {"x": 3, "y": 4}]),
+        ([(1,), (3,)], ["x"], [{"x": 1}, {"x": 3}]),
+        (
+            [
+                ("a", datetime.strptime("2021-01-01 00:30:10", date_format)),
+                ("b", datetime.strptime("2021-02-01 00:30:10", date_format)),
+            ],
+            ["id", "datetime"],
+            [
+                {
+                    "datetime": "2021-01-01 00:30:10",
+                    "id": "a",
+                },
+                {
+                    "datetime": "2021-02-01 00:30:10",
+                    "id": "b",
+                },
+            ],
+        ),
+        (
+            [(None, "a1", "b1"), (None, "a2", "b2")],
+            ["x", "y", "z"],
+            [
+                {
+                    "x": "None",
+                    "y": "a1",
+                    "z": "b1",
+                },
+                {
+                    "x": "None",
+                    "y": "a2",
+                    "z": "b2",
+                },
+            ],
+        ),
+    ],
+)
+def test_parse_sql_results_to_json(ip, capsys, rows, columns, expected_json):
+    j = util.parse_sql_results_to_json(rows, columns)
+    j = json.loads(j)
+    with capsys.disabled():
+        assert str(j) == str(expected_json)

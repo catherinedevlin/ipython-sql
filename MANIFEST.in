@@ -1,3 +1,5 @@
 include README.rst
 include NEWS.rst
 include LICENSE
+include src/sql/widgets/table_widget/css/*
+include src/sql/widgets/table_widget/js/*

@@ -1,8 +1,10 @@
+import sql
 from sql import inspect
 import difflib
 from sql.connection import Connection
 from sql.store import store
 from sql import exceptions
+import json
 
 SINGLE_QUOTE = "'"
 DOUBLE_QUOTE = '"'
@@ -250,3 +252,56 @@ def support_only_sql_alchemy_connection(command):
     """
     if Connection.is_custom_connection():
         raise exceptions.RuntimeError(f"{command} is not supported for a custom engine")
+
+
+def fetch_sql_with_pagination(
+    table, offset, n_rows, sort_column=None, sort_order=None
+) -> tuple:
+    """
+    Returns next n_rows and columns from table starting at the offset
+
+    Parameters
+    ----------
+    table : str
+        Table name
+
+    offset : int
+        Specifies the number of rows to skip before
+        it starts to return rows from the query expression.
+
+    n_rows : int
+        Number of rows to return.
+
+    sort_column : str, default None
+        Sort by column
+
+    sort_order : 'DESC' or 'ASC', default None
+        Order list
+    """
+    is_table_exists(table)
+
+    order_by = "" if not sort_column else f"ORDER BY {sort_column} {sort_order}"
+
+    query = f"""
+    SELECT * FROM {table} {order_by}
+    OFFSET {offset} ROWS FETCH NEXT {n_rows} ROWS ONLY"""
+
+    rows = Connection.current.execute(query).fetchall()
+
+    columns = sql.run.raw_run(
+        Connection.current, f"SELECT * FROM {table} WHERE 1=0"
+    ).keys()
+
+    return rows, columns
+
+
+def parse_sql_results_to_json(rows, columns) -> str:
+    """
+    Serializes sql rows to a JSON formatted ``str``
+    """
+    dicts = [dict(zip(list(columns), row)) for row in rows]
+    rows_json = json.dumps(dicts, indent=4, sort_keys=True, default=str).replace(
+        "null", '"None"'
+    )
+
+    return rows_json

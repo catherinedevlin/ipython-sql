@@ -66,9 +66,11 @@ html_theme_options = {
     "repository_branch": repository_branch,
     "analytics": {"google_analytics_id": "G-JBZ8NNQSLN"},
     "home_page_in_toc": True,
-    "announcement": ("To launch a tutorial, click on the 🚀 button "
-                     "below! Join us on "
-                     "<a href='https://ploomber.io/community/'>Slack!</a>"),
+    "announcement": (
+        "To launch a tutorial, click on the 🚀 button "
+        "below! Join us on "
+        "<a href='https://ploomber.io/community/'>Slack!</a>"
+    ),
     "use_repository_button": True,
     "use_edit_page_button": False,
     "use_issues_button": True,
@@ -106,18 +108,17 @@ use_multitoc_numbering = True
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory.
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 # Load custom stylesheets to support Algolia search.
-html_css_files = [
-    'algolia.css',
-    'https://cdn.jsdelivr.net/npm/@docsearch/css@3'
-]
+html_css_files = ["algolia.css", "https://cdn.jsdelivr.net/npm/@docsearch/css@3"]
 
 # Load custom javascript to support Algolia search. Note that the sequence
 # defined below (external first) is intentional!
 html_js_files = [
-    ('https://cdn.jsdelivr.net/npm/@docsearch/js@3.3.3/dist/umd/index.js',
-     {'defer': 'defer'}),
-    ('algolia.js', {'defer': 'defer'})
+    (
+        "https://cdn.jsdelivr.net/npm/@docsearch/js@3.3.3/dist/umd/index.js",
+        {"defer": "defer"},
+    ),
+    ("algolia.js", {"defer": "defer"}),
 ]

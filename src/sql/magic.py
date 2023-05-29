@@ -41,6 +41,7 @@ except ModuleNotFoundError:
 
 from sql.telemetry import telemetry
 
+
 SUPPORT_INTERACTIVE_WIDGETS = ["Checkbox", "Text", "IntSlider", ""]
 
 
