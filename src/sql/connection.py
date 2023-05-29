@@ -123,6 +123,29 @@ def rough_dict_get(dct, sought, default=None):
     return default
 
 
+def is_pep249_compliant(conn):
+    """
+    Checks if given connection object complies with PEP 249
+    """
+    pep249_methods = [
+        "close",
+        "commit",
+        # "rollback",
+        # "cursor",
+        # PEP 249 doesn't require the connection object to have
+        # a cursor method strictly
+        # ref: https://peps.python.org/pep-0249/#id52
+    ]
+
+    for method_name in pep249_methods:
+        # Checking whether the connection object has the method
+        # and if it is callable
+        if not hasattr(conn, method_name) or not callable(getattr(conn, method_name)):
+            return False
+
+    return True
+
+
 class Connection:
     """Manages connections to databases
 
@@ -418,14 +441,9 @@ class Connection:
         if isinstance(conn, (CustomConnection, CustomSession)):
             is_custom_connection_ = True
         else:
-            # TODO: Better check when user passes a custom
-            # connection
-            if (
-                isinstance(
-                    conn, (sqlalchemy.engine.base.Connection, Connection, str, bool)
-                )
-                or conn.__class__.__name__ == "DataFrame"
-            ):
+            if isinstance(
+                conn, (sqlalchemy.engine.base.Connection, Connection)
+            ) or not (is_pep249_compliant(conn)):
                 is_custom_connection_ = False
             else:
                 is_custom_connection_ = True

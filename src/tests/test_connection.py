@@ -4,10 +4,11 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 import sql.connection
-from sql.connection import Connection
+from sql.connection import Connection, CustomConnection
 from IPython.core.error import UsageError
 import sqlglot
 import sqlalchemy
+import sqlite3
 
 
 @pytest.fixture
@@ -266,3 +267,41 @@ def test_no_current_connection_and_get_info(monkeypatch, mock_database):
 
     monkeypatch.setattr(conn, "session", None)
     assert conn._get_curr_sqlalchemy_connection_info() is None
+
+
+class dummy_connection:
+    def __init__(self):
+        self.engine_name = "dummy_engine"
+
+    def close(self):
+        pass
+
+
+@pytest.mark.parametrize(
+    "conn, expected",
+    [
+        [sqlite3.connect(""), True],
+        [
+            CustomConnection(engine=sqlalchemy.create_engine("sqlite://")),
+            True,
+        ],
+        [
+            Connection(engine=sqlalchemy.create_engine("sqlite://")),
+            False,
+        ],
+        [dummy_connection(), False],
+        ["not_a_valid_connection", False],
+        [0, False],
+    ],
+    ids=[
+        "sqlite3_connection",
+        "custom_connection",
+        "normal_connection",
+        "dummy_connection",
+        "str",
+        "int",
+    ],
+)
+def test_custom_connection(conn, expected):
+    is_custom = Connection.is_custom_connection(conn)
+    assert is_custom == expected
