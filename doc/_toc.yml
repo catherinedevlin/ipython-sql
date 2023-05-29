@@ -45,6 +45,7 @@ parts:
     - file: api/configuration
     - file: api/python
     - file: api/magic-tables-columns
+    - file: api/magic-profile
 
   - caption: How-To
     chapters:
