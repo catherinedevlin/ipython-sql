@@ -26,6 +26,11 @@ pip install jupysql --upgrade
 ~~~
 ```
 
+```{important}
+If using Binder, open this as notebook before running the code:
+![syntax](../static/open-as-notebook.png)
+```
+
 In this guide, we demonstrate how to use JupySQL's table explorer to visualize SQL tables in HTML format and interact with them efficiently. By running SQL queries in the background instead of loading the data into memory, we minimize the resource consumption and processing time required for handling large datasets, making the interaction with the SQL tables faster and more streamlined.
 
 ```{note}
