@@ -46,6 +46,12 @@ if not Path("yellow_tripdata_2021-01.parquet").is_file():
     urlretrieve(url, "yellow_tripdata_2021.parquet")
 ```
 
+## Installation
+
+```{code-cell} ipython3
+%pip install jupysql jupysql-plugin --upgrade --quiet
+```
+
 ## Set connection
 
 After our dataset is ready, we should set our connection.
@@ -62,10 +68,7 @@ For this demonstration, we'll be using the `DuckDB` connection.
 To create the table, use the `explore` attribute and specify the name of the table that was just downloaded.
 
 ```{code-cell} ipython3
-:tags: []
-
 %sqlcmd explore --table "yellow_tripdata_2021.parquet"
 ```
-
 
 See interactive and live example on [Binder](https://binder.ploomber.io/v2/gh/ploomber/jupysql/master?urlpath=lab/tree/doc/user-guide/table_explorer.md).
