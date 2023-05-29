@@ -1,3 +1,5 @@
+from sqlalchemy import create_engine
+from sql.connection import Connection
 from pathlib import Path
 from unittest.mock import Mock
 
@@ -5,7 +7,6 @@ import pytest
 import pandas as pd
 import polars as pl
 import sqlalchemy
-import duckdb
 
 from sql.run import ResultSet
 from sql import run as run_module
@@ -86,15 +87,14 @@ def test_resultset_config_autolimit_dict(result, config):
 
 def test_resultset_with_non_sqlalchemy_results(config):
     df = pd.DataFrame({"x": range(3)})  # noqa
-    conn = duckdb.connect()
+    conn = Connection(engine=create_engine("duckdb://"))
     result = conn.execute("SELECT * FROM df")
     assert ResultSet(result, config) == [(0,), (1,), (2,)]
 
 
 def test_none_pretty(config):
-    engine = sqlalchemy.create_engine("sqlite://")
-    conn = engine.connect()
-    result = conn.execute(sqlalchemy.text("create table some_table (name, age)"))
+    conn = Connection(engine=create_engine("sqlite://"))
+    result = conn.execute("create table some_table (name, age)")
     result_set = ResultSet(result, config)
     assert result_set.pretty is None
     assert "" == str(result_set)

@@ -1,9 +1,10 @@
 import sys
-import sqlite3
 
 import pytest
 from IPython.core.error import UsageError
 from pathlib import Path
+from sqlalchemy import create_engine
+from sql.connection import Connection
 
 
 @pytest.mark.parametrize(
@@ -61,8 +62,8 @@ def test_tables(ip):
 
 
 def test_tables_with_schema(ip, tmp_empty):
-    with sqlite3.connect("my.db") as conn:
-        conn.execute("CREATE TABLE numbers (some_number FLOAT)")
+    conn = Connection(engine=create_engine("sqlite:///my.db"))
+    conn.execute("CREATE TABLE numbers (some_number FLOAT)")
 
     ip.run_cell(
         """%%sql
@@ -99,8 +100,8 @@ def test_columns(ip, cmd, cols):
 
 
 def test_columns_with_schema(ip, tmp_empty):
-    with sqlite3.connect("my.db") as conn:
-        conn.execute("CREATE TABLE numbers (some_number FLOAT)")
+    conn = Connection(engine=create_engine("sqlite:///my.db"))
+    conn.execute("CREATE TABLE numbers (some_number FLOAT)")
 
     ip.run_cell(
         """%%sql
@@ -169,17 +170,19 @@ def test_table_profile(ip, tmp_empty):
 
 
 def test_table_schema_profile(ip, tmp_empty):
-    with sqlite3.connect("a.db") as conn:
-        conn.execute(("CREATE TABLE t (n FLOAT)"))
-        conn.execute(("INSERT INTO t VALUES (1)"))
-        conn.execute(("INSERT INTO t VALUES (2)"))
-        conn.execute(("INSERT INTO t VALUES (3)"))
+    ip.run_cell("%sql sqlite:///a.db")
+    ip.run_cell("%sql CREATE TABLE t (n FLOAT)")
+    ip.run_cell("%sql INSERT INTO t VALUES (1)")
+    ip.run_cell("%sql INSERT INTO t VALUES (2)")
+    ip.run_cell("%sql INSERT INTO t VALUES (3)")
+    ip.run_cell("%sql --close sqlite:///a.db")
 
-    with sqlite3.connect("b.db") as conn:
-        conn.execute(("CREATE TABLE t (n FLOAT)"))
-        conn.execute(("INSERT INTO t VALUES (11)"))
-        conn.execute(("INSERT INTO t VALUES (22)"))
-        conn.execute(("INSERT INTO t VALUES (33)"))
+    ip.run_cell("%sql sqlite:///b.db")
+    ip.run_cell("%sql CREATE TABLE t (n FLOAT)")
+    ip.run_cell("%sql INSERT INTO t VALUES (11)")
+    ip.run_cell("%sql INSERT INTO t VALUES (22)")
+    ip.run_cell("%sql INSERT INTO t VALUES (33)")
+    ip.run_cell("%sql --close sqlite:///b.db")
 
     ip.run_cell(
         """

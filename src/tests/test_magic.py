@@ -1,5 +1,4 @@
 import logging
-import sqlite3
 import platform
 from pathlib import Path
 import os.path
@@ -863,7 +862,7 @@ def test_alias_existing_engine(clean_conns, ip_empty, tmp_empty):
 
 
 def test_alias_custom_connection(clean_conns, ip_empty, tmp_empty):
-    ip_empty.user_global_ns["first"] = sqlite3.connect(":memory:")
+    ip_empty.user_global_ns["first"] = create_engine("sqlite://")
     ip_empty.run_cell("%sql first --alias one")
     assert {"one"} == set(Connection.connections)
 
@@ -902,8 +901,8 @@ def test_close_connection_with_existing_engine_and_alias(ip, tmp_empty):
 
 
 def test_close_connection_with_custom_connection_and_alias(ip, tmp_empty):
-    ip.user_global_ns["first"] = sqlite3.connect("first.db")
-    ip.user_global_ns["second"] = sqlite3.connect("second.db")
+    ip.user_global_ns["first"] = create_engine("sqlite:///first.db")
+    ip.user_global_ns["second"] = create_engine("sqlite:///second.db")
 
     # open two connections
     ip.run_cell("%sql first --alias one")

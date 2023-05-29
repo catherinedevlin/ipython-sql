@@ -3,6 +3,7 @@
 ## 0.7.6dev
 * [Feature] Add `%sqlcmd explore` to explore tables interactively (#330)
 
+* [Doc] documenting how to manage connections with `Connection` object (#282)
 * [Fix] Fix error when checking if custom connection was PEP 249 Compliant (#517)
 * [Feature] Support for printing capture variables using `=<<` syntax (by [@jorisroovers](https://github.com/jorisroovers))
 * [Feature] Adds `--persist-replace` argument to replace existing tables when persisting data frames (#440)

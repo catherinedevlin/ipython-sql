@@ -85,10 +85,11 @@ If the table isn't in the default schema, pass `--schema/-s`. Let's create a new
 ```{code-cell} ipython3
 :tags: [hide-output]
 
-import sqlite3
+from sqlalchemy import create_engine
+from sql.connection import Connection
 
-with sqlite3.connect("my.db") as conn:
-    conn.execute("CREATE TABLE numbers (n FLOAT)")
+conn = Connection(engine=create_engine("sqlite:///my.db"))
+conn.execute("CREATE TABLE numbers (n FLOAT)")
 ```
 
 ```{code-cell} ipython3
