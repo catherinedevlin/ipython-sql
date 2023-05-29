@@ -14,6 +14,7 @@ dependencies:
   - jupyterlab<4
   - pip:
     - jupyter-book
+    - jupyterlab_myst # display admonitions in jupyterlab
     # duckdb example
     - duckdb
     - duckdb-engine
