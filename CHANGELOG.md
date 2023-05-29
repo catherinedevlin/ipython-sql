@@ -1,13 +1,16 @@
 # CHANGELOG
 
-## 0.7.6dev
-* [Feature] Add `%sqlcmd explore` to explore tables interactively (#330)
+## 0.7.6 (2023-05-29)
 
-* [Doc] documenting how to manage connections with `Connection` object (#282)
-* [Fix] Fix error when checking if custom connection was PEP 249 Compliant (#517)
+* [Feature] Add `%sqlcmd explore` to explore tables interactively ([#330](https://github.com/ploomber/jupysql/issues/330))
+
 * [Feature] Support for printing capture variables using `=<<` syntax (by [@jorisroovers](https://github.com/jorisroovers))
-* [Feature] Adds `--persist-replace` argument to replace existing tables when persisting data frames (#440)
 
+* [Feature] Adds `--persist-replace` argument to replace existing tables when persisting data frames ([#440](https://github.com/ploomber/jupysql/issues/440))
+
+* [Fix] Fix error when checking if custom connection was PEP 249 Compliant ([#517](https://github.com/ploomber/jupysql/issues/517))
+
+* [Doc] documenting how to manage connections with `Connection` object ([#282](https://github.com/ploomber/jupysql/issues/282))
 
 ## 0.7.5 (2023-05-24)
 
