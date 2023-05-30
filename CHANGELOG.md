@@ -15,6 +15,8 @@
 
 * [Doc] documenting how to manage connections with `Connection` object ([#282](https://github.com/ploomber/jupysql/issues/282))
 
+* [Feature] Github Codespace (Devcontainer) support for development (by [@jorisroovers](https://github.com/jorisroovers)) ([#484](https://github.com/ploomber/jupysql/issues/484))
+
 ## 0.7.5 (2023-05-24)
 
 * [Feature] Using native DuckDB `.df()` method when using `autopandas`

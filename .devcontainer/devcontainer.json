@@ -1,0 +1,23 @@
+// For format details, see https://aka.ms/devcontainer.json. 
+{
+	"name": "Jupyter",
+	"build": { 
+		"context": "..",
+		"dockerfile": "Dockerfile"
+	},
+	"features": {
+		"ghcr.io/devcontainers/features/git:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"ms-toolsai.jupyter",
+				"GitHub.codespaces"
+			]
+		}
+	},
+	"postCreateCommand": "./.devcontainer/postCreate.sh"
+}

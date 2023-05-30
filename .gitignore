@@ -64,3 +64,6 @@ nosetests.xml
 
 # Do not include test output
 /result_images/
+
+# Ignore Github codespace build artifact
+oryx-build-commands.txt
