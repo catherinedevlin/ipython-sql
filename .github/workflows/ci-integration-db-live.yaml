@@ -7,6 +7,7 @@ on:
       - 'dev/**'
   pull_request:
   workflow_call:
+    secrets: inherit
 
 jobs:
   database-live-integration-test:
