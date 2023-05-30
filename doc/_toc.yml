@@ -56,6 +56,7 @@ parts:
     - file: howto/csv
     - file: howto/autocompletion
     - file: howto/format-sql
+    - file: howto/benchmarking-time
 
   - caption: Tutorials
     chapters:

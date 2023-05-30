@@ -1,7 +1,10 @@
 # CHANGELOG
 
 ## 0.7.7dev
+
 * [Fix] Fix CTE generation when the snippets have trailing semicolons
+
+* [Doc] Added Howto documentation for enabling JupyterLab cell runtime display ([#448](https://github.com/ploomber/jupysql/issues/448))
 
 ## 0.7.6 (2023-05-29)
 
