@@ -105,11 +105,11 @@ class SQLQuery:
         ` (backtick)
         """
         with_clause_template = Template(
-            """WITH{% for name in with_ %} {{name}} AS ({{saved[name]._query}})\
+            """WITH{% for name in with_ %} {{name}} AS ({{rts(saved[name]._query)}})\
 {{ "," if not loop.last }}{% endfor %}{{query}}"""
         )
         with_clause_template_backtick = Template(
-            """WITH{% for name in with_ %} `{{name}}` AS ({{saved[name]._query}})\
+            """WITH{% for name in with_ %} `{{name}}` AS ({{rts(saved[name]._query)}})\
 {{ "," if not loop.last }}{% endfor %}{{query}}"""
         )
         is_use_backtick = sql.connection.Connection.current.is_use_backtick_template()
@@ -118,8 +118,16 @@ class SQLQuery:
             with_clause_template_backtick if is_use_backtick else with_clause_template
         )
         return template.render(
-            query=self._query, saved=self._store._data, with_=with_all
+            query=self._query,
+            saved=self._store._data,
+            with_=with_all,
+            rts=_remove_trailing_semicolon,
         )
+
+
+def _remove_trailing_semicolon(query):
+    query_ = query.rstrip()
+    return query_[:-1] if query_[-1] == ";" else query
 
 
 def _get_dependencies(store, keys):

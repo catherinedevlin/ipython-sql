@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## 0.7.7dev
+* [Fix] Fix CTE generation when the snippets have trailing semicolons
 
 ## 0.7.6 (2023-05-29)
 
