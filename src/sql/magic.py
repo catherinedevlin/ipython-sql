@@ -21,7 +21,7 @@ import warnings
 import sql.connection
 import sql.parse
 import sql.run
-from sql import exceptions
+from sql import display, exceptions
 from sql.store import store
 from sql.command import SQLCommand
 from sql.magic_plot import SqlPlotMagic
@@ -336,7 +336,7 @@ class SqlMagic(Magics, Configurable):
             interact(interactive_execute_wrapper, **interactive_dict)
             return
         if args.connections:
-            return sql.connection.Connection.connections
+            return sql.connection.Connection.connections_table()
         elif args.close:
             return sql.connection.Connection.close(args.close)
 
@@ -374,6 +374,7 @@ class SqlMagic(Magics, Configurable):
             alias=args.alias,
         )
         payload["connection_info"] = conn._get_curr_sqlalchemy_connection_info()
+
         if args.persist_replace and args.append:
             raise exceptions.UsageError(
                 """You cannot simultaneously persist and append data to a dataframe;
@@ -422,7 +423,7 @@ class SqlMagic(Magics, Configurable):
             self._store.store(args.save, command.sql_original, with_=args.with_)
 
         if args.no_execute:
-            print("Skipping execution...")
+            display.message("Skipping execution...")
             return
 
         try:
@@ -537,7 +538,7 @@ class SqlMagic(Magics, Configurable):
 --persist-replace to drop the table before persisting the data frame"""
             )
 
-        return "Persisted %s" % table_name
+        display.message_success(f"Success! Persisted {table_name} to the database.")
 
 
 def load_ipython_extension(ip):

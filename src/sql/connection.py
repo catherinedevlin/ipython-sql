@@ -10,7 +10,7 @@ import sqlglot
 
 from sql.store import store
 from sql.telemetry import telemetry
-from sql import exceptions
+from sql import exceptions, display
 from sql.error_message import detail
 from ploomber_core.exceptions import modify_exceptions
 
@@ -153,6 +153,30 @@ class Connection:
     ----------
     engine: sqlalchemy.engine.Engine
         The SQLAlchemy engine to use
+
+    Attributes
+    ----------
+    alias : str or None
+        The alias passed in the constructor
+
+    engine : sqlalchemy.engine.Engine
+        The SQLAlchemy engine passed to the constructor
+
+    name : str
+        A name to identify the connection: {user}@{database_name}
+
+    metadata : Metadata or None
+        An SQLAlchemy Metadata object (if using SQLAlchemy 2, this is None),
+        used to retrieve connection information
+
+    url : str
+        An obfuscated connection string (password hidden)
+
+    dialect : sqlalchemy dialect
+        A SQLAlchemy dialect object
+
+    session : sqlalchemy session
+        A SQLAlchemy session object
     """
 
     # the active connection
@@ -162,26 +186,26 @@ class Connection:
     connections = {}
 
     def __init__(self, engine, alias=None):
-        self.url = engine.url
-        self.name = self.assign_name(engine)
-        self.dialect = self.url.get_dialect()
+        self.alias = alias
         self.engine = engine
+        self.name = self.assign_name(engine)
 
         if IS_SQLALCHEMY_ONE:
             self.metadata = sqlalchemy.MetaData(bind=engine)
+        else:
+            self.metadata = None
 
-        url = (
+        self.url = (
             repr(sqlalchemy.MetaData(bind=engine).bind.url)
             if IS_SQLALCHEMY_ONE
             else repr(engine.url)
         )
 
-        self.session = self._create_session(engine, url)
+        self.dialect = engine.url.get_dialect()
+        self.session = self._create_session(engine, self.url)
 
-        self.connections[alias or url] = self
-
+        self.connections[alias or self.url] = self
         self.connect_args = None
-        self.alias = alias
         Connection.current = self
 
     @classmethod
@@ -362,8 +386,7 @@ class Connection:
         else:
             if cls.connections:
                 if displaycon:
-                    # display list of connections
-                    print(cls.connection_list())
+                    cls.display_current_connection()
             elif os.getenv("DATABASE_URL"):
                 cls.current = Connection.from_connect_str(
                     connect_str=os.getenv("DATABASE_URL"),
@@ -382,27 +405,53 @@ class Connection:
         return name
 
     @classmethod
-    def connection_list(cls):
-        """Returns the list of connections, appending '*' to the current one"""
-        result = []
+    def _get_connections(cls):
+        """
+        Return a list of dictionaries
+        """
+        connections = []
+
         for key in sorted(cls.connections):
             conn = cls.connections[key]
 
-            if cls.is_custom_connection(conn):
-                engine_url = conn.url
-            else:
-                engine_url = conn.metadata.bind.url if IS_SQLALCHEMY_ONE else conn.url
+            current = conn == cls.current
 
-            prefix = "* " if conn == cls.current else "  "
+            connections.append(
+                {
+                    "current": current,
+                    "key": key,
+                    "url": conn.url,
+                    "alias": conn.alias,
+                    "connection": conn,
+                }
+            )
 
-            if conn.alias:
-                repr_ = f"{prefix} ({conn.alias}) {engine_url!r}"
-            else:
-                repr_ = f"{prefix} {engine_url!r}"
+        return connections
 
-            result.append(repr_)
+    @classmethod
+    def display_current_connection(cls):
+        for conn in cls._get_connections():
+            if conn["current"]:
+                alias = conn.get("alias")
+                if alias:
+                    display.message(f"Running query in {alias!r}")
+                else:
+                    display.message(f"Running query in {conn['url']!r}")
 
-        return "\n".join(result)
+    @classmethod
+    def connections_table(cls):
+        """Returns the current connections as a table"""
+        connections = cls._get_connections()
+
+        def map_values(d):
+            d["current"] = "*" if d["current"] else ""
+            d["alias"] = d["alias"] if d["alias"] else ""
+            return d
+
+        return display.ConnectionsTable(
+            headers=["current", "url", "alias"],
+            rows_maps=[map_values(c) for c in connections],
+        )
 
     @classmethod
     def close(cls, descriptor):
@@ -425,6 +474,15 @@ class Connection:
                 str(conn.metadata.bind.url) if IS_SQLALCHEMY_ONE else str(conn.url)
             )
             conn.session.close()
+
+    @classmethod
+    def close_all(cls):
+        """Close all active connections"""
+        connections = Connection.connections.copy()
+        for key, conn in connections.items():
+            conn.close(key)
+
+        cls.connections = {}
 
     def is_custom_connection(conn=None) -> bool:
         """

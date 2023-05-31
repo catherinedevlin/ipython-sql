@@ -20,6 +20,9 @@ class SQLCommand:
     """
 
     def __init__(self, magic, user_ns, line, cell) -> None:
+        self._line = line
+        self._cell = cell
+
         self.args = parse.magic_args(magic.execute, line)
         # self.args.line (everything that appears after %sql/%%sql in the first line)
         # is split in tokens (delimited by spaces), this checks if we have one arg
@@ -103,3 +106,9 @@ class SQLCommand:
 
     def _var_expand(self, sql, user_ns, magic):
         return Template(sql).render(user_ns)
+
+    def __repr__(self) -> str:
+        return (
+            f"{type(self).__name__}(line={self._line!r}, cell={self._cell!r}) -> "
+            f"({self.sql!r}, {self.sql_original!r})"
+        )

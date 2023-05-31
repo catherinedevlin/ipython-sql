@@ -15,7 +15,7 @@ from sql.run import (
     is_postgres_or_redshift,
     select_df_type,
     set_autocommit,
-    interpret_rowcount,
+    display_affected_rowcount,
 )
 
 
@@ -143,19 +143,27 @@ def test_sql_is_empty(mock_conns, mock_config):
 def test_run(monkeypatch, mock_conns, mock_resultset, config_pandas):
     monkeypatch.setattr("sql.run.handle_postgres_special", Mock())
     monkeypatch.setattr("sql.run._commit", Mock())
-    monkeypatch.setattr("sql.run.interpret_rowcount", Mock())
+    monkeypatch.setattr("sql.run.display_affected_rowcount", Mock())
     monkeypatch.setattr("sql.run.ResultSet", mock_resultset)
 
     output = run(mock_conns, "\\", config_pandas)
     assert isinstance(output, type(mock_resultset.DataFrame()))
 
 
-def test_interpret_rowcount():
-    assert interpret_rowcount(-1) == "Done."
-    assert interpret_rowcount(1) == "%d rows affected." % 1
+@pytest.mark.parametrize(
+    "n, message",
+    [
+        [1, "1 rows affected.\n"],
+        [0, ""],
+    ],
+)
+def test_display_affected_rowcount(capsys, n, message):
+    display_affected_rowcount(n)
+    captured = capsys.readouterr()
+    assert captured.out == message
 
 
-def test__commit_is_called(
+def test_commit_is_called(
     monkeypatch,
     mock_conns,
     mock_config,
@@ -163,7 +171,7 @@ def test__commit_is_called(
     mock__commit = Mock()
     monkeypatch.setattr("sql.run._commit", mock__commit)
     monkeypatch.setattr("sql.run.handle_postgres_special", Mock())
-    monkeypatch.setattr("sql.run.interpret_rowcount", Mock())
+    monkeypatch.setattr("sql.run.display_affected_rowcount", Mock())
     monkeypatch.setattr("sql.run.ResultSet", Mock())
 
     run(mock_conns, "\\", mock_config)

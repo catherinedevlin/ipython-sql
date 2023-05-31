@@ -111,7 +111,7 @@ To make all subsequent queries to use certain connection, pass the connection na
 You can inspect which is the current active connection:
 
 ```{code-cell} ipython3
-%sql --list
+%sql --connections
 ```
 
 For more details on managing connections, see [Switch connections](../howto.md#switch-connections).
@@ -121,7 +121,7 @@ For more details on managing connections, see [Switch connections](../howto.md#s
 ## List connections
 
 ```{code-cell} ipython3
-%sql --list
+%sql --connections
 ```
 
 ## Close connection

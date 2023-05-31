@@ -56,6 +56,7 @@ def ip_empty():
     ip_session.register_magics(SqlPlotMagic)
     ip_session.register_magics(SqlCmdMagic)
     yield ip_session
+    Connection.close_all()
 
 
 @pytest.fixture

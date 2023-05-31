@@ -11,7 +11,7 @@ import prettytable
 import sqlalchemy
 import sqlparse
 from sql.connection import Connection
-from sql import exceptions
+from sql import exceptions, display
 from .column_guesser import ColumnGuesserMixin
 
 try:
@@ -365,12 +365,9 @@ class ResultSet(ColumnGuesserMixin):
             return outfile.getvalue()
 
 
-def interpret_rowcount(rowcount):
-    if rowcount < 0:
-        result = "Done."
-    else:
-        result = "%d rows affected." % rowcount
-    return result
+def display_affected_rowcount(rowcount):
+    if rowcount > 0:
+        display.message_success(f"{rowcount} rows affected.")
 
 
 class FakeResultProxy(object):
@@ -551,7 +548,7 @@ def run(conn, sql, config):
 
                 if result and config.feedback:
                     if hasattr(result, "rowcount"):
-                        print(interpret_rowcount(result.rowcount))
+                        display_affected_rowcount(result.rowcount)
 
     # bypass ResultSet and use duckdb's native method to return a pandas data frame
     if duckdb_autopandas:
