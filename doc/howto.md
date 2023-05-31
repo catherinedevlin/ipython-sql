@@ -390,11 +390,6 @@ import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 ```
 
-```{code-cell} ipython3
-conns = %sql --connections
-conns["db-three"]
-```
-
 ## Hide connection string
 
 If you want to hide the connection string, pass an alias
