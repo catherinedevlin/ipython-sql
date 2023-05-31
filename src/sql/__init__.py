@@ -2,7 +2,7 @@ from .magic import RenderMagic, SqlMagic, load_ipython_extension
 from .error_message import SYNTAX_ERROR
 from .connection import PLOOMBER_DOCS_LINK_STR
 
-__version__ = "0.7.7"
+__version__ = "0.7.8dev"
 
 
 __all__ = [
