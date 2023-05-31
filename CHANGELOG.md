@@ -1,20 +1,24 @@
 # CHANGELOG
 
-## 0.7.7dev
+## 0.7.7 (2023-05-31)
 
-* [Doc] Hiding connection string when passing `--alias` when opening a connection (#432)
-* [Doc] Fix `api/magic-sql.md` since it incorrectly stated that listing functions was `--list`, but it's `--connections` (#432)
-* [Feature] Clearer message display when executing queries, listing connections and persisting data frames (#432)
+* [Feature] Clearer message display when executing queries, listing connections and persisting data frames ([#432](https://github.com/ploomber/jupysql/issues/432))
 * [Feature] `%sql --connections` now displays an HTML table in Jupyter and a text-based table in the terminal
 * [Fix] Fix CTE generation when the snippets have trailing semicolons
+* [Doc] Hiding connection string when passing `--alias` when opening a connection ([#432](https://github.com/ploomber/jupysql/issues/432))
+* [Doc] Fix `api/magic-sql.md` since it incorrectly stated that listing functions was `--list`, but it's `--connections` ([#432](https://github.com/ploomber/jupysql/issues/432))
 * [Doc] Added Howto documentation for enabling JupyterLab cell runtime display ([#448](https://github.com/ploomber/jupysql/issues/448))
 
 ## 0.7.6 (2023-05-29)
 
 * [Feature] Add `%sqlcmd explore` to explore tables interactively ([#330](https://github.com/ploomber/jupysql/issues/330))
+
 * [Feature] Support for printing capture variables using `=<<` syntax (by [@jorisroovers](https://github.com/jorisroovers))
+
 * [Feature] Adds `--persist-replace` argument to replace existing tables when persisting data frames ([#440](https://github.com/ploomber/jupysql/issues/440))
+
 * [Fix] Fix error when checking if custom connection was PEP 249 Compliant ([#517](https://github.com/ploomber/jupysql/issues/517))
+
 * [Doc] documenting how to manage connections with `Connection` object ([#282](https://github.com/ploomber/jupysql/issues/282))
 
 * [Feature] Github Codespace (Devcontainer) support for development (by [@jorisroovers](https://github.com/jorisroovers)) ([#484](https://github.com/ploomber/jupysql/issues/484))
