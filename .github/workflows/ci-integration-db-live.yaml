@@ -1,11 +1,6 @@
 name: CI - DB Integration - Cloud 
 
 on:
-  push:
-    branches:
-      - master
-      - 'dev/**'
-  pull_request:
   workflow_call:
 
 jobs:

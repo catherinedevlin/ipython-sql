@@ -12,6 +12,7 @@ on:
 jobs:
   integration-test-live:
     uses: ./.github/workflows/ci-integration-db-live.yaml
+    secrets: inherit
   integration-test-non-live:
     uses: ./.github/workflows/ci-integration-db.yaml
   test:
