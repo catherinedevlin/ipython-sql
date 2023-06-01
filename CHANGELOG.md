@@ -2,6 +2,8 @@
 
 ## 0.7.8dev
 
+* [Feature] Add `%sqlplot bar` and `%sqlplot pie`
+
 ## 0.7.7 (2023-05-31)
 
 * [Feature] Clearer message display when executing queries, listing connections and persisting data frames ([#432](https://github.com/ploomber/jupysql/issues/432))
