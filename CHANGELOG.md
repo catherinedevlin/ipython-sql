@@ -3,6 +3,7 @@
 ## 0.7.9dev
 
 * [Feature] Automated dependency inference when creating CTEs. `--with` is now deprecated and will display a warning. (#166)
+* [Feature] Close all connections when Python shuts down (#563)
 
 ## 0.7.8 (2023-06-01)
 
