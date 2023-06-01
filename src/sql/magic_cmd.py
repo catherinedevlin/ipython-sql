@@ -34,6 +34,10 @@ class CmdParser(argparse.ArgumentParser):
         raise exceptions.UsageError(message)
 
 
+# Added here due to circular dependencies (#545)
+from sql.sqlcmd import sqlcmd_snippets  # noqa
+
+
 @magics_class
 class SqlCmdMagic(Magics, Configurable):
     """%sqlcmd magic"""
@@ -50,13 +54,22 @@ class SqlCmdMagic(Magics, Configurable):
         # We rely on SQLAlchemy when inspecting tables
         util.support_only_sql_alchemy_connection("%sqlcmd")
 
-        AVAILABLE_SQLCMD_COMMANDS = ["tables", "columns", "test", "profile", "explore"]
+        AVAILABLE_SQLCMD_COMMANDS = [
+            "tables",
+            "columns",
+            "test",
+            "profile",
+            "explore",
+            "snippets",
+        ]
+
+        VALID_COMMANDS_MSG = (
+            f"Missing argument for %sqlcmd. "
+            f"Valid commands are: {', '.join(AVAILABLE_SQLCMD_COMMANDS)}"
+        )
 
         if line == "":
-            raise exceptions.UsageError(
-                "Missing argument for %sqlcmd. "
-                "Valid commands are: {}".format(", ".join(AVAILABLE_SQLCMD_COMMANDS))
-            )
+            raise exceptions.UsageError(VALID_COMMANDS_MSG)
         else:
             split = arg_split(line)
             command, others = split[0].strip(), split[1:]
@@ -222,6 +235,9 @@ class SqlCmdMagic(Magics, Configurable):
 
             table_widget = TableWidget(args.table)
             display(table_widget)
+
+        elif cmd_name == "snippets":
+            return sqlcmd_snippets(others)
 
 
 def return_test_results(args, conn, query):

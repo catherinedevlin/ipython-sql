@@ -95,10 +95,10 @@ def ip(ip_empty):
         ],
     )
     yield ip_empty
-    runsql(ip_empty, "DROP TABLE test")
-    runsql(ip_empty, "DROP TABLE author")
-    runsql(ip_empty, "DROP TABLE website")
-    runsql(ip_empty, "DROP TABLE number_table")
+    runsql(ip_empty, "DROP TABLE IF EXISTS test")
+    runsql(ip_empty, "DROP TABLE IF EXISTS author")
+    runsql(ip_empty, "DROP TABLE IF EXISTS website")
+    runsql(ip_empty, "DROP TABLE IF EXISTS number_table")
 
 
 @pytest.fixture

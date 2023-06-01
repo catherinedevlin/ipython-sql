@@ -27,7 +27,8 @@ pip install jupysql matplotlib
 ```
 
 
-*New in version 0.4.3*
+```{versionchanged} 0.7.8
+```
 
 ```{note}
 This is a beta feature, please [join our community](https://ploomber.io/community) and
@@ -105,23 +106,31 @@ OR Name LIKE '%metal%'
 
 Join the filtered genres and tracks, so we only get Rock and Metal tracks, and save the query as `track_fav`
 
-Note that we are using `--with`; this will retrieve previously saved queries, and prepend them (using CTEs), then, we save the query in `track_fav` .
+
+We automatically extract the tables from the query and infer the dependencies from all the saved snippets.
+
 
 ```{code-cell} ipython3
-%%sql --with genres_fav --with tracks_with_info --save track_fav
+%%sql --save track_fav
 SELECT t.*
 FROM tracks_with_info t
 JOIN genres_fav
 ON t.GenreId = genres_fav.GenreId
 ```
 
-Use the `track_fav` query to find artists with the most Rock and Metal tracks, and save the query as `top_artist`
+Now let's find artists with the most Rock and Metal tracks, and save the query as `top_artist`
 
 ```{code-cell} ipython3
-%%sql --with track_fav --save top_artist
+%%sql --save top_artist
 SELECT artist, COUNT(*) FROM track_fav
 GROUP BY artist
 ORDER BY COUNT(*) DESC
+```
+
+
+```{note}
+A saved snippet will override an existing table with the same name during query formation. If you wish to delete a snippet please refer to [sqlcmd snippets API](api/magic-snippets.md).
+
 ```
 
 #### Data visualization
@@ -129,7 +138,7 @@ ORDER BY COUNT(*) DESC
 Once we have the desired results from the query `top_artist`, we can generate a visualization using the bar method
 
 ```{code-cell} ipython3
-top_artist = %sql --with top_artist SELECT * FROM top_artist
+top_artist = %sql SELECT * FROM top_artist
 top_artist.bar()
 ```
 

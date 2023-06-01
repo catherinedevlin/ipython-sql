@@ -71,10 +71,6 @@ class SQLCommand:
         if add_alias:
             self.parsed["connection"] = self.args.line[0]
 
-        if self.args.with_:
-            final = store.render(self.parsed["sql"], with_=self.args.with_)
-            self.parsed["sql"] = str(final)
-
     @property
     def sql(self):
         """
@@ -112,3 +108,15 @@ class SQLCommand:
             f"{type(self).__name__}(line={self._line!r}, cell={self._cell!r}) -> "
             f"({self.sql!r}, {self.sql_original!r})"
         )
+
+    def set_sql_with(self, with_):
+        """
+        Sets the final rendered SQL query using the WITH clause
+
+        Parameters
+        ----------
+        with_ : list
+        list of all subqueries needed to render the query
+        """
+        final = store.render(self.parsed["sql"], with_)
+        self.parsed["sql"] = str(final)

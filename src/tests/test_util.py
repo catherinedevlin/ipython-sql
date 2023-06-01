@@ -15,6 +15,34 @@ EXPECTED_STORE_SUGGESTIONS = (
 )
 
 
+@pytest.fixture
+def ip_snippets(ip):
+    ip.run_cell(
+        """
+%%sql --save a --no-execute
+SELECT *
+FROM number_table
+"""
+    )
+    ip.run_cell(
+        """
+            %%sql --save b --no-execute
+            SELECT *
+            FROM a
+            WHERE x > 5
+            """
+    )
+    ip.run_cell(
+        """
+            %%sql --save c --no-execute
+            SELECT *
+            FROM a
+            WHERE x < 5
+            """
+    )
+    yield ip
+
+
 @pytest.mark.parametrize(
     "store_table, query",
     [
@@ -22,34 +50,6 @@ EXPECTED_STORE_SUGGESTIONS = (
         ("bbb", "%sqlcmd profile --table {}"),
         ("c_c", "%sqlplot histogram --table {} --column x"),
         ("d_d_d", "%sqlplot boxplot --table {} --column x"),
-    ],
-)
-def test_missing_with(ip, store_table, query):
-    ip.run_cell(
-        f"""
-        %%sql --save {store_table} --no-execute
-        SELECT *
-        FROM number_table
-        """
-    ).result
-
-    query = query.format(store_table)
-    out = ip.run_cell(query)
-
-    expected_store_message = EXPECTED_STORE_SUGGESTIONS.format(store_table)
-
-    error_message = str(out.error_in_exec)
-    assert isinstance(out.error_in_exec, UsageError)
-    assert str(expected_store_message).lower() in error_message.lower()
-
-
-@pytest.mark.parametrize(
-    "store_table, query",
-    [
-        ("a", "%sqlcmd columns --table {} --with {}"),
-        ("bbb", "%sqlcmd profile --table {} --with {}"),
-        ("c_c", "%sqlplot histogram --table {} --with {} --column x"),
-        ("d_d_d", "%sqlplot boxplot --table {} --with {} --column x"),
     ],
 )
 def test_no_errors_with_stored_query(ip, store_table, query):
@@ -237,7 +237,7 @@ def test_is_table_exists_with(ip, table, expected_error, expected_suggestions):
     )
     if expected_error:
         with pytest.raises(expected_error) as error:
-            util.is_table_exists(table, with_=with_)
+            util.is_table_exists(table)
 
         error_suggestions_arr = str(error.value).split(EXPECTED_SUGGESTIONS_MESSAGE)
 
@@ -444,3 +444,28 @@ def test_parse_sql_results_to_json(ip, capsys, rows, columns, expected_json):
     j = json.loads(j)
     with capsys.disabled():
         assert str(j) == str(expected_json)
+
+
+def test_get_all_keys(ip_snippets):
+    keys = util.get_all_keys()
+    assert "a" in keys
+    assert "b" in keys
+    assert "c" in keys
+
+
+def test_get_key_dependents(ip_snippets):
+    keys = util.get_key_dependents("a")
+    assert "b" in keys
+    assert "c" in keys
+
+
+def test_del_saved_key(ip_snippets):
+    keys = util.del_saved_key("c")
+    assert "a" in keys
+    assert "b" in keys
+
+
+def test_del_saved_key_error(ip_snippets):
+    with pytest.raises(UsageError) as excinfo:
+        util.del_saved_key("non_existent_key")
+    assert "No such saved snippet found : non_existent_key" in str(excinfo.value)

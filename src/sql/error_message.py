@@ -5,6 +5,33 @@ SYNTAX_ERROR = "\nLooks like there is a syntax error in your query."
 ORIGINAL_ERROR = "\nOriginal error message from DB driver:\n"
 
 
+def parse_sqlglot_error(e, q):
+    """
+    Function to parse the error message from sqlglot
+
+    Parameters
+    ----------
+    e: sqlglot.errors.ParseError, exception
+            while parsing through sqlglot
+    q : str, user query
+
+    Returns
+    -------
+    str
+        Formatted error message containing description
+        and positions
+    """
+    err = e.errors
+    position = ""
+    for item in err:
+        position += (
+            f"Syntax Error in {q}: {item['description']} at "
+            f"Line {item['line']}, Column {item['col']}\n"
+        )
+    msg = "Possible reason: \n" + position if position else ""
+    return msg
+
+
 def detail(original_error, query=None):
     original_error = str(original_error)
     return_msg = SYNTAX_ERROR
@@ -25,18 +52,8 @@ def detail(original_error, query=None):
                 )
 
             except sqlglot.errors.ParseError as e:
-                err = e.errors
-                position = ""
-                for item in err:
-                    position += (
-                        f"Syntax Error in {q}: {item['description']} at "
-                        f"Line {item['line']}, Column {item['col']}\n"
-                    )
-                return_msg = (
-                    return_msg + "Possible reason: \n" + position
-                    if position
-                    else return_msg
-                )
+                parse_msg = parse_sqlglot_error(e, q)
+                return_msg = return_msg + parse_msg if parse_msg else return_msg
 
         return return_msg + "\n" + ORIGINAL_ERROR + original_error + "\n"
 

@@ -6,6 +6,7 @@ import sql.connection
 import difflib
 
 from sql import exceptions
+from sql import query_util
 
 
 class SQLStore(MutableMapping):
@@ -67,6 +68,18 @@ class SQLStore(MutableMapping):
     def render(self, query, with_=None):
         # TODO: if with is false, WITH should not appear
         return SQLQuery(self, query, with_)
+
+    def infer_dependencies(self, query, key):
+        dependencies = []
+        saved_keys = [
+            saved_key for saved_key in list(self._data.keys()) if saved_key != key
+        ]
+        if saved_keys and query:
+            tables = query_util.extract_tables_from_query(query)
+            for table in tables:
+                if table in saved_keys:
+                    dependencies.append(table)
+        return dependencies
 
     @modify_exceptions
     def store(self, key, query, with_=None):
@@ -136,6 +149,15 @@ def _get_dependencies(store, keys):
     deps = _flatten([_get_dependencies_for_key(store, key) for key in keys])
     # remove duplicates but preserve order
     return list(dict.fromkeys(deps + keys))
+
+
+def _get_dependents_for_key(store, key):
+    key_dependents = []
+    for k in list(store):
+        deps = _get_dependencies_for_key(store, k)
+        if key in deps:
+            key_dependents.append(k)
+    return key_dependents
 
 
 def _get_dependencies_for_key(store, key):

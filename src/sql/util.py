@@ -1,8 +1,9 @@
+import warnings
 import sql
 from sql import inspect
 import difflib
 from sql.connection import Connection
-from sql.store import store
+from sql.store import store, _get_dependents_for_key
 from sql import exceptions
 import json
 
@@ -52,11 +53,18 @@ def _is_long_number(num) -> bool:
     return False
 
 
+def get_suggestions_message(suggestions):
+    suggestions_message = ""
+    if len(suggestions) > 0:
+        _suggestions_string = pretty_print(suggestions, last_delimiter="or")
+        suggestions_message = f"\nDid you mean : {_suggestions_string}"
+    return suggestions_message
+
+
 def is_table_exists(
     table: str,
     schema: str = None,
     ignore_error: bool = False,
-    with_: str = None,
     conn=None,
 ) -> bool:
     """
@@ -69,9 +77,6 @@ def is_table_exists(
 
     schema: str, default None
         Schema name
-
-    with_: list, default None
-        Temporary table
 
     ignore_error: bool, default False
         Avoid raising a ValueError
@@ -93,7 +98,7 @@ def is_table_exists(
     else:
         table_ = table
 
-    _is_exist = _is_table_exists(table_, with_, conn)
+    _is_exist = _is_table_exists(table_, conn)
 
     if not _is_exist:
         if not ignore_error:
@@ -124,22 +129,12 @@ def is_table_exists(
                     f"There is no table with name {table!r} in the default schema"
                 )
 
-            if table in list(store):
-                # Suggest user use --with when given table
-                # is in the store
-                suggestion_message = (
-                    ", but there is a stored query."
-                    f"\nDid you miss passing --with {table}?"
-                )
-                err_message = f"{err_message}{suggestion_message}"
-            else:
-                suggestions = difflib.get_close_matches(invalid_input, expected)
-
-                if len(suggestions) > 0:
-                    _suggestions_string = pretty_print(suggestions, last_delimiter="or")
-                    suggestions_message = f"\nDid you mean : {_suggestions_string}"
-                    err_message = f"{err_message}{suggestions_message}"
-
+            suggestions = difflib.get_close_matches(invalid_input, expected)
+            suggestions_store = difflib.get_close_matches(invalid_input, list(store))
+            suggestions.extend(suggestions_store)
+            suggestions_message = get_suggestions_message(suggestions)
+            if suggestions_message:
+                err_message = f"{err_message}{suggestions_message}"
             raise exceptions.TableNotFoundError(err_message)
 
     return _is_exist
@@ -182,7 +177,14 @@ def strip_multiple_chars(string: str, chars: str) -> str:
     return string.translate(str.maketrans("", "", chars))
 
 
-def _is_table_exists(table: str, with_: str, conn) -> bool:
+def is_saved_snippet(table: str) -> bool:
+    if table in list(store):
+        print(f"Plotting using saved snippet : {table}")
+        return True
+    return False
+
+
+def _is_table_exists(table: str, conn) -> bool:
     """
     Runs a SQL query to check if table exists
     """
@@ -191,21 +193,16 @@ def _is_table_exists(table: str, with_: str, conn) -> bool:
 
     identifiers = conn.get_curr_identifiers()
 
-    if with_:
-        return table in list(store)
-    else:
-        for iden in identifiers:
-            if isinstance(iden, tuple):
-                query = "SELECT * FROM {0}{1}{2} WHERE 1=0".format(
-                    iden[0], table, iden[1]
-                )
-            else:
-                query = "SELECT * FROM {0}{1}{0} WHERE 1=0".format(iden, table)
-            try:
-                conn.execute(query)
-                return True
-            except Exception:
-                pass
+    for iden in identifiers:
+        if isinstance(iden, tuple):
+            query = "SELECT * FROM {0}{1}{2} WHERE 1=0".format(iden[0], table, iden[1])
+        else:
+            query = "SELECT * FROM {0}{1}{0} WHERE 1=0".format(iden, table)
+        try:
+            conn.execute(query)
+            return True
+        except Exception:
+            pass
 
     return False
 
@@ -305,3 +302,61 @@ def parse_sql_results_to_json(rows, columns) -> str:
     )
 
     return rows_json
+
+
+def get_all_keys():
+    """
+
+    Returns
+    -------
+    All stored snippets in the current session
+    """
+    return list(store)
+
+
+def get_key_dependents(key: str) -> list:
+    """
+    Function to find the stored snippets dependent on key
+    Parameters
+    ----------
+    key : str, name of the table
+
+    Returns
+    -------
+    list
+        List of snippets dependent on key
+
+    """
+    deps = _get_dependents_for_key(store, key)
+    return deps
+
+
+def del_saved_key(key: str) -> str:
+    """
+    Deletes a stored snippet
+    Parameters
+    ----------
+    key : str, name of the snippet to be deleted
+
+    Returns
+    -------
+    list
+        Remaining stored snippets
+    """
+    all_keys = get_all_keys()
+    if key not in all_keys:
+        raise exceptions.UsageError(f"No such saved snippet found : {key}")
+    del store[key]
+    return get_all_keys()
+
+
+def show_deprecation_warning():
+    """
+    Raises CTE deprecation warning
+    """
+    warnings.warn(
+        "CTE dependencies are now automatically inferred, "
+        "you can omit the --with arguments. Using --with will "
+        "raise an exception in the next major release so please remove it.",
+        FutureWarning,
+    )

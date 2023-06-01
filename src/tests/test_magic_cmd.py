@@ -3,8 +3,47 @@ import sys
 import pytest
 from IPython.core.error import UsageError
 from pathlib import Path
+
 from sqlalchemy import create_engine
 from sql.connection import Connection
+from sql.store import store
+
+
+VALID_COMMANDS_MESSAGE = (
+    "Valid commands are: tables, " "columns, test, profile, explore, snippets"
+)
+
+
+@pytest.fixture
+def ip_snippets(ip):
+    for key in list(store):
+        del store[key]
+    ip.run_cell("%sql sqlite://")
+    ip.run_cell(
+        """
+        %%sql --save high_price --no-execute
+SELECT *
+FROM "test_store"
+WHERE price >= 1.50
+"""
+    )
+    ip.run_cell(
+        """
+        %%sql --save high_price_a --no-execute
+SELECT *
+FROM "high_price"
+WHERE symbol == 'a'
+"""
+    )
+    ip.run_cell(
+        """
+        %%sql --save high_price_b --no-execute
+SELECT *
+FROM "high_price"
+WHERE symbol == 'b'
+"""
+    )
+    yield ip
 
 
 @pytest.mark.parametrize(
@@ -13,32 +52,27 @@ from sql.connection import Connection
         [
             "%sqlcmd",
             UsageError,
-            "Missing argument for %sqlcmd. "
-            "Valid commands are: tables, columns, test, profile, explore",
+            "Missing argument for %sqlcmd. " f"{VALID_COMMANDS_MESSAGE}",
         ],
         [
             "%sqlcmd ",
             UsageError,
-            "Missing argument for %sqlcmd. "
-            "Valid commands are: tables, columns, test, profile, explore",
+            "Missing argument for %sqlcmd. " f"{VALID_COMMANDS_MESSAGE}",
         ],
         [
             "%sqlcmd  ",
             UsageError,
-            "Missing argument for %sqlcmd. "
-            "Valid commands are: tables, columns, test, profile, explore",
+            "Missing argument for %sqlcmd. " f"{VALID_COMMANDS_MESSAGE}",
         ],
         [
             "%sqlcmd   ",
             UsageError,
-            "Missing argument for %sqlcmd. "
-            "Valid commands are: tables, columns, test, profile, explore",
+            "Missing argument for %sqlcmd. " f"{VALID_COMMANDS_MESSAGE}",
         ],
         [
             "%sqlcmd stuff",
             UsageError,
-            "%sqlcmd has no command: 'stuff'. "
-            "Valid commands are: tables, columns, test, profile, explore",
+            "%sqlcmd has no command: 'stuff'. " f"{VALID_COMMANDS_MESSAGE}",
         ],
         [
             "%sqlcmd columns",
@@ -266,3 +300,79 @@ def test_test_error(ip, cell, error_type, error_message):
 
     assert isinstance(out.error_in_exec, error_type)
     assert str(out.error_in_exec) == error_message
+
+
+def test_snippet(ip_snippets):
+    out = ip_snippets.run_cell("%sqlcmd snippets").result
+    assert "high_price, high_price_a, high_price_b" in out
+
+
+@pytest.mark.parametrize("arg", ["--delete", "-d"])
+def test_delete_saved_key(ip_snippets, arg):
+    out = ip_snippets.run_cell(f"%sqlcmd snippets {arg} high_price_a").result
+    assert "high_price_a has been deleted.\n" in out
+    stored_snippets = out[out.find("Stored snippets") + len("Stored snippets: ") :]
+    assert "high_price, high_price_b" in stored_snippets
+    assert "high_price_a" not in stored_snippets
+
+
+@pytest.mark.parametrize("arg", ["--delete-force", "-D"])
+def test_force_delete(ip_snippets, arg):
+    out = ip_snippets.run_cell(f"%sqlcmd snippets {arg} high_price").result
+    assert (
+        "high_price has been deleted.\nhigh_price_a, "
+        "high_price_b depend on high_price\n" in out
+    )
+    stored_snippets = out[out.find("Stored snippets") + len("Stored snippets: ") :]
+    assert "high_price_a, high_price_b" in stored_snippets
+    assert "high_price," not in stored_snippets
+
+
+@pytest.mark.parametrize("arg", ["--delete-force-all", "-A"])
+def test_force_delete_all(ip_snippets, arg):
+    out = ip_snippets.run_cell(f"%sqlcmd snippets {arg} high_price").result
+    assert "high_price_a, high_price_b, high_price has been deleted" in out
+    assert "There are no stored snippets" in out
+
+
+@pytest.mark.parametrize("arg", ["--delete-force-all", "-A"])
+def test_force_delete_all_child_query(ip_snippets, arg):
+    ip_snippets.run_cell(
+        """
+        %%sql --save high_price_b_child --no-execute
+SELECT *
+FROM "high_price_b"
+WHERE symbol == 'b'
+LIMIT 3
+"""
+    )
+    out = ip_snippets.run_cell(f"%sqlcmd snippets {arg} high_price_b").result
+    assert "high_price_b_child, high_price_b has been deleted" in out
+    stored_snippets = out[out.find("Stored snippets") + len("Stored snippets: ") :]
+    assert "high_price, high_price_a" in stored_snippets
+    assert "high_price_b," not in stored_snippets
+    assert "high_price_b_child" not in stored_snippets
+
+
+@pytest.mark.parametrize("arg", ["--delete", "-d"])
+def test_delete_snippet_error(ip_snippets, arg):
+    out = ip_snippets.run_cell(f"%sqlcmd snippets {arg} high_price")
+    assert isinstance(out.error_in_exec, UsageError)
+    assert (
+        str(out.error_in_exec) == "The following tables are dependent on high_price: "
+        "high_price_a, high_price_b.\nPass --delete-force to only "
+        "delete high_price.\nPass --delete-force-all to delete "
+        "high_price_a, high_price_b and high_price"
+    )
+
+
+@pytest.mark.parametrize(
+    "arg", ["--delete", "-d", "--delete-force-all", "-A", "--delete-force", "-D"]
+)
+def test_delete_invalid_snippet(arg, ip_snippets):
+    out = ip_snippets.run_cell(f"%sqlcmd snippets {arg} non_existent_snippet")
+    assert isinstance(out.error_in_exec, UsageError)
+    assert (
+        str(out.error_in_exec) == "No such saved snippet found "
+        ": non_existent_snippet"
+    )
