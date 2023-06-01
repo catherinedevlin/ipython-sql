@@ -1,5 +1,6 @@
 import os
 from difflib import get_close_matches
+import atexit
 
 import sqlalchemy
 from sqlalchemy.engine import Engine
@@ -476,11 +477,14 @@ class Connection:
             conn.session.close()
 
     @classmethod
-    def close_all(cls):
+    def close_all(cls, verbose=False):
         """Close all active connections"""
         connections = Connection.connections.copy()
         for key, conn in connections.items():
             conn.close(key)
+
+            if verbose:
+                print(f"Closing {key}")
 
         cls.connections = {}
 
@@ -643,6 +647,9 @@ class Connection:
         """
         query = self._prepare_query(query, with_)
         return self.session.execute(query)
+
+
+atexit.register(Connection.close_all, verbose=True)
 
 
 class CustomSession(sqlalchemy.engine.base.Connection):
