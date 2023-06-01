@@ -62,8 +62,9 @@ nosetests.xml
 
 .venv
 
-# Do not include test output
-/result_images/
+
+# Do not include test output of matplotlib
+result_images
 
 # Ignore Github codespace build artifact
 oryx-build-commands.txt

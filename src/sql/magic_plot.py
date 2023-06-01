@@ -17,6 +17,8 @@ from sql.command import SQLPlotCommand
 from sql import exceptions
 from sql import util
 
+SUPPORTED_PLOTS = ["histogram", "boxplot", "bar", "pie"]
+
 
 @magics_class
 class SqlPlotMagic(Magics, Configurable):
@@ -51,6 +53,12 @@ class SqlPlotMagic(Magics, Configurable):
         action="append",
         dest="with_",
     )
+    @argument(
+        "-S",
+        "--show-numbers",
+        action="store_true",
+        help="Show number of observations",
+    )
     @modify_exceptions
     def execute(self, line="", cell="", local_ns=None):
         """
@@ -65,8 +73,10 @@ class SqlPlotMagic(Magics, Configurable):
             column = cmd.args.column
 
         if not cmd.args.line:
+            plot_str = util.pretty_print(SUPPORTED_PLOTS, last_delimiter="or")
             raise exceptions.UsageError(
-                "Missing the first argument, must be: 'histogram' or 'boxplot'. "
+                "Missing the first argument, must be any of: "
+                f"{plot_str}\n"
                 "Example: %sqlplot histogram"
             )
 
@@ -92,7 +102,29 @@ class SqlPlotMagic(Magics, Configurable):
                 with_=cmd.args.with_,
                 conn=None,
             )
+        elif cmd.args.line[0] in {"bar"}:
+            util.is_table_exists(table, with_=cmd.args.with_)
+
+            return plot.bar(
+                table=table,
+                column=column,
+                with_=cmd.args.with_,
+                orient=cmd.args.orient,
+                show_num=cmd.args.show_numbers,
+                conn=None,
+            )
+        elif cmd.args.line[0] in {"pie"}:
+            util.is_table_exists(table, with_=cmd.args.with_)
+
+            return plot.pie(
+                table=table,
+                column=column,
+                with_=cmd.args.with_,
+                show_num=cmd.args.show_numbers,
+                conn=None,
+            )
         else:
+            plot_str = util.pretty_print(SUPPORTED_PLOTS, last_delimiter="or")
             raise exceptions.UsageError(
-                f"Unknown plot {cmd.args.line[0]!r}. Must be: 'histogram' or 'boxplot'"
+                f"Unknown plot {cmd.args.line[0]!r}. Must be any of: " f"{plot_str}"
             )

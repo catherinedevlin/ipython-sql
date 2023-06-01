@@ -160,3 +160,92 @@ ax = %sqlplot histogram --table no_nulls --column body_mass_g --with no_nulls
 ax.set_title("Body mass (grams)")
 _ = ax.grid()
 ```
+## `%sqlplot bar`
+
+```{versionadded} 0.7.6
+```
+
+Shortcut: `%sqlplot bar`
+
+`-t`/`--table` Table to use (if using DuckDB: path to the file to query)
+
+`-c`/`--column` Column to plot.
+
+`-o`/`--orient` Barplot orientation (`h` for horizontal, `v` for vertical)
+
+`-w`/`--with` Use a previously saved query as input data
+
+`-S`/`--show-numbers` Show numbers on top of the bar
+
+Bar plot does not support NULL values, so we automatically remove them, when plotting.
+
+```{code-cell} ipython3
+%sqlplot bar --table penguins.csv --column species 
+```
+
+You can additionally pass two columns to bar plot i.e. `x` and `height` columns.
+
+```{code-cell} ipython3
+%%sql --save add_col --no-execute
+SELECT species, count(species) as cnt
+FROM penguins.csv
+group by species
+```
+
+```{code-cell} ipython3
+%sqlplot bar --table add_col --column species cnt --with add_col
+```
+
+You can also pass the orientation using the `orient` argument.
+
+```{code-cell} ipython3
+%sqlplot bar --table add_col --column species cnt --with add_col --orient h
+``` 
+
+You can also show the number on top of the bar using the `S`/`show-numbers` argument.
+
+```{code-cell} ipython3
+%sqlplot bar --table penguins.csv --column species -S
+```
+
+## `%sqlplot pie`
+
+```{versionadded} 0.7.6
+```
+
+Shortcut: `%sqlplot pie`
+
+`-t`/`--table` Table to use (if using DuckDB: path to the file to query)
+
+`-c`/`--column` Column to plot
+
+`-w`/`--with` Use a previously saved query as input data
+
+`-S`/`--show-numbers` Show the percentage on top of the pie
+
+Pie chart does not support NULL values, so we automatically remove them, when plotting the pie chart.
+
+```{code-cell} ipython3
+%sqlplot pie --table penguins.csv --column species
+```
+
+You can additionally pass two columns to bar plot i.e. `labels` and `x` columns.
+
+```{code-cell} ipython3
+%%sql --save add_col --no-execute
+SELECT species, count(species) as cnt
+FROM penguins.csv
+group by species
+```
+
+```{code-cell} ipython3
+%sqlplot pie --table add_col --column species cnt --with add_col
+```
+Here, `species` is the `labels` column and `cnt` is the `x` column.
+
+
+You can also show the percentage on top of the pie using the `S`/`show-numbers` argument.
+
+```{code-cell} ipython3
+%sqlplot pie --table penguins.csv --column species -S
+```
