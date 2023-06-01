@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.7.9dev
+
 ## 0.7.8 (2023-06-01)
 
 * [Feature] Add `%sqlplot bar` and `%sqlplot pie`
