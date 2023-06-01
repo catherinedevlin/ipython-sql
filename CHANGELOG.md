@@ -6,7 +6,7 @@
 
 ## 0.7.8 (2023-06-01)
 
-* [Feature] Add `%sqlplot bar` and `%sqlplot pie`
+* [Feature] Add `%sqlplot bar` and `%sqlplot pie` (#508)
 
 ## 0.7.7 (2023-05-31)
 
