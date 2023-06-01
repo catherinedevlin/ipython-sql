@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.7.8dev
+## 0.7.8 (2023-06-01)
 
 * [Feature] Add `%sqlplot bar` and `%sqlplot pie`
 
@@ -24,7 +24,9 @@
 * [Fix] Fix error when checking if custom connection was PEP 249 Compliant ([#517](https://github.com/ploomber/jupysql/issues/517))
 
 * [Doc] documenting how to manage connections with `Connection` object ([#282](https://github.com/ploomber/jupysql/issues/282))
+
 * [Feature] Github Codespace (Devcontainer) support for development (by [@jorisroovers](https://github.com/jorisroovers)) ([#484](https://github.com/ploomber/jupysql/issues/484))
+
 * [Feature] Added bar plot and pie charts to %sqlplot ([#417](https://github.com/ploomber/jupysql/issues/417))
 
 ## 0.7.5 (2023-05-24)
