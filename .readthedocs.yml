@@ -11,6 +11,8 @@ build:
       - aws configure set aws_access_key_id ${aws_access_key_id}
       - aws configure set aws_secret_access_key ${aws_secret_access_key}
       - aws s3 cp s3://jupysql-build-docs/${READTHEDOCS_VERSION} _readthedocs/.jupyter_cache/ --recursive
+      - 'mkdir -p $HOME/.ploomber/stats/'
+      - 'echo "version_check_enabled: false" >> $HOME/.ploomber/stats/config.yaml'
     # upload to S3
     post_build:
       - conda env export --no-build > environment.lock.yml
