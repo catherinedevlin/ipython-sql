@@ -155,10 +155,9 @@ class TableWidget:
         Register communication between the frontend and the kernel.
         """
 
-        if utils.is_jupyterlab_session():
-            check_installed(
-                ["jupysql_plugin"], "jupysql-plugin", pip_names=["jupysql-plugin"]
-            )
+        check_installed(
+            ["jupysql_plugin"], "jupysql-plugin", pip_names=["jupysql-plugin"]
+        )
 
         def comm_handler(comm, open_msg):
             """

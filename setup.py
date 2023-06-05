@@ -28,7 +28,6 @@ install_requires = [
     "sqlglot>=11.3.7",
     "ploomber-core>=0.2.7",
     'importlib-metadata;python_version<"3.8"',
-    "psutil",
 ]
 
 DEV = [
@@ -50,6 +49,7 @@ DEV = [
     "ipywidgets",
     # for running tests for %sqlcmd explore --table
     "js2py",
+    "jupysql-plugin",
 ]
 
 # dependencies for running integration tests

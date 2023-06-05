@@ -1,6 +1,5 @@
 import re
 from jinja2 import Template
-import psutil
 
 
 def load_file(file_path) -> str:
@@ -91,33 +90,3 @@ def extract_function_by_name(source, function_name) -> str:
         return match.group(0)
     else:
         return None
-
-
-def is_jupyterlab_session() -> bool:
-    """Check whether we are in a Jupyter-Lab session.
-    Notes
-    -----
-    This is a heuristic based process inspection based on the current Jupyter lab
-    (major 3) version. So it could fail in the future.
-    It will also report false positive in case a classic notebook frontend is started
-    via Jupyter lab.
-
-    reference:
-    https://discourse.jupyter.org/t/find-out-if-my-code-runs-inside-a-notebook-or-jupyter-lab/6935
-    """
-
-    # inspect parent process for any signs of being a jupyter lab server
-
-    parent = psutil.Process().parent()
-    if parent.name() == "jupyter-lab":
-        return True
-    keys = (
-        "JUPYTERHUB_API_KEY",
-        "JPY_API_TOKEN",
-        "JUPYTERHUB_API_TOKEN",
-    )
-    env = parent.environ()
-    if any(k in env for k in keys):
-        return True
-
-    return False
