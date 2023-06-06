@@ -5,6 +5,7 @@
 * [Fix] `psutil` is no longer a dependency for JupySQL ([#541](https://github.com/ploomber/jupysql/issues/541))
 * [Feature] Automated dependency inference when creating CTEs. `--with` is now deprecated and will display a warning. (#166)
 * [Feature] Close all connections when Python shuts down (#563)
+* [Doc] Added more details to the SQL parametrization user guide. (#288)
 
 ## 0.7.8 (2023-06-01)
 
