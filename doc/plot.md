@@ -149,3 +149,19 @@ ax.grid()
 ax.set_title("Trip distance from trips < 6.3")
 _ = ax.set_xlabel("Trip distance")
 ```
+
+## Bar plot
+
+To create a bar plot, call `%sqlplot bar`, and pass the name of the table and the column you want to plot. We will use the snippet created in the [Boxplot](#boxplot) example and JupySQL will plot for that subset of data. 
+
+```{code-cell} ipython3
+%sqlplot bar --table short_trips --column payment_type
+```
+
+## Pie plot
+
+To create a pie plot, call `%sqlplot pie`, and pass the name of the table and the column you want to plot. We will reuse the code snippet from the previous example on [Boxplot](#boxplot), and JupySQL will generate a plot for that specific subset of data.
+
+```{code-cell} ipython3
+%sqlplot pie --table short_trips --column payment_type
+```
