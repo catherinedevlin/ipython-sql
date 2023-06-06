@@ -18,6 +18,7 @@ parts:
     - file: user-guide/data-profiling
     - file: user-guide/ggplot
     - file: user-guide/table_explorer
+    - file: user-guide/py-scripts
     - file: user-guide/FAQ
 
   - caption: Integrations
