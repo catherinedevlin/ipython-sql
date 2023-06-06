@@ -65,25 +65,36 @@ After the first connection, connect info can be omitted::
 %sql select count(*) from languages
 ```
 
-Connections to multiple databases can be maintained.  You can refer to
-an existing connection by username@database
+Connections to multiple databases can be maintained.  You can switch connection using --alias
+Suppose we create two database, named one and two. Then, assign alias to both connections so we can switch them by name:
 
 ```sql
-%%sql will@shakes
-select charname, speechcount from character
-where  speechcount = (select max(speechcount)
-from character);
+%sql sqlite:///one.db --alias one
+%sql sqlite:///two.db --alias two
 ```
 
-```python
-print(_)
+```sql
+%sql 
 ```
+
+It will run query in "two" database since it's the latest one we connected to.
+
+Pass the alias to make it the current connection:
+
+```sql
+%sql one
+```
+
+You can pass an alias and query in the same cell:
+
+```sql
+%sql two
+SELECT * FROM two
+```
+
+However, this isn’t supported with the line magic (e.g., `%sql one SELECT * FROM one`).
 
 +++
-
-If no connect string is supplied, ``%sql`` will provide a list of existing connections;
-however, if no connections have yet been made and the environment variable ``DATABASE_URL``
-is available, that will be used.
 
 For secure access, you may dynamically access your credentials (e.g. from your system environment or `getpass.getpass`) to avoid storing your password in the notebook itself. Use the `$` before any variable to access it in your `%sql` command.
 
@@ -98,9 +109,7 @@ connection_string = "postgresql://{user}:{password}@localhost/some_database".for
 
 +++
 
-You may use multiple SQL statements inside a single cell, but you will
-only see any query results from the last of them, so this really only
-makes sense for statements with no output
+You may use multiple SQL statements inside a single cell, but you will only see any query results from the last of them, so this really only makes sense for statements with no output
 
 +++
 
