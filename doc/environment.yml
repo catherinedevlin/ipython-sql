@@ -25,8 +25,5 @@ dependencies:
     - pytest
     # for %%sql --interact
     - ipywidgets
-    # 0.13.2 is broken currently
-    # https://github.com/pydata/pydata-sphinx-theme/issues/1274
-    - pydata-sphinx-theme<0.13.2
     # needed to upload and download from/to S3 for notebook cache
     - awscli
