@@ -24,7 +24,16 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout Master
+        uses: actions/checkout@v2
+        with:
+          ref: master
+          fetch-depth: 1000
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1000
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
@@ -38,8 +47,14 @@ jobs:
           pkgmt lint
           codespell
 
+      - name: Check Doc Modified
+        id: check_doc
+        run: |
+          python -m pkgmt.fail_if_modified -b origin/master -e doc 
+        continue-on-error: true
 
       - name: Install dependencies
+        if: steps.check_doc.outcome == 'failure'
         run: |
 
           pip install .
@@ -49,6 +64,7 @@ jobs:
           pip install sqlalchemy -U
 
       - name: Test with pytest
+        if: steps.check_doc.outcome == 'failure'
         run: |
           # ensure we're running sqlalchemy 2
           python -c "import sqlalchemy; assert int(sqlalchemy.__version__.split('.')[0]) == 2"
@@ -64,7 +80,16 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout Master
+        uses: actions/checkout@v2
+        with:
+          ref: master
+          fetch-depth: 1000
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1000
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
@@ -76,12 +101,20 @@ jobs:
           python -m pip install --upgrade pip pkgmt
           pkgmt lint
 
+      - name: Check Doc Modified
+        id: check_doc
+        run: |
+          python -m pkgmt.fail_if_modified -b origin/master -e doc
+        continue-on-error: true
+
       - name: Install dependencies
+        if: steps.check_doc.outcome == 'failure'
         run: |
           pip install "sqlalchemy<2"
           pip install ".[dev]"
 
       - name: Test with pytest
+        if: steps.check_doc.outcome == 'failure'
         run: |
           # ensure we're running sqlalchemy 1
           python -c "import sqlalchemy; assert int(sqlalchemy.__version__.split('.')[0]) == 1"
