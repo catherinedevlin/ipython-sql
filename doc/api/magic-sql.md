@@ -26,7 +26,7 @@ myst:
     Close named connection ([example](#close-connection))
 
 ``-c`` / ``--creator <creator-function>``
-    Specify creator function for new connection
+    Specify creator function for new connection ([example](#specify-creator-function))
 
 ``-s`` / ``--section <section-name>``
     Section of dsn_file to be used for generating a connection string
@@ -135,6 +135,25 @@ Or pass an alias (**added in 0.5.2**):
 ```{code-cell} ipython3
 %sql --close db-two
 ```
+
+
+## Specify creator function
+```{code-cell} ipython3
+import os
+import sqlite3
+
+# Set environment variable $DATABASE_URL
+os.environ["DATABASE_URL"] = "sqlite:///"
+
+# Define a function that returns a DBAPI connection
+def creator():
+    return sqlite3.connect("")
+```
+
+```{code-cell} ipython3
+%sql --creator creator
+```
+
 
 ## Create table
 

@@ -1,5 +1,6 @@
 import logging
 import platform
+import sqlite3
 from pathlib import Path
 import os.path
 import re
@@ -909,6 +910,29 @@ def test_close_connection_with_custom_connection_and_alias(ip, tmp_empty):
     assert "sqlite:///second.db" not in Connection.connections
     assert "first" not in Connection.connections
     assert "second" not in Connection.connections
+
+
+def test_creator_no_argument_raises(ip_empty):
+    with pytest.raises(
+        UsageError, match="argument -c/--creator: expected one argument"
+    ):
+        ip_empty.run_line_magic("sql", "--creator")
+
+
+def test_creator(monkeypatch, ip_empty):
+    monkeypatch.setenv("DATABASE_URL", "sqlite:///")
+
+    def creator():
+        return sqlite3.connect("")
+
+    ip_empty.user_global_ns["func"] = creator
+    ip_empty.run_line_magic("sql", "--creator func")
+
+    result = ip_empty.run_line_magic(
+        "sql", "SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name;"
+    )
+
+    assert isinstance(result, ResultSet)
 
 
 def test_column_names_visible(ip, tmp_empty):
