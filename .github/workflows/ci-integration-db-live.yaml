@@ -1,3 +1,8 @@
+# CI - DB Integration - Cloud is designed to run integration testing against to cloud database
+# Target database: Snowflake
+# Sqlalchemy version: 1.4 (required by snowflake-sqlalchemy)
+# Please aware that if you want to test locally, configure those environment variables: ['SF_USERNAME', 'SF_PASSWORD', 'SF_DATABASE']
+
 name: CI - DB Integration - Cloud 
 
 on:
