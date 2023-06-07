@@ -62,8 +62,14 @@ def diamonds_data(ip, tmpdir):
 
 
 @pytest.fixture
-def penguins_data(tmpdir):
+def penguins_data(ip, tmpdir):
     file_path_str = str(tmpdir.join("penguins.csv"))
+
+    ip.run_cell(
+        """
+        %sql duckdb://
+        """
+    )
 
     if not Path(file_path_str).is_file():
         urlretrieve(
@@ -72,6 +78,19 @@ def penguins_data(tmpdir):
         )
 
     yield file_path_str
+
+
+@pytest.fixture
+def nulls_data(ip, tmpdir):
+    if not Path("data_nulls.csv").is_file():
+        Path("data_nulls.csv").write_text(
+            (
+                "name,age,model\n"
+                "Dan,33,BMW\nBob,19,BMW\nSheri,15,Audi\nVin,33,\nMick,93,Audi\n"
+                "Jay,33,BMW\nSky,33,\nKay,48,BMW\nJan,86,Audi\n\nMike,,Audi"
+            )
+        )
+    ip.run_cell("%sql duckdb://")
 
 
 @pytest.fixture
@@ -406,6 +425,34 @@ def test_facet_wrap_stacked_histogram_cmap(diamonds_data):
         ggplot(diamonds_data, aes(x=["price"]))
         + geom_histogram(bins=10, fill="color", cmap="plasma")
         + facet_wrap("cut")
+    )
+
+
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["test_facet_wrap_default_with_nulls"],
+    extensions=["png"],
+    remove_text=False,
+)
+def test_facet_wrap_default_with_nulls(penguins_data):
+    (
+        ggplot(table=penguins_data, mapping=aes(x=["bill_depth_mm"]))
+        + geom_histogram(bins=10)
+        + facet_wrap("sex")
+    )
+
+
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["facet_wrap_nulls_data"],
+    extensions=["png"],
+    remove_text=False,
+)
+def test_facet_wrap_default_with_dummy(nulls_data):
+    (
+        ggplot(table="data_nulls.csv", mapping=aes(x=["age"]))
+        + geom_histogram(bins=10)
+        + facet_wrap("model")
     )
 
 

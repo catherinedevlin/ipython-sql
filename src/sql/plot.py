@@ -361,7 +361,9 @@ def histogram(
         Added plot title and axis labels. Allowing to pass lists in ``column``.
         Function returns a ``matplotlib.Axes`` object.
 
-    .. versionadded:: 0.4.4
+    .. versionchanged:: 0.7.9
+        Added support for NULL values, additional filter query with new logic.
+        Skips the rows with NULL in the column, does not raise ValueError
 
     Returns
     -------
@@ -501,7 +503,12 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
     # FIXME: we're computing all the with elements twice
     min_, max_ = _min_max(conn, table, column, with_=with_, use_backticks=use_backticks)
 
-    filter_query = f"WHERE {facet['key']} == '{facet['value']}'" if facet else ""
+    # Define all relevant filters here
+    filter_query_1 = f'"{column}" IS NOT NULL'
+
+    filter_query_2 = f"{facet['key']} == '{facet['value']}'" if facet else None
+
+    filter_query = _filter_aggregate(filter_query_1, filter_query_2)
 
     bin_size = None
 
@@ -553,9 +560,6 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
 
     bin_, height = zip(*data)
 
-    if bin_[0] is None:
-        raise ValueError("Data contains NULLs")
-
     return bin_, height, bin_size
 
 
@@ -582,7 +586,11 @@ def _histogram_stacked(
 
     cases = " ".join(cases)
 
-    filter_query = f"WHERE {facet['key']} == '{facet['value']}'" if facet else ""
+    filter_query_1 = f'"{column}" IS NOT NULL'
+
+    filter_query_2 = f"{facet['key']} == '{facet['value']}'" if facet else None
+
+    filter_query = _filter_aggregate(filter_query_1, filter_query_2)
 
     template = Template(
         """
@@ -605,6 +613,38 @@ def _histogram_stacked(
     data = conn.execute(query, with_).fetchall()
 
     return data
+
+
+@modify_exceptions
+def _filter_aggregate(*filter_queries):
+    """Return a single filter query based on multiple queries.
+
+    Parameters:
+    ----------
+    *filter_queries (str):
+    Variable length argument list of filter queries.
+    Filter query is  string with a filtering condition in SQL
+    (e.g., "age > 25").
+    (e.g., "column is NULL").
+
+    Notes
+    -----
+    .. versionadded:: 0.7.9
+
+    Returns:
+    -----
+    final_filter (str):
+    A string that represents a SQL WHERE clause
+
+    """
+    final_filter = ""
+    for idx, query in enumerate(filter_queries):
+        if query is not None:
+            if idx == 0:
+                final_filter = f"{final_filter}WHERE {query}"
+                continue
+            final_filter = f"{final_filter} AND {query}"
+    return final_filter
 
 
 @modify_exceptions

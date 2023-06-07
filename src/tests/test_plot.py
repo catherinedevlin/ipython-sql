@@ -8,6 +8,7 @@ from sql.connection import Connection
 from pathlib import Path
 import pytest
 from sqlalchemy.exc import OperationalError
+import matplotlib
 
 
 class DictOfFloats(Mapping):
@@ -112,19 +113,11 @@ def test_summary_stats_missing_file(chinook_db, ip_empty):
     assert 'No files found that match the pattern "data.csv"' in str(e)
 
 
-@pytest.mark.parametrize(
-    "cell, error_type, error_message",
-    [
-        [
-            "%sqlplot histogram --table data.csv --column age --table data.csv",
-            ValueError,
-            "Data contains NULLs",
-        ]
-    ],
-)
-# Test internal plot function e.g.
-def test_internal_histogram_exception(tmp_empty, ip, cell, error_type, error_message):
-    Path("data.csv").write_text("name,age\nDan,33\nBob,19\nSheri,")
+def test_internal_histogram_with_nulls(tmp_empty, ip):
+    # sheri, mick missing age
+    Path("data.csv").write_text(
+        "name,age\nDan,33\nBob,19\nSheri,\nVin,33\nMick,\nJay,33\nSky,33"
+    )
     ip.run_cell("%sql duckdb://")
     ip.run_cell(
         """%%sql --save test_dataset --no-execute
@@ -132,6 +125,24 @@ SELECT *
 FROM data.csv
 """
     )
-    out = ip.run_cell(cell)
-    assert isinstance(out.error_in_exec, error_type)
-    assert str(error_message).lower() in str(out.error_in_exec).lower()
+    out = ip.run_cell(
+        "%sqlplot histogram --table data.csv --column age --table data.csv"
+    )
+    assert isinstance(out.result, matplotlib.axes._axes.Axes)
+
+
+def test_internal_histogram_no_nulls(tmp_empty, ip):
+    Path("data.csv").write_text(
+        "name,age\nDan,33\nBob,19\nSheri,45\nVin,33\nMick,38\nJay,33\nSky,33"
+    )
+    ip.run_cell("%sql duckdb://")
+    ip.run_cell(
+        """%%sql --save test_dataset --no-execute
+SELECT *
+FROM data.csv
+"""
+    )
+    out = ip.run_cell(
+        "%sqlplot histogram --table data.csv --column age --table data.csv"
+    )
+    assert isinstance(out.result, matplotlib.axes._axes.Axes)

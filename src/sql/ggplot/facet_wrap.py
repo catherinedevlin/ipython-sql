@@ -21,6 +21,10 @@ class facet:
         conn = sql.connection.Connection.current
 
         values = conn.execute(query, with_).fetchall()
+        # Added to make histogram more inclusive to NULLs
+        # Filter out NULL values
+        # If value[0] is NULL we skip it
+        values = [value for value in values if value[0] is not None]
         n_plots = len(values)
         n_cols = len(values) if len(values) < 3 else 3
         n_rows = math.ceil(n_plots / n_cols)

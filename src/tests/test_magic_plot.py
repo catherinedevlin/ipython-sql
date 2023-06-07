@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from sql import util
 
 from matplotlib.testing.decorators import image_comparison, _cleanup_cm
+import matplotlib
 
 SUPPORTED_PLOTS = ["bar", "boxplot", "histogram", "pie"]
 plot_str = util.pretty_print(SUPPORTED_PLOTS, last_delimiter="or")
@@ -275,6 +276,13 @@ x
 """
         )
     ip.run_cell("%sql duckdb://")
+
+
+@_cleanup_cm()
+@image_comparison(baseline_images=["hist_null"], extensions=["png"], remove_text=True)
+def test_hist_one_col_null(load_data_one_col_null, ip):
+    out = ip.run_cell("%sqlplot histogram -t data_one_null.csv -c x --bins 2")
+    assert isinstance(out.result, matplotlib.axes._axes.Axes)
 
 
 @_cleanup_cm()
