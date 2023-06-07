@@ -380,7 +380,7 @@ function initTable() {
     </table>
 
 
-    <div>
+    <div style="padding-bottom: 20px;">
         <button onclick="prevPageClick(this)">Previous</button>
         <div
             id = "pagesButtons"
