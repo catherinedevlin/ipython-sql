@@ -57,6 +57,7 @@ parts:
     - file: howto/syntax-highlighting
     - file: howto/csv
     - file: howto/autocompletion
+    - file: howto/ggplot-interact
     - file: howto/format-sql
     - file: howto/benchmarking-time
 
