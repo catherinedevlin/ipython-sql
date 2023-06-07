@@ -20,7 +20,7 @@ myst:
 ---
 
 ```{note}
-Please view this page in preview
+Open this tutorial on Binder to try the interactive components.
 ```
 
 +++
