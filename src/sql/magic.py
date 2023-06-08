@@ -18,10 +18,12 @@ from IPython.core.magic_arguments import argument, magic_arguments, parse_argstr
 from sqlalchemy.exc import OperationalError, ProgrammingError, DatabaseError
 
 import warnings
+import shlex
 from difflib import get_close_matches
 import sql.connection
 import sql.parse
 import sql.run
+from sql.parse import _option_strings_from_parser
 from sql import display, exceptions
 from sql.store import store
 from sql.command import SQLCommand
@@ -180,6 +182,30 @@ class SqlMagic(Magics, Configurable):
                 setattr(self, other, False)
                 print(f"Disabled '{other}' since '{change['name']}' was enabled.")
 
+    def check_random_arguments(self, line="", cell=""):
+        # check only for cell magic
+        if cell != "":
+            tokens = shlex.split(line, posix=False)
+            arguments = []
+
+            # Iterate through the tokens to separate arguments and SQL code
+            # If the token starts with "--", it is an argument
+            breakLoop = False
+            for token in tokens:
+                if token.startswith("--") or token.startswith("-"):
+                    arguments.append(token)
+                    breakLoop = True
+                else:
+                    if breakLoop:
+                        break
+
+            declared_argument = _option_strings_from_parser(SqlMagic.execute.parser)
+            for check_argument in arguments:
+                if check_argument not in declared_argument:
+                    raise exceptions.UsageError(
+                        "Unrecognized argument(s): {}".format(check_argument)
+                    )
+
     @no_var_expand
     @needs_local_scope
     @line_magic("sql")
@@ -315,6 +341,9 @@ class SqlMagic(Magics, Configurable):
 
         # %%sql {line}
         # {cell}
+
+        self.check_random_arguments(line, cell)
+
         if local_ns is None:
             local_ns = {}
 
