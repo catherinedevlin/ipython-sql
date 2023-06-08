@@ -16,7 +16,8 @@ jobs:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
   
       - name: Set up Environment Vars
         id: secret-check
@@ -28,18 +29,20 @@ jobs:
           else
             echo "available=false" >> $GITHUB_OUTPUT;
           fi
+
       - name: Set up Python ${{ matrix.python-version }}
-        if: ${{ steps.secret-check.outputs.available == 'true' }}
+        if : ${{ steps.secret-check.outputs.available == 'true' }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+      
 
       - name: Install dependencies
         if: ${{ steps.secret-check.outputs.available == 'true' }}
         run:
           pip install ".[integration]"
       - name: Integration Test
-        if: ${{ steps.secret-check.outputs.available == 'true' }}
+        if: ${{ steps.secret-check.outputs.available == 'true'}}
         env:
           SF_USERNAME: ${{ secrets.SF_USERNAME }}
           SF_PASSWORD: ${{ secrets.SF_PASSWORD }}
