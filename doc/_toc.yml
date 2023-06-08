@@ -29,6 +29,7 @@ parts:
       - file: integrations/mysql
       - file: integrations/mssql
       - file: integrations/mariadb
+      - file: integrations/snowflake
       - file: integrations/clickhouse
       - file: integrations/mindsdb
       - file: integrations/postgres-connect

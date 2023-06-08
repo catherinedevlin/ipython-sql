@@ -9,6 +9,8 @@
 * [Feature] Close all connections when Python shuts down (#563)
 * [Doc] Added bar and pie examples in the plotting section (#564)
 * [Doc] Added more details to the SQL parametrization user guide. (#288)
+* [Doc] Snowflake integration guide (#384)
+* [Doc] User guide on using JupySQL in `.py` scripts (#449)
 
 ## 0.7.8 (2023-06-01)
 
