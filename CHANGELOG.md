@@ -11,6 +11,7 @@
 * [Doc] Added more details to the SQL parametrization user guide. (#288)
 * [Doc] Snowflake integration guide (#384)
 * [Doc] User guide on using JupySQL in `.py` scripts (#449)
+* [Fix] Validating arguments passed to `%%sql` (#561)
 
 ## 0.7.8 (2023-06-01)
 
