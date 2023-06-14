@@ -7,7 +7,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.5
+    jupytext_version: 1.14.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -193,8 +193,11 @@ show_legend = widgets.ToggleButton(
 
 ```{code-cell} ipython3
 def plot(b, cmap, show_legend):
-    (ggplot("diamonds", aes(x="price")) + geom_histogram(bins=b, fill="cut", cmap=cmap)
-     + facet_wrap("color", legend=show_legend))
+    (
+        ggplot("diamonds", aes(x="price"))
+        + geom_histogram(bins=b, fill="cut", cmap=cmap)
+        + facet_wrap("color", legend=show_legend)
+    )
 ```
 
 ```{code-cell} ipython3

@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.5
+    jupytext_version: 1.14.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -136,8 +136,8 @@ Or pass an alias (**added in 0.5.2**):
 %sql --close db-two
 ```
 
-
 ## Specify creator function
+
 ```{code-cell} ipython3
 import os
 import sqlite3
@@ -146,6 +146,8 @@ import sqlite3
 os.environ["DATABASE_URL"] = "sqlite:///"
 
 # Define a function that returns a DBAPI connection
+
+
 def creator():
     return sqlite3.connect("")
 ```
@@ -153,7 +155,6 @@ def creator():
 ```{code-cell} ipython3
 %sql --creator creator
 ```
-
 
 ## Create table
 

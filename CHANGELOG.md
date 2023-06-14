@@ -2,6 +2,7 @@
 
 ## 0.7.9dev
 
+* [Fix] Fixed `Set` method in `Connection` class to recognize same descriptor with different aliases  (#532)
 * [Fix] Added bottom-padding to the buttons in table explorer. Now they are not hidden by the scrollbar (#540)
 * [Feature] Modified `histogram` command to support data with NULL values (#176)
 * [Fix] `psutil` is no longer a dependency for JupySQL ([#541](https://github.com/ploomber/jupysql/issues/541))
