@@ -39,7 +39,15 @@ jobs:
       - name: Check Doc Modified
         id: check_doc_modified
         run: |
-          python -m pkgmt.fail_if_modified -b origin/master -e doc 
+          if [ "$GITHUB_EVENT_NAME" == "pull_request" ]
+          then
+            echo "Pull request, running check_doc"
+            python -m pkgmt.fail_if_modified -b origin/master -e doc 
+          else
+            echo "This is not a pull request event"
+            echo "Running all tests"
+            exit 1
+          fi
         continue-on-error: true
       
   integration-test-live:
