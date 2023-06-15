@@ -68,7 +68,7 @@ databaseConfig = {
         "alias": "mariaDBTest",
         "docker_ct": {
             "name": "mariadb",
-            "image": "mariadb",
+            "image": "mariadb:10.4.30",
             "ports": {3306: 33309},
         },
         "query": {},
@@ -381,7 +381,7 @@ def oracle(is_bypass_init=False):
 
 def main():
     print("Starting test containers...")
-    with oracle():
+    with postgres(), mysql(), mariadb(), mssql(), oracle():
         print("Press CTRL+C to exit")
         try:
             while True:
