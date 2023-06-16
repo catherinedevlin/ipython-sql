@@ -40,10 +40,19 @@ def test_print(ip):
     assert re.search(r"1\s+\|\s+foo", str(result))
 
 
-def test_plain_style(ip):
-    ip.run_line_magic("config", "SqlMagic.style = 'PLAIN_COLUMNS'")
+@pytest.mark.parametrize(
+    "style, expected",
+    [
+        ("'PLAIN_COLUMNS'", r"1\s+foo"),
+        ("'DEFAULT'", r" 1 \| foo  \|\n\|"),
+        ("'SINGLE_BORDER'", r"│\n├───┼──────┤\n│ 1 │ foo  │\n│"),
+        ("'MSWORD_FRIENDLY'", r"\n\| 1 \| foo  \|\n\|"),
+    ],
+)
+def test_styles(ip, style, expected):
+    ip.run_line_magic("config", f"SqlMagic.style = {style}")
     result = runsql(ip, "SELECT * FROM test;")
-    assert re.search(r"1\s+\|\s+foo", str(result))
+    assert re.search(expected, str(result))
 
 
 @pytest.mark.skip

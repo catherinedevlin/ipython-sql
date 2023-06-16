@@ -223,3 +223,21 @@ CREATE TABLE more_points (x, y);
 INSERT INTO more_points VALUES (0, 0);
 INSERT INTO more_points VALUES (1, 1);
 ```
+
+## `style`
+
+DEFAULT: `DEFAULT`
+
+Set the table printing style to any of prettytable's defined styles
+
+```{code-cell} ipython3
+%config SqlMagic.style = "MSWORD_FRIENDLY"
+res = %sql SELECT * FROM languages LIMIT 2
+print(res)
+```
+
+```{code-cell} ipython3
+%config SqlMagic.style = "SINGLE_BORDER"
+res = %sql SELECT * FROM languages LIMIT 2
+print(res)
+```

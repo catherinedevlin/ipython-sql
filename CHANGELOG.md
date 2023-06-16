@@ -2,6 +2,7 @@
 
 ## 0.7.9dev
 
+* [Fix] Fixed `ResultSet` class to display result table with proper style and added relevant example (#54)
 * [Fix] Fixed `Set` method in `Connection` class to recognize same descriptor with different aliases  (#532)
 * [Fix] Added bottom-padding to the buttons in table explorer. Now they are not hidden by the scrollbar (#540)
 * [Feature] Modified `histogram` command to support data with NULL values (#176)

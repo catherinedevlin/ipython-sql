@@ -113,7 +113,6 @@ class ResultSet(ColumnGuesserMixin):
         self.config = config
         self.keys = {}
         self._results = []
-
         # https://peps.python.org/pep-0249/#description
         is_dbapi_results = hasattr(sqlaproxy, "description")
 
@@ -143,10 +142,11 @@ class ResultSet(ColumnGuesserMixin):
 
                 _style = None
 
+                self.pretty = PrettyTable(self.field_names)
+
                 if isinstance(config.style, str):
                     _style = prettytable.__dict__[config.style.upper()]
-
-                self.pretty = PrettyTable(self.field_names, style=_style)
+                    self.pretty.set_style(_style)
 
     def _repr_html_(self):
         _cell_with_spaces_pattern = re.compile(r"(<td>)( {2,})")
