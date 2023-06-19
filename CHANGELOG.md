@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.7.10dev
+
 ## 0.7.9 (2023-06-19)
 
 * [Feature] Modified `histogram` command to support data with NULL values ([#176](https://github.com/ploomber/jupysql/issues/176))
