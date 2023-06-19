@@ -10,10 +10,11 @@ on:
   pull_request:
       
 jobs:
-  check_doc:
+  preliminary:
     runs-on: ubuntu-latest
     outputs:
       check_doc_modified: ${{steps.check_doc_modified.outcome}}
+      check_changelog_modified: ${{steps.check_changelog_modified.outcome}}
     steps:
       - name: Checkout Master
         uses: actions/checkout@v2
@@ -49,19 +50,35 @@ jobs:
             exit 1
           fi
         continue-on-error: true
+
+      - name: Check Changelog Modified
+        env:
+          labels_JSON: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        id: check_changelog_modified
+        run: |
+          # Check if the array contains "no-changelog"
+          if echo "$labels_JSON" | jq '. | contains(["no-changelog"])' | grep -q true; then
+            echo "PR contains no-changelog label"
+          else
+            echo "PR does not contain no-changelog label";
+            echo "Checking if changelog is modified";
+            echo "If this test fails, please add the no-changelog label to the PR or modify the changelog"
+            python -m pkgmt.fail_if_not_modified -b origin/master -i CHANGELOG.md
+          fi
+
       
   integration-test-live:
-    needs: [check_doc]
-    if: needs.check_doc.outputs.check_doc_modified == 'failure'
+    needs: [preliminary]
+    if: needs.preliminary.outputs.check_doc_modified == 'failure'
     uses: ./.github/workflows/ci-integration-db-live.yaml
     secrets: inherit
   integration-test-non-live:
-    needs: [check_doc]
-    if: needs.check_doc.outputs.check_doc_modified == 'failure'
+    needs: [preliminary]
+    if: needs.preliminary.outputs.check_doc_modified == 'failure'
     uses: ./.github/workflows/ci-integration-db.yaml
   test:
-    needs: [check_doc]
-    if: needs.check_doc.outputs.check_doc_modified == 'failure'
+    needs: [preliminary]
+    if: needs.preliminary.outputs.check_doc_modified == 'failure'
     strategy:
       matrix:
         python-version: [3.8, 3.9, '3.10', '3.11']
@@ -110,8 +127,8 @@ jobs:
          path: result_images/
 
   test-sqlalchemy-v1:
-    needs: [check_doc]
-    if: needs.check_doc.outputs.check_doc_modified == 'failure'
+    needs: [preliminary]
+    if: needs.preliminary.outputs.check_doc_modified == 'failure'
     strategy:
       matrix:
         python-version: ['3.11']

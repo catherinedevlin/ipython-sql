@@ -10,7 +10,7 @@ name: workflow-edited
 on: [pull_request_target]
 
 jobs:
- changelog-edited:
+ workflow-edited:
    runs-on: ubuntu-latest
    if: ${{ !contains(github.event.pull_request.labels.*.name, 'allow-workflow-edits') }}
 
