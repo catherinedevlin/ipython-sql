@@ -16,6 +16,8 @@
 * [Doc] Added more details to the SQL parametrization user guide. ([#288](https://github.com/ploomber/jupysql/issues/288))
 * [Doc] Snowflake integration guide ([#384](https://github.com/ploomber/jupysql/issues/384))
 * [Doc] User guide on using JupySQL in `.py` scripts ([#449](https://github.com/ploomber/jupysql/issues/449))
+* [Doc] Added `%magic?` to APIs and quickstart ([#97](https://github.com/ploomber/jupysql/issues/97))
+
 
 ## 0.7.8 (2023-06-01)
 

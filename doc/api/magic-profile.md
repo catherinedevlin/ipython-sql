@@ -21,6 +21,10 @@ myst:
 
 `%sqlcmd profile` allows you to obtain summary statistics of a table quickly. The code used here is compatible with all major databases.
 
+```{note}
+You can view the documentation and command line arguments by running `%sqlcmd?`
+```
+
 Arguments:
 
 `-t`/`--table` (Required) Get the profile of a table

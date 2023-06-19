@@ -52,6 +52,10 @@ if not Path("penguins.csv").is_file():
 SELECT * FROM "penguins.csv" LIMIT 3
 ```
 
+```{note}
+You can view the documentation and command line arguments by running `%sqlplot?`
+```
+
 ## `%sqlplot boxplot`
 
 

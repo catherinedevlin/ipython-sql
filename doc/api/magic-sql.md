@@ -19,6 +19,10 @@ myst:
 
 # `%sql`/`%%sql`
 
+```{note}
+You can view the documentation and command line arguments by running `%sql?`
+```
+
 ``-l`` / ``--connections``
     List all active connections ([example](#list-connections))
 

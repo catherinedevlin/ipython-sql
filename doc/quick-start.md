@@ -50,7 +50,7 @@ conda install jupysql -c conda-forge
 ## Setup
 
 ```{tip}
-If you are unfamiliar with Jupyter magics, you can refer to our [FAQ](user-guide/FAQ.md#what-is-a-magic)
+If you are unfamiliar with Jupyter magics, you can refer to our [FAQ](user-guide/FAQ.md#what-is-a-magic). Also, you can view the documentation and command line arguments of any magic command by running `%magic?` like `%sql?` or `%sqlplot?`.
 ```
 
 

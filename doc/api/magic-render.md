@@ -24,6 +24,10 @@ myst:
 
 `%sqlrender` helps you compose large SQL queries.
 
+```{note}
+You can view the documentation and command line arguments by running `%sqlrender?`
+```
+
 ```{code-cell} ipython3
 %load_ext sql
 ```
