@@ -1,23 +1,23 @@
 # CHANGELOG
 
-## 0.7.9dev
+## 0.7.9 (2023-06-19)
 
-* [Fix] Fixed `ResultSet` class to display result table with proper style and added relevant example (#54)
-* [Fix] Fixed `Set` method in `Connection` class to recognize same descriptor with different aliases  (#532)
-* [Fix] Added bottom-padding to the buttons in table explorer. Now they are not hidden by the scrollbar (#540)
-* [Feature] Modified `histogram` command to support data with NULL values (#176)
+* [Feature] Modified `histogram` command to support data with NULL values ([#176](https://github.com/ploomber/jupysql/issues/176))
+* [Feature] Automated dependency inference when creating CTEs. `--with` is now deprecated and will display a warning. ([#166](https://github.com/ploomber/jupysql/issues/166))
+* [Feature] Close all connections when Python shuts down ([#563](https://github.com/ploomber/jupysql/issues/563))
+* [Fix] Fixed `ResultSet` class to display result table with proper style and added relevant example ([#54](https://github.com/ploomber/jupysql/issues/54))
+* [Fix] Fixed `Set` method in `Connection` class to recognize same descriptor with different aliases  ([#532](https://github.com/ploomber/jupysql/issues/532))
+* [Fix] Added bottom-padding to the buttons in table explorer. Now they are not hidden by the scrollbar ([#540](https://github.com/ploomber/jupysql/issues/540))
 * [Fix] `psutil` is no longer a dependency for JupySQL ([#541](https://github.com/ploomber/jupysql/issues/541))
-* [Feature] Automated dependency inference when creating CTEs. `--with` is now deprecated and will display a warning. (#166)
-* [Feature] Close all connections when Python shuts down (#563)
-* [Doc] Added bar and pie examples in the plotting section (#564)
-* [Doc] Added more details to the SQL parametrization user guide. (#288)
-* [Doc] Snowflake integration guide (#384)
-* [Doc] User guide on using JupySQL in `.py` scripts (#449)
-* [Fix] Validating arguments passed to `%%sql` (#561)
+* [Fix] Validating arguments passed to `%%sql` ([#561](https://github.com/ploomber/jupysql/issues/561))
+* [Doc] Added bar and pie examples in the plotting section ([#564](https://github.com/ploomber/jupysql/issues/564))
+* [Doc] Added more details to the SQL parametrization user guide. ([#288](https://github.com/ploomber/jupysql/issues/288))
+* [Doc] Snowflake integration guide ([#384](https://github.com/ploomber/jupysql/issues/384))
+* [Doc] User guide on using JupySQL in `.py` scripts ([#449](https://github.com/ploomber/jupysql/issues/449))
 
 ## 0.7.8 (2023-06-01)
 
-* [Feature] Add `%sqlplot bar` and `%sqlplot pie` (#508)
+* [Feature] Add `%sqlplot bar` and `%sqlplot pie` ([#508](https://github.com/ploomber/jupysql/issues/508))
 
 ## 0.7.7 (2023-05-31)
 
