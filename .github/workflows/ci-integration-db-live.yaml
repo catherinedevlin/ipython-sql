@@ -51,3 +51,10 @@ jobs:
           # Run the integration test with live option
           python -c "import sqlalchemy; print('Sqlalchemy version ', sqlalchemy.__version__)"
           pytest src/tests/integration --verbose --live
+
+      - name: Upload failed images artifacts
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+            name: failed-image-artifacts-integration-live ${{ matrix.os }} ${{ matrix.python-version }}
+            path: result_images/

@@ -102,6 +102,13 @@ jobs:
           # run unit tests
           pytest --durations-min=5 --ignore=src/tests/integration
 
+      - name: Upload failed images artifacts
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+         name: failed-image-artifacts ${{ matrix.os }} ${{ matrix.python-version }}
+         path: result_images/
+
   test-sqlalchemy-v1:
     needs: [check_doc]
     if: needs.check_doc.outputs.check_doc_modified == 'failure'
@@ -138,6 +145,13 @@ jobs:
           python -c "import sqlalchemy; assert int(sqlalchemy.__version__.split('.')[0]) == 1"
           # run tests
           pytest --durations-min=5 --ignore=src/tests/integration
+
+      - name: Upload failed images artifacts sqlalchemyv1
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+         name: failed-image-artifacts-sqlalchemy ${{ matrix.os }} ${{ matrix.python-version }}
+         path: result_images/
 
   # run: pkgmt check
   check:
