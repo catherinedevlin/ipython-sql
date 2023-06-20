@@ -3,6 +3,7 @@
 ## 0.7.10dev
 
 * [Doc] Document --persist-replace in API section (#539)
+* [Fix] Fixed CI issue by updating `invalid_connection_string_duckdb` in `test_magic.py` (#631)
 
 ## 0.7.9 (2023-06-19)
 
