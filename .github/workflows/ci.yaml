@@ -43,7 +43,7 @@ jobs:
           if [ "$GITHUB_EVENT_NAME" == "pull_request" ]
           then
             echo "Pull request, running check_doc"
-            python -m pkgmt.fail_if_modified -b origin/master -e doc 
+            python -m pkgmt.fail_if_modified -b origin/master -e doc -e CHANGELOG.md
           else
             echo "This is not a pull request event"
             echo "Running all tests"
@@ -56,14 +56,19 @@ jobs:
           labels_JSON: ${{ toJSON(github.event.pull_request.labels.*.name) }}
         id: check_changelog_modified
         run: |
-          # Check if the array contains "no-changelog"
-          if echo "$labels_JSON" | jq '. | contains(["no-changelog"])' | grep -q true; then
-            echo "PR contains no-changelog label"
+          if [ "$GITHUB_EVENT_NAME" == "pull_request" ]
+          then
+            # Check if the array contains "no-changelog"
+            if echo "$labels_JSON" | jq '. | contains(["no-changelog"])' | grep -q true; then
+              echo "PR contains no-changelog label"
+            else
+              echo "PR does not contain no-changelog label";
+              echo "Checking if changelog is modified";
+              echo "If this test fails, please add the no-changelog label to the PR or modify the changelog"
+              python -m pkgmt.fail_if_not_modified -b origin/master -i CHANGELOG.md
+            fi
           else
-            echo "PR does not contain no-changelog label";
-            echo "Checking if changelog is modified";
-            echo "If this test fails, please add the no-changelog label to the PR or modify the changelog"
-            python -m pkgmt.fail_if_not_modified -b origin/master -i CHANGELOG.md
+            exit 0
           fi
 
       
