@@ -53,8 +53,14 @@ def parse(cell, config):
         if len(pieces) == 1:
             return result
         cell = pieces[1]
+    # handle no space situation around =
+    if pieces[0].endswith("=<<"):
+        result["result_var"] = pieces[0][:-3]
+        result["return_result_var"] = True
+        cell = pieces[1]
 
     pieces = cell.split(None, 2)
+    # handle flexible spacing around <<
     if len(pieces) > 1 and pieces[1] == "<<":
         if pieces[0].endswith("="):
             result["result_var"] = pieces[0][:-1]
@@ -65,6 +71,17 @@ def parse(cell, config):
         if len(pieces) == 2:
             return result
         cell = pieces[2]
+    # handle flexible spacing around =<<
+    elif len(pieces) > 1 and (
+        (pieces[1] == "=<<") or (pieces[1] == "=" and pieces[2].startswith("<<"))
+    ):
+        result["result_var"] = pieces[0]
+        result["return_result_var"] = True
+        if pieces[1] == "=<<":
+            cell = pieces[2]
+        else:
+            pieces = cell.split(None, 3)
+            cell = pieces[3]
 
     result["sql"] = cell
     return result

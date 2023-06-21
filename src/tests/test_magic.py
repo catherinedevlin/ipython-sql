@@ -120,34 +120,66 @@ def test_result_var_multiline_shovel(ip):
     assert "Shakespeare" in str(result) and "Brecht" in str(result)
 
 
-def test_return_result_var(ip, capsys):
-    # Assert that no result is returned when using regular result var syntax <<
-    result = ip.run_cell_magic(
-        "sql",
-        "",
-        """
-        sqlite://
-        x <<
-        SELECT last_name FROM author;
-        """,
-    )
+@pytest.mark.parametrize(
+    "sql_statement, expected_result",
+    [
+        (
+            """
+            sqlite://
+            x <<
+            SELECT last_name FROM author;
+            """,
+            None,
+        ),
+        (
+            """
+            sqlite://
+            x= <<
+            SELECT last_name FROM author;
+            """,
+            {"last_name": ("Shakespeare", "Brecht")},
+        ),
+        (
+            """
+            sqlite://
+            x = <<
+            SELECT last_name FROM author;
+            """,
+            {"last_name": ("Shakespeare", "Brecht")},
+        ),
+        (
+            """
+            sqlite://
+            x = <<
+            SELECT last_name FROM author;
+            """,
+            {"last_name": ("Shakespeare", "Brecht")},
+        ),
+        (
+            """
+            sqlite://
+            x =     <<
+            SELECT last_name FROM author;
+            """,
+            {"last_name": ("Shakespeare", "Brecht")},
+        ),
+        (
+            """
+            sqlite://
+            x      =     <<
+            SELECT last_name FROM author;
+            """,
+            {"last_name": ("Shakespeare", "Brecht")},
+        ),
+    ],
+)
+def test_return_result_var(ip, sql_statement, expected_result):
+    result = ip.run_cell_magic("sql", "", sql_statement)
     var = ip.user_global_ns["x"]
     assert "Shakespeare" in str(var) and "Brecht" in str(var)
-    assert result is None
-
-    # Assert that correct result is returned when using return result var syntax = <<
-    result = ip.run_cell_magic(
-        "sql",
-        "",
-        """
-        sqlite://
-        x= <<
-        SELECT last_name FROM author;
-        """,
-    )
-    var = ip.user_global_ns["x"]
-    assert "Shakespeare" in str(var) and "Brecht" in str(var)
-    assert result.dict() == {"last_name": ("Shakespeare", "Brecht")}
+    if result is not None:
+        result = result.dict()
+    assert result == expected_result
 
 
 def test_access_results_by_keys(ip):
