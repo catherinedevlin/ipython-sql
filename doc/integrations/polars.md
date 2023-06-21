@@ -1,20 +1,21 @@
 ---
 jupytext:
-  notebook_metadata_filter: myst
   cell_metadata_filter: -all
   formats: md:myst
+  notebook_metadata_filter: myst
   text_representation:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.5
+    jupytext_version: 1.14.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
 myst:
   html_meta:
-    description lang=en: Convert outputs from SQL queries to polars data frames using JupySQL
+    description lang=en: Convert outputs from SQL queries to polars data frames using
+      JupySQL
     keywords: jupyter, sql, jupysql, polars
     property=og:locale: en_US
 ---
@@ -22,6 +23,10 @@ myst:
 # Polars
 
 If you have installed [`polars`](https://www.pola.rs/), you can use a result set's `.PolarsDataFrame()` method.
+
++++
+
+## Load sample data
 
 Let's create some sample data:
 

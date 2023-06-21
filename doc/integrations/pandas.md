@@ -7,7 +7,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.5
+    jupytext_version: 1.14.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -23,6 +23,10 @@ myst:
 # Pandas
 
 If you have installed [`pandas`](http://pandas.pydata.org/), you can use a result set's `.DataFrame()` method.
+
++++
+
+## Load sample data
 
 Let's create some sample data:
 
@@ -123,4 +127,3 @@ df
 ```{code-cell} ipython3
 %sql SELECT * FROM df;
 ```
-

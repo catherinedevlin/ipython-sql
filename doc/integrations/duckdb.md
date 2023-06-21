@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.5
+    jupytext_version: 1.14.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -19,14 +19,11 @@ myst:
 
 # DuckDB
 
-
 JupySQL integrates with DuckDB so you can run SQL queries in a Jupyter notebook. Jump into any section to learn more!
 
 +++
 
-## Querying a `.csv` file
-
-### Installation and setup
+## Pre-requisites for `.csv` file
 
 ```{code-cell} ipython3
 %pip install jupysql duckdb duckdb-engine --quiet
@@ -34,7 +31,11 @@ JupySQL integrates with DuckDB so you can run SQL queries in a Jupyter notebook.
 %sql duckdb://
 ```
 
-Get a sample `.csv.` file:
+### Load sample data
+
++++
+
+Get a sample `.csv` file:
 
 ```{code-cell} ipython3
 from urllib.request import urlretrieve
@@ -46,6 +47,27 @@ _ = urlretrieve(
 ```
 
 ### Query
+
++++
+
+The data from the `.csv` file must first be registered as a table in order for the table to be listed.
+
+```{code-cell} ipython3
+%%sql
+CREATE TABLE penguins AS SELECT * FROM penguins.csv
+```
+
+The cell above allows the data to now be listed as a table from the following code:
+
+```{code-cell} ipython3
+%sqlcmd tables
+```
+
+List columns in the penguins table:
+
+```{code-cell} ipython3
+%sqlcmd columns -t penguins
+```
 
 ```{code-cell} ipython3
 %%sql
@@ -62,7 +84,7 @@ GROUP BY species
 ORDER BY count DESC
 ```
 
-### Plot
+### Plotting
 
 ```{code-cell} ipython3
 %%sql species_count <<
@@ -78,9 +100,7 @@ ax = species_count.bar()
 _ = ax.set_title("Num of penguins by species")
 ```
 
-## Querying a `.parquet` file
-
-### Installation and setup
+## Pre-requisites for `.parquet` file
 
 ```{code-cell} ipython3
 %pip install jupysql duckdb duckdb-engine pyarrow --quiet
@@ -88,7 +108,11 @@ _ = ax.set_title("Num of penguins by species")
 %sql duckdb://
 ```
 
-Download sample `.parquet` file:
+### Load sample data
+
++++
+
+Get a sample `.parquet` file:
 
 ```{code-cell} ipython3
 from urllib.request import urlretrieve
@@ -100,6 +124,27 @@ _ = urlretrieve(
 ```
 
 ### Query
+
++++
+
+Identically, to list the data from a `.parquet` file as a table, the data must first be registered as a table.
+
+```{code-cell} ipython3
+%%sql
+CREATE TABLE tripdata AS SELECT * FROM "yellow_tripdata_2021-01.parquet"
+```
+
+The data is now able to be listed as a table from the following code:
+
+```{code-cell} ipython3
+%sqlcmd tables
+```
+
+List columns in the tripdata table:
+
+```{code-cell} ipython3
+%sqlcmd columns -t tripdata
+```
 
 ```{code-cell} ipython3
 %%sql
@@ -117,7 +162,7 @@ GROUP BY passenger_count
 ORDER BY passenger_count ASC
 ```
 
-### Plot
+### Plotting
 
 ```{code-cell} ipython3
 %%sql avg_trip_distance <<
@@ -134,7 +179,7 @@ ax = avg_trip_distance.plot()
 _ = ax.set_title("Avg trip distance by num of passengers")
 ```
 
-## Reading from a SQLite database
+## Load sample data from a SQLite database
 
 If you have a large SQlite database, you can use DuckDB to perform analytical queries it with much better performance.
 
@@ -223,16 +268,12 @@ FROM 'yellow_tripdata_2021-*.parquet'
 WHERE trip_distance < 18.93
 ```
 
-### Histogram
-
 ```{code-cell} ipython3
-%sqlplot histogram --table no_outliers --column trip_distance --bins 50 --with no_outliers
+%sqlplot histogram --table no_outliers --column trip_distance --bins 50
 ```
 
-### Boxplot
-
 ```{code-cell} ipython3
-%sqlplot boxplot --table no_outliers --column trip_distance --with no_outliers
+%sqlplot boxplot --table no_outliers --column trip_distance
 ```
 
 ## Querying existing dataframes
@@ -242,7 +283,12 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 engine = create_engine("duckdb:///:memory:")
-engine.execute("register", ("df", pd.DataFrame({"x": range(100)})))
+with engine.begin() as conn:
+    pd.DataFrame({"x": range(100)}).to_sql(
+        name="df",
+        con=conn,
+        index=False,
+    )
 ```
 
 ```{code-cell} ipython3
@@ -271,50 +317,4 @@ some_engine = create_engine(
 
 ```{code-cell} ipython3
 %sql some_engine
-```
-
-## Listing Tables
-
-This section demonstrates how to list tables from both the `.csv` and `.parquet` files introduced in the previous sections.
-
-### Listing tables from a `.csv` file
-
-The data from the `.csv` file must first be registered as a table in order for the table to be listed.
-
-```{code-cell} ipython3
-%%sql
-CREATE TABLE penguins AS SELECT * FROM penguins.csv
-```
-
-The cell above allows the data to now be listed as a table from the following code:
-
-```{code-cell} ipython3
-%sqlcmd tables
-```
-
-### Listing tables from a `.parquet` file
-
-Identically, to list the data from a `.parquet` file as a table, the data must first be registered as a table.
-
-```{code-cell} ipython3
-%%sql
-CREATE TABLE tripdata AS SELECT * FROM "yellow_tripdata_2021-01.parquet"
-```
-
-The data is now able to be listed as a table from the following code:
-
-```{code-cell} ipython3
-%sqlcmd tables
-```
-
-## Listing Columns
-
-After either registering the data from the`.csv` or `.parquet` files as a table, their respective columns can now be listed with the following code:
-
-```{code-cell} ipython3
-%sqlcmd columns -t penguins
-```
-
-```{code-cell} ipython3
-%sqlcmd columns -t tripdata
 ```
