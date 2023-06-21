@@ -111,3 +111,14 @@ def tmp_empty(tmp_path):
     os.chdir(str(tmp_path))
     yield str(Path(tmp_path).resolve())
     os.chdir(old)
+
+
+@pytest.fixture
+def load_penguin(ip):
+    tmp = "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"
+    if not Path("penguins.csv").is_file():
+        urllib.request.urlretrieve(
+            tmp,
+            "penguins.csv",
+        )
+    ip.run_cell("%sql duckdb://")

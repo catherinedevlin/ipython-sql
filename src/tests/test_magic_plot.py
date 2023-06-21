@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 from sql import util
 
 from matplotlib.testing.decorators import image_comparison, _cleanup_cm
-import matplotlib
 
 SUPPORTED_PLOTS = ["bar", "boxplot", "histogram", "pie"]
 plot_str = util.pretty_print(SUPPORTED_PLOTS, last_delimiter="or")
@@ -279,13 +278,6 @@ x
 
 
 @_cleanup_cm()
-@image_comparison(baseline_images=["hist_null"], extensions=["png"], remove_text=True)
-def test_hist_one_col_null(load_data_one_col_null, ip):
-    out = ip.run_cell("%sqlplot histogram -t data_one_null.csv -c x --bins 2")
-    assert isinstance(out.result, matplotlib.axes._axes.Axes)
-
-
-@_cleanup_cm()
 @image_comparison(baseline_images=["bar_one_col"], extensions=["png"], remove_text=True)
 def test_bar_one_col(load_data_one_col, ip):
     ip.run_cell("%sqlplot bar -t data_one.csv -c x")
@@ -355,6 +347,73 @@ def test_pie_one_col_num(load_data_one_col, ip):
 @image_comparison(baseline_images=["pie_two_col"], extensions=["png"], remove_text=True)
 def test_pie_two_col(load_data_two_col, ip):
     ip.run_cell("%sqlplot pie -t data_two.csv -c x y")
+
+
+@_cleanup_cm()
+@image_comparison(baseline_images=["boxplot"], extensions=["png"], remove_text=True)
+def test_boxplot(load_penguin, ip):
+    ip.run_cell("%sqlplot boxplot --table penguins.csv --column body_mass_g")
+
+
+@_cleanup_cm()
+@image_comparison(baseline_images=["boxplot_h"], extensions=["png"], remove_text=True)
+def test_boxplot_h(load_penguin, ip):
+    ip.run_cell("%sqlplot boxplot --table penguins.csv --column body_mass_g --orient h")
+
+
+@_cleanup_cm()
+@image_comparison(baseline_images=["boxplot_two"], extensions=["png"], remove_text=True)
+def test_boxplot_two_col(load_penguin, ip):
+    ip.run_cell(
+        "%sqlplot boxplot --table penguins.csv --column bill_length_mm "
+        "bill_depth_mm flipper_length_mm"
+    )
+
+
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["boxplot_null"], extensions=["png"], remove_text=True
+)
+def test_boxplot_null(load_penguin, ip):
+    ip.run_cell("%sqlplot boxplot --table penguins.csv --column bill_length_mm ")
+
+
+@_cleanup_cm()
+@image_comparison(baseline_images=["hist"], extensions=["png"], remove_text=True)
+def test_hist(load_penguin, ip):
+    ip.run_cell("%sqlplot histogram --table penguins.csv --column body_mass_g")
+
+
+@_cleanup_cm()
+@image_comparison(baseline_images=["hist_bin"], extensions=["png"], remove_text=True)
+def test_hist_bin(load_penguin, ip):
+    ip.run_cell(
+        "%sqlplot histogram --table penguins.csv --column body_mass_g --bins 300"
+    )
+
+
+@_cleanup_cm()
+@image_comparison(baseline_images=["hist_two"], extensions=["png"], remove_text=True)
+def test_hist_two(load_penguin, ip):
+    ip.run_cell(
+        "%sqlplot histogram --table penguins.csv --column bill_length_mm bill_depth_mm"
+    )
+
+
+@_cleanup_cm()
+@image_comparison(baseline_images=["hist_null"], extensions=["png"], remove_text=True)
+def test_hist_null(load_penguin, ip):
+    ip.run_cell("%sqlplot histogram --table penguins.csv --column bill_length_mm ")
+
+
+@_cleanup_cm()
+@image_comparison(baseline_images=["hist_custom"], extensions=["png"], remove_text=True)
+def test_hist_cust(load_penguin, ip):
+    ax = ip.run_cell(
+        "%sqlplot histogram --table penguins.csv --column bill_length_mm "
+    ).result
+    ax.set_title("Custom Title")
+    _ = ax.grid(True)
 
 
 def test_sqlplot_deprecation_warning(ip_snippets, capsys):
