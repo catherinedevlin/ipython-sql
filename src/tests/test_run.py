@@ -74,6 +74,10 @@ def mock_resultset():
         def PolarsDataFrame(cls):
             return polars.DataFrame()
 
+        @classmethod
+        def fetch_results(self, fetch_all=False):
+            pass
+
     return ResultSet
 
 

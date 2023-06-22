@@ -113,40 +113,13 @@ class ResultSet(ColumnGuesserMixin):
         self.config = config
         self.keys = {}
         self._results = []
+        self.truncated = False
+        self.sqlaproxy = sqlaproxy
+
         # https://peps.python.org/pep-0249/#description
-        is_dbapi_results = hasattr(sqlaproxy, "description")
+        self.is_dbapi_results = hasattr(sqlaproxy, "description")
 
         self.pretty = None
-
-        if is_dbapi_results:
-            should_try_fetch_results = True
-        else:
-            should_try_fetch_results = sqlaproxy.returns_rows
-
-        if should_try_fetch_results:
-            # sql alchemy results
-            if not is_dbapi_results:
-                self.keys = sqlaproxy.keys()
-            elif isinstance(sqlaproxy.description, Iterable):
-                self.keys = [i[0] for i in sqlaproxy.description]
-            else:
-                self.keys = []
-
-            if len(self.keys) > 0:
-                if isinstance(config.autolimit, int) and config.autolimit > 0:
-                    self._results = sqlaproxy.fetchmany(size=config.autolimit)
-                else:
-                    self._results = sqlaproxy.fetchall()
-
-                self.field_names = unduplicate_field_names(self.keys)
-
-                _style = None
-
-                self.pretty = PrettyTable(self.field_names)
-
-                if isinstance(config.style, str):
-                    _style = prettytable.__dict__[config.style.upper()]
-                    self.pretty.set_style(_style)
 
     def _repr_html_(self):
         _cell_with_spaces_pattern = re.compile(r"(<td>)( {2,})")
@@ -156,17 +129,17 @@ class ResultSet(ColumnGuesserMixin):
             # to create clickable links
             result = html.unescape(result)
             result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
-            if len(self) > self.pretty.row_count:
+            if self.truncated:
                 HTML = (
                     '%s\n<span style="font-style:italic;text-align:center;">'
-                    "%d rows, truncated to displaylimit of %d</span>"
+                    "Truncated to displaylimit of %d</span>"
                     "<br>"
                     '<span style="font-style:italic;text-align:center;">'
                     "If you want to see more, please visit "
                     '<a href="https://jupysql.ploomber.io/en/latest/api/configuration.html#displaylimit">displaylimit</a>'  # noqa: E501
                     " configuration</span>"
                 )
-                result = HTML % (result, len(self), self.pretty.row_count)
+                result = HTML % (result, self.pretty.row_count)
             return result
         else:
             return None
@@ -175,7 +148,9 @@ class ResultSet(ColumnGuesserMixin):
         return len(self._results)
 
     def __iter__(self):
-        for result in self._results:
+        results = self._fetch_query_results(fetch_all=True)
+
+        for result in results:
             yield result
 
     def __str__(self, *arg, **kwarg):
@@ -363,6 +338,105 @@ class ResultSet(ColumnGuesserMixin):
             return CsvResultDescriptor(filename)
         else:
             return outfile.getvalue()
+
+    def fetch_results(self, fetch_all=False):
+        """
+        Returns a limited representation of the query results.
+
+        Parameters
+        ----------
+        fetch_all : bool default False
+            Return all query rows
+        """
+        is_dbapi_results = self.is_dbapi_results
+        sqlaproxy = self.sqlaproxy
+        config = self.config
+
+        if is_dbapi_results:
+            should_try_fetch_results = True
+        else:
+            should_try_fetch_results = sqlaproxy.returns_rows
+
+        if should_try_fetch_results:
+            # sql alchemy results
+            if not is_dbapi_results:
+                self.keys = sqlaproxy.keys()
+            elif isinstance(sqlaproxy.description, Iterable):
+                self.keys = [i[0] for i in sqlaproxy.description]
+            else:
+                self.keys = []
+
+            if len(self.keys) > 0:
+                self._results = self._fetch_query_results(fetch_all=fetch_all)
+
+                self.field_names = unduplicate_field_names(self.keys)
+
+                _style = None
+
+                self.pretty = PrettyTable(self.field_names)
+
+                if isinstance(config.style, str):
+                    _style = prettytable.__dict__[config.style.upper()]
+                    self.pretty.set_style(_style)
+
+        return self
+
+    def _fetch_query_results(self, fetch_all=False):
+        """
+        Returns rows of a query result as a list of tuples.
+
+        Parameters
+        ----------
+        fetch_all : bool default False
+            Return all query rows
+        """
+        sqlaproxy = self.sqlaproxy
+        config = self.config
+        _should_try_lazy_fetch = hasattr(sqlaproxy, "_soft_closed")
+
+        _should_fetch_all = (
+            (config.displaylimit == 0 or not config.displaylimit)
+            or fetch_all
+            or not _should_try_lazy_fetch
+        )
+
+        is_autolimit = isinstance(config.autolimit, int) and config.autolimit > 0
+        is_connection_closed = (
+            sqlaproxy._soft_closed if _should_try_lazy_fetch else False
+        )
+
+        should_return_results = is_connection_closed or (
+            len(self._results) > 0 and is_autolimit
+        )
+
+        if should_return_results:
+            # this means we already loaded all
+            # the results to self._results or we use
+            # autolimit and shouldn't fetch more
+            results = self._results
+        else:
+            if is_autolimit:
+                results = sqlaproxy.fetchmany(size=config.autolimit)
+            else:
+                if _should_fetch_all:
+                    all_results = sqlaproxy.fetchall()
+                    results = self._results + all_results
+                    self._results = results
+                else:
+                    results = sqlaproxy.fetchmany(size=config.displaylimit)
+
+                if _should_try_lazy_fetch:
+                    # Try to fetch an extra row to find out
+                    # if there are more results to fetch
+                    row = sqlaproxy.fetchone()
+                    if row is not None:
+                        results += [row]
+
+        # Check if we have more rows to show
+        if config.displaylimit > 0:
+            self.truncated = len(results) > config.displaylimit
+
+        return results
 
 
 def display_affected_rowcount(rowcount):
@@ -557,6 +631,9 @@ def run(conn, sql, config):
         return df
     else:
         resultset = ResultSet(result, config)
+
+        # lazy load
+        resultset.fetch_results()
         return select_df_type(resultset, config)
 
 

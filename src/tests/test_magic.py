@@ -556,7 +556,7 @@ def test_displaylimit_default(ip):
     ip.run_cell("%sql INSERT INTO number_table VALUES (4, 3)")
 
     out = runsql(ip, "SELECT * FROM number_table;")
-    assert "truncated to displaylimit of 10" in out._repr_html_()
+    assert "Truncated to displaylimit of 10" in out._repr_html_()
 
 
 def test_displaylimit(ip):
@@ -577,7 +577,7 @@ def test_displaylimit_enabled_truncated_length(ip, config_value, expected_length
 
     ip.run_cell(f"%config SqlMagic.displaylimit = {config_value}")
     out = runsql(ip, "SELECT * FROM number_table;")
-    assert f"truncated to displaylimit of {expected_length}" in out._repr_html_()
+    assert f"Truncated to displaylimit of {expected_length}" in out._repr_html_()
 
 
 @pytest.mark.parametrize("config_value", [(None), (0)])
@@ -591,7 +591,7 @@ def test_displaylimit_enabled_no_limit(
 
     ip.run_cell(f"%config SqlMagic.displaylimit = {config_value}")
     out = runsql(ip, "SELECT * FROM number_table;")
-    assert "truncated to displaylimit of " not in out._repr_html_()
+    assert "Truncated to displaylimit of " not in out._repr_html_()
 
 
 @pytest.mark.parametrize(
@@ -645,10 +645,7 @@ def test_displaylimit_with_conditional_clause(
         out = runsql(ip, query_clause)
 
     if expected_truncated_length:
-        assert (
-            f"{expected_truncated_length} rows, truncated to displaylimit of 10"
-            in out._repr_html_()
-        )
+        assert "Truncated to displaylimit of 10" in out._repr_html_()
 
 
 def test_column_local_vars(ip):

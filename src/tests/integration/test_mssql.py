@@ -30,6 +30,9 @@ def test_cte(ip_with_MSSQL, test_table_name_dict):
 
 def test_create_table_with_indexed_df(ip_with_MSSQL, test_table_name_dict):
     # MSSQL gives error if DB doesn't exist
+
+    ip_with_MSSQL.run_cell("%config SqlMagic.displaylimit = 0")
+
     try:
         ip_with_MSSQL.run_cell(
             f"%sql DROP TABLE {test_table_name_dict['new_table_from_df']}"

@@ -84,6 +84,8 @@ def test_create_table_with_indexed_df(
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
     # Clean up
 
+    ip_with_dynamic_db.run_cell("%config SqlMagic.displaylimit = 0")
+
     ip_with_dynamic_db.run_cell(
         f"%sql DROP TABLE {test_table_name_dict['new_table_from_df']}"
     )
