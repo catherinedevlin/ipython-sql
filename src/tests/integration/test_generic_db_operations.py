@@ -392,18 +392,54 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
     """
     )
 
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        ("ip_with_postgreSQL"),
+        ("ip_with_mySQL"),
+        ("ip_with_mariaDB"),
+        ("ip_with_SQLite"),
+        ("ip_with_duckDB"),
+        ("ip_with_MSSQL"),
+        pytest.param(
+            "ip_with_Snowflake",
+            marks=pytest.mark.xfail(
+                reason="Something wrong with test_sql_cmd_magic_dos in snowflake"
+            ),
+        ),
+        ("ip_with_oracle"),
+    ],
+)
+def test_profile_data_mismatch(ip_with_dynamic_db, request, capsys):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+
     ip_with_dynamic_db.run_cell(
-        "%sqlcmd test --table test_numbers --column value --greater-or-equal 3"
+        """
+        %%sql sqlite://
+        CREATE TABLE people (name varchar(50),age varchar(50),number int,
+            country varchar(50),gender_1 varchar(50), gender_2 varchar(50));
+        INSERT INTO people VALUES ('joe', '48', 82, 'usa', '0', 'male');
+        INSERT INTO people VALUES ('paula', '50', 93, 'uk', '1', 'female');
+        """
     )
 
-    _out = capsys.readouterr()
+    out = ip_with_dynamic_db.run_cell("%sqlcmd profile -t people").result
 
-    assert "greater_or_equal" in _out.out
-    assert "0" in _out.out
+    stats_table_html = out._table_html
+
+    assert "td:nth-child(3)" in stats_table_html
+    assert "td:nth-child(6)" in stats_table_html
+    assert "td:nth-child(7)" not in stats_table_html
+    assert "td:nth-child(4)" not in stats_table_html
+    assert (
+        "Columns <code>age</code><code>gender_1</code> have a datatype mismatch"
+        in stats_table_html
+    )
 
 
 @pytest.mark.parametrize(
-    "ip_with_dynamic_db, table, table_columns, expected",
+    "ip_with_dynamic_db, table, table_columns, expected, message",
     [
         (
             "ip_with_postgreSQL",
@@ -422,6 +458,7 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
                 "50%": [22.0, math.nan],
                 "75%": [33.0, math.nan],
             },
+            None,
         ),
         pytest.param(
             "ip_with_mySQL",
@@ -436,6 +473,7 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
                 "freq": [15],
                 "top": ["Kevin Kelly"],
             },
+            "Following statistics are not available in",
             marks=pytest.mark.xfail(
                 reason="Need to get column names from table with a different query"
             ),
@@ -453,6 +491,7 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
                 "freq": [15],
                 "top": ["Kevin Kelly"],
             },
+            "Following statistics are not available in",
             marks=pytest.mark.xfail(
                 reason="Need to get column names from table with a different query"
             ),
@@ -470,6 +509,7 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
                 "freq": [15],
                 "top": ["Kevin Kelly"],
             },
+            "Following statistics are not available in",
         ),
         (
             "ip_with_duckDB",
@@ -488,18 +528,21 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
                 "50%": [22.0, math.nan],
                 "75%": [33.0, math.nan],
             },
+            None,
         ),
         (
             "ip_with_MSSQL",
             "taxi",
             ["taxi_driver_name"],
             {"unique": [3], "min": ["Eric Ken"], "max": ["Kevin Kelly"], "count": [45]},
+            "Following statistics are not available in",
         ),
         pytest.param(
             "ip_with_Snowflake",
             "taxi",
             ["taxi_driver_name"],
             {},
+            None,
             marks=pytest.mark.xfail(
                 reason="Something wrong with test_profile_query in snowflake"
             ),
@@ -509,6 +552,7 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
             "taxi",
             ["taxi_driver_name"],
             {},
+            None,
             marks=pytest.mark.xfail(
                 reason="Something wrong with test_profile_query in snowflake"
             ),
@@ -516,7 +560,13 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
     ],
 )
 def test_profile_query(
-    request, ip_with_dynamic_db, table, table_columns, expected, test_table_name_dict
+    request,
+    ip_with_dynamic_db,
+    table,
+    table_columns,
+    expected,
+    test_table_name_dict,
+    message,
 ):
     pytest.skip("Skip on unclosed session issue")
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
@@ -528,7 +578,7 @@ def test_profile_query(
     ).result
 
     stats_table = out._table
-
+    stats_table_html = out._table_html
     assert len(stats_table.rows) == len(expected)
 
     for row in stats_table:
@@ -541,6 +591,9 @@ def test_profile_query(
 
             assert criteria in expected
             assert cell_value == str(expected[criteria][i])
+
+    if message:
+        assert message in stats_table_html
 
 
 @pytest.mark.parametrize(
