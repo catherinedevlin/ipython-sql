@@ -4,25 +4,19 @@ import argparse
 from IPython.utils.process import arg_split
 from IPython.core.magic import Magics, line_magic, magics_class
 from IPython.core.magic_arguments import argument, magic_arguments
-from sqlglot import select, condition
-from sqlalchemy import text
 from sql import util
-
-from prettytable import PrettyTable
+from sql.cmd.tables import tables
+from sql.cmd.columns import columns
+from sql.cmd.test import test
+from sql.cmd.profile import profile
+from sql.cmd.explore import explore
+from sql.cmd.snippets import snippets
 
 try:
     from traitlets.config.configurable import Configurable
 except ModuleNotFoundError:
     from IPython.config.configurable import Configurable
-
-import sql.connection
-from sql import inspect
-import sql.run
-from sql.util import sanitize_identifier
 from sql import exceptions
-
-from sql.widgets import TableWidget
-from IPython.display import display
 
 
 class CmdParser(argparse.ArgumentParser):
@@ -32,10 +26,6 @@ class CmdParser(argparse.ArgumentParser):
 
     def error(self, message):
         raise exceptions.UsageError(message)
-
-
-# Added here due to circular dependencies (#545)
-from sql.sqlcmd import sqlcmd_snippets  # noqa
 
 
 @magics_class
@@ -90,218 +80,16 @@ class SqlCmdMagic(Magics, Configurable):
         """
         Command
         """
-        if cmd_name == "tables":
-            parser = CmdParser()
 
-            parser.add_argument(
-                "-s", "--schema", type=str, help="Schema name", required=False
-            )
+        router = {
+            "tables": tables,
+            "columns": columns,
+            "test": test,
+            "profile": profile,
+            "explore": explore,
+            "snippets": snippets,
+        }
 
-            args = parser.parse_args(others)
-
-            return inspect.get_table_names(schema=args.schema)
-        elif cmd_name == "columns":
-            parser = CmdParser()
-
-            parser.add_argument(
-                "-t", "--table", type=str, help="Table name", required=True
-            )
-            parser.add_argument(
-                "-s", "--schema", type=str, help="Schema name", required=False
-            )
-
-            args = parser.parse_args(others)
-            return inspect.get_columns(
-                name=sanitize_identifier(args.table), schema=args.schema
-            )
-        elif cmd_name == "test":
-            parser = CmdParser()
-
-            parser.add_argument(
-                "-t", "--table", type=str, help="Table name", required=True
-            )
-            parser.add_argument(
-                "-c", "--column", type=str, help="Column name", required=False
-            )
-            parser.add_argument(
-                "-g",
-                "--greater",
-                type=str,
-                help="Greater than a certain number.",
-                required=False,
-            )
-            parser.add_argument(
-                "-goe",
-                "--greater-or-equal",
-                type=str,
-                help="Greater or equal than a certain number.",
-                required=False,
-            )
-            parser.add_argument(
-                "-l",
-                "--less-than",
-                type=str,
-                help="Less than a certain number.",
-                required=False,
-            )
-            parser.add_argument(
-                "-loe",
-                "--less-than-or-equal",
-                type=str,
-                help="Less than or equal to a certain number.",
-                required=False,
-            )
-            parser.add_argument(
-                "-nn",
-                "--no-nulls",
-                help="Returns rows in specified column that are not null.",
-                action="store_true",
-            )
-
-            args = parser.parse_args(others)
-
-            COMPARATOR_ARGS = [
-                args.greater,
-                args.greater_or_equal,
-                args.less_than,
-                args.less_than_or_equal,
-            ]
-
-            if args.table and not any(COMPARATOR_ARGS):
-                raise exceptions.UsageError("Please use a valid comparator.")
-
-            if args.table and any(COMPARATOR_ARGS) and not args.column:
-                raise exceptions.UsageError("Please pass a column to test.")
-
-            if args.greater and args.greater_or_equal:
-                return exceptions.UsageError(
-                    "You cannot use both greater and greater "
-                    "than or equal to arguments at the same time."
-                )
-            elif args.less_than and args.less_than_or_equal:
-                return exceptions.UsageError(
-                    "You cannot use both less and less than "
-                    "or equal to arguments at the same time."
-                )
-
-            conn = sql.connection.Connection.current.session
-            result_dict = run_each_individually(args, conn)
-
-            if any(len(rows) > 1 for rows in list(result_dict.values())):
-                for comparator, rows in result_dict.items():
-                    if len(rows) > 1:
-                        print(f"\n{comparator}:\n")
-                        _pretty = PrettyTable()
-                        _pretty.field_names = rows[0]
-                        for row in rows[1:]:
-                            _pretty.add_row(row)
-                        print(_pretty)
-                raise exceptions.UsageError(
-                    "The above values do not not match your test requirements."
-                )
-            else:
-                return True
-
-        elif cmd_name == "profile":
-            parser = CmdParser()
-            parser.add_argument(
-                "-t", "--table", type=str, help="Table name", required=True
-            )
-
-            parser.add_argument(
-                "-s", "--schema", type=str, help="Schema name", required=False
-            )
-
-            parser.add_argument(
-                "-o", "--output", type=str, help="Store report location", required=False
-            )
-
-            args = parser.parse_args(others)
-
-            report = inspect.get_table_statistics(schema=args.schema, name=args.table)
-
-            if args.output:
-                with open(args.output, "w") as f:
-                    f.write(report._repr_html_())
-
-            return report
-
-        elif cmd_name == "explore":
-            parser = CmdParser()
-            parser.add_argument(
-                "-t", "--table", type=str, help="Table name", required=True
-            )
-            args = parser.parse_args(others)
-
-            table_widget = TableWidget(args.table)
-            display(table_widget)
-
-        elif cmd_name == "snippets":
-            return sqlcmd_snippets(others)
-
-
-def return_test_results(args, conn, query):
-    try:
-        columns = []
-        column_data = conn.execute(text(query)).cursor.description
-        res = conn.execute(text(query)).fetchall()
-        for column in column_data:
-            columns.append(column[0])
-        res = [columns, *res]
-        return res
-    except Exception as e:
-        if "column" in str(e):
-            raise exceptions.UsageError(
-                f"Referenced column '{args.column}' not found!"
-            ) from e
-
-
-def run_each_individually(args, conn):
-    base_query = select("*").from_(args.table)
-
-    storage = {}
-
-    if args.greater:
-        where = condition(args.column + "<=" + args.greater)
-        current_query = base_query.where(where).sql()
-
-        res = return_test_results(args, conn, query=current_query)
-
-        if res is not None:
-            storage["greater"] = res
-    if args.greater_or_equal:
-        where = condition(args.column + "<" + args.greater_or_equal)
-
-        current_query = base_query.where(where).sql()
-
-        res = return_test_results(args, conn, query=current_query)
-
-        if res is not None:
-            storage["greater_or_equal"] = res
-
-    if args.less_than_or_equal:
-        where = condition(args.column + ">" + args.less_than_or_equal)
-        current_query = base_query.where(where).sql()
-
-        res = return_test_results(args, conn, query=current_query)
-
-        if res is not None:
-            storage["less_than_or_equal"] = res
-    if args.less_than:
-        where = condition(args.column + ">=" + args.less_than)
-        current_query = base_query.where(where).sql()
-
-        res = return_test_results(args, conn, query=current_query)
-
-        if res is not None:
-            storage["less_than"] = res
-    if args.no_nulls:
-        where = condition("{} is NULL".format(args.column))
-        current_query = base_query.where(where).sql()
-
-        res = return_test_results(args, conn, query=current_query)
-
-        if res is not None:
-            storage["null"] = res
-
-    return storage
+        cmd = router.get(cmd_name)
+        if cmd:
+            return cmd(others)

@@ -1,6 +1,6 @@
-from sql.magic_cmd import CmdParser
 from sql import util
 from sql.exceptions import UsageError
+from sql.cmd.cmd_utils import CmdParser
 
 
 def _modify_display_msg(key, remaining_keys, dependent_keys=None):
@@ -30,14 +30,18 @@ def _modify_display_msg(key, remaining_keys, dependent_keys=None):
     return msg
 
 
-def sqlcmd_snippets(others):
+def snippets(others):
     """
-
-    Parameters
-    ----------
+    Implementation of `%sqlcmd snippets`
     This function handles all the arguments related to %sqlcmd snippets, namely
     listing stored snippets, and delete/ force delete/ force delete a snippet and
     all its dependent snippets.
+
+
+    Parameters
+    ----------
+    others : str,
+        A string containing the command line arguments.
 
     """
     parser = CmdParser()

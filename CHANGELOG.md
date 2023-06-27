@@ -1,12 +1,12 @@
 # CHANGELOG
 
 ## 0.7.10dev
+
 * [Feature] Modified `TableDescription` to add styling, generate messages and format the calculated outputs (#459)
 * [Feature] Support flexible spacing `myvar=<<` operator ([#525](https://github.com/ploomber/jupysql/issues/525))
 * [Doc] Modified integrations content to ensure they're all consistent (#523)
 * [Doc] Document --persist-replace in API section (#539)
 * [Fix] Fixed CI issue by updating `invalid_connection_string_duckdb` in `test_magic.py` (#631)
-
 * [Fix] Refactored `ResultSet` to lazy loading (#470)
 
 ## 0.7.9 (2023-06-19)
