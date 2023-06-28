@@ -4,6 +4,8 @@
 
 * [Feature] Modified `TableDescription` to add styling, generate messages and format the calculated outputs (#459)
 * [Feature] Support flexible spacing `myvar=<<` operator ([#525](https://github.com/ploomber/jupysql/issues/525))
+* [Feature] Added a line under `ResultSet` to distinguish it from data frame and error message when invalid operations are performed (#468)
+
 * [Doc] Modified integrations content to ensure they're all consistent (#523)
 * [Doc] Document --persist-replace in API section (#539)
 * [Fix] Fixed CI issue by updating `invalid_connection_string_duckdb` in `test_magic.py` (#631)
