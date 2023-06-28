@@ -170,7 +170,7 @@ def test_snippets_delete(ip, capsys):
     )
     result = ip.run_cell("%sqlrender final").result
     expected = (
-        "WITH\n\n        SELECT o.order_id, customers.name, "
+        "SELECT o.order_id, customers.name, "
         "o.order_value\n        "
         "FROM another_orders o\n        INNER JOIN customers "
         "ON o.customer_id=customers.customer_id"

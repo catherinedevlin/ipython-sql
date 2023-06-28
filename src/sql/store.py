@@ -130,6 +130,9 @@ class SQLQuery:
         template = (
             with_clause_template_backtick if is_use_backtick else with_clause_template
         )
+        # return query without 'with' when no dependency exists
+        if len(with_all) == 0:
+            return self._query.strip()
         return template.render(
             query=self._query,
             saved=self._store._data,
