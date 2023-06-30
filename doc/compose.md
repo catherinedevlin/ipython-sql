@@ -5,16 +5,16 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.4
+    jupytext_version: 1.14.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
 myst:
   html_meta:
-    description lang=en: "Use JupySQL to organize large SQL queries in a Jupyter notebook"
-    keywords: "jupyter, sql, jupysql"
-    property=og:locale: "en_US"
+    description lang=en: Use JupySQL to organize large SQL queries in a Jupyter notebook
+    keywords: jupyter, sql, jupysql
+    property=og:locale: en_US
 ---
 
 # Organizing Large Queries
@@ -144,10 +144,10 @@ top_artist.bar()
 
 It looks like Iron Maiden had the highest number of rock and metal songs in the table.
 
-We can render the full query with the `%sqlrender` magic:
+We can render the full query with the `%sqlcmd snippets {name}` magic:
 
 ```{code-cell} ipython3
-final = %sqlrender top_artist
+final = %sqlcmd snippets top_artist
 print(final)
 ```
 

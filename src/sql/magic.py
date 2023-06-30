@@ -72,6 +72,13 @@ class RenderMagic(Magics):
     @telemetry.log_call("sqlrender")
     def sqlrender(self, line):
         args = parse_argstring(self.sqlrender, line)
+        warnings.warn(
+            "\n'%sqlrender' will be deprecated soon, "
+            f"please use '%sqlcmd snippets {args.line[0]}' instead. "
+            "\n\nFor documentation, follow this link : "
+            "https://jupysql.ploomber.io/en/latest/api/magic-snippets.html#id1",
+            FutureWarning,
+        )
         return str(store[args.line[0]])
 
 

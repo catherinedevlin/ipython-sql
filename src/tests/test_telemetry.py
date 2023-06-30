@@ -112,8 +112,10 @@ def test_data_frame_telemetry_execution(mock_log_api, ip, simple_file_path_iris)
     )
 
 
-def test_sqlrender_telemetry_execution(mock_log_api, ip, simple_file_path_iris):
-    # Simulate the sqlrender query
+def test_sqlcmd_snippets_query_telemetry_execution(
+    mock_log_api, ip, simple_file_path_iris
+):
+    # Simulate the sqlcmd snippets query
     ip.run_cell("%sql duckdb://")
     ip.run_cell(
         "%sql --save class_setosa --no-execute "
@@ -122,10 +124,10 @@ def test_sqlrender_telemetry_execution(mock_log_api, ip, simple_file_path_iris):
         + "')"
         + " WHERE class='Iris-setosa'"
     )
-    ip.run_cell("%sqlrender class_setosa")
+    ip.run_cell("%sqlcmd snippets class_setosa")
 
     mock_log_api.assert_called_with(
-        action="jupysql-sqlrender-success", total_runtime=ANY, metadata=ANY
+        action="jupysql-execute-success", total_runtime=ANY, metadata=ANY
     )
 
 

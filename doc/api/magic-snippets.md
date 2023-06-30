@@ -5,15 +5,14 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.5
+    jupytext_version: 1.14.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
 myst:
   html_meta:
-    description lang=en: Documentation for  %sqlcmd snippets
-      from JupySQL
+    description lang=en: Documentation for %sqlcmd snippets from JupySQL
     keywords: jupyter, sql, jupysql, snippets
     property=og:locale: en_US
 ---
@@ -73,6 +72,8 @@ Returns all the snippets saved in the environment
 
 Arguments:
 
+`{snippet_name}` Return a snippet.
+
 `-d`/`--delete` Delete a snippet.
 
 `-D`/`--delete-force` Force delete a snippet. This may be useful if there are other dependent snippets, and you still need to delete this snippet.
@@ -80,21 +81,39 @@ Arguments:
 `-A`/`--delete-force-all` Force delete a snippet and all dependent snippets.
 
 ```{code-cell} ipython3
+chinstrap_snippet = %sqlcmd snippets chinstrap
+print(chinstrap_snippet)
+```
 
+This returns the stored snippet `chinstrap`.
+
+Calling `%sqlcmd snippets {snippet_name}` also works on a snippet that is dependent on others. To demonstrate it, let's create a snippet dependent on the `chinstrap` snippet.
+
+```{code-cell} ipython3
+%%sql --save chinstrap_sub
+SELECT * FROM chinstrap where island == 'Dream'
+```
+
+```{code-cell} ipython3
+chinstrap_sub_snippet = %sqlcmd snippets chinstrap_sub
+print(chinstrap_sub_snippet)
+```
+
+This returns the stored snippet `chinstrap_sub`.
+
+Now, let's see how to delete a stored snippet.
+
+```{code-cell} ipython3
 %sqlcmd snippets -d gentoo
 ```
 
 This deletes the stored snippet `gentoo`.
 
-To demonstrate `force-delete` let's create a snippet dependent on `chinstrap` snippet.
+Now, let's see how to delete a stored snippet that other snippets are dependent on. Recall we have created `chinstrap_sub` which is dependent on `chinstrap`.
 
 ```{code-cell} ipython3
-:tags: [hide-output]
-
-%%sql --save chinstrap_sub
-SELECT * FROM chinstrap where island == 'Dream'
+print(chinstrap_sub_snippet)
 ```
-+++
 
 Trying to delete the `chinstrap` snippet will display an error message:
 
@@ -104,10 +123,9 @@ Trying to delete the `chinstrap` snippet will display an error message:
 %sqlcmd snippets -d chinstrap
 ```
 
-If you still wish to delete this snippet, you can run the below command:
+If you still wish to delete this snippet, you should use `force-delete` by running the below command:
 
 ```{code-cell} ipython3
-
 %sqlcmd snippets -D chinstrap
 ```
 
@@ -130,6 +148,5 @@ SELECT * FROM chinstrap where island == 'Dream'
 Now, force delete `chinstrap` and its dependent `chinstrap_sub`:
 
 ```{code-cell} ipython3
-
 %sqlcmd snippets -A chinstrap
 ```

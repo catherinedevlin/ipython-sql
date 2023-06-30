@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.5
+    jupytext_version: 1.14.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -41,7 +41,6 @@ The benefits of using parametrized SQL queries are:
 Let's load some data and connect to the in-memory DuckDB instance:
 
 ```{code-cell} ipython3
-
 %load_ext sql
 from pathlib import Path
 from urllib.request import urlretrieve
@@ -93,7 +92,7 @@ group by sex
 Here's the final compiled query:
 
 ```{code-cell} ipython3
-final = %sqlrender avg_body_mass
+final = %sqlcmd snippets avg_body_mass
 print(final)
 ```
 
@@ -101,7 +100,7 @@ print(final)
 
 `Macros` is a construct analogous to functions that promote re-usability. We'll first define a macro for converting a value from `millimetre` to `centimetre`. And then use this macro in the query using variable expansion.
 
-```{code-cell} python
+```{code-cell} ipython3
 %%sql --save convert
 {% macro mm_to_cm(column_name, precision=2) %}
     ({{ column_name }} / 10)::numeric(16, {{ precision }})
@@ -116,27 +115,31 @@ from penguins.csv
 
 Let's see the final rendered query:
 
-```{code-cell} python
-final = %sqlrender convert
+```{code-cell} ipython3
+final = %sqlcmd snippets convert
 print(final)
+```
+
+```{code-cell} ipython3
+%sqlcmd snippets -d convert
 ```
 
 ## Create tables in loop
 
 We can also create multiple tables in a loop using parametrized queries. Let's segregate the dataset by `island`.
 
-```{code-cell} python
+```{code-cell} ipython3
 for island in ("Torgersen", "Biscoe", "Dream"):
     %sql CREATE TABLE {{island}} AS (SELECT * from penguins.csv WHERE island = '{{island}}')
 ```
 
-```{code-cell} python
+```{code-cell} ipython3
 %sqlcmd tables
 ```
 
 Let's verify data in one of the tables:
 
-```{code-cell} python
+```{code-cell} ipython3
 %sql SELECT * FROM Torgersen;
 ```
 

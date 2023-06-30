@@ -25,9 +25,7 @@ SELECT * FROM positive_y;
 """
     )
 
-    cell_final_query = ip.run_cell(
-        "%sqlrender final --with positive_x --with positive_y"
-    )
+    cell_final_query = ip.run_cell("%sqlcmd snippets final")
 
     assert cell_execution.success
     assert cell_final_query.result == (
@@ -51,7 +49,7 @@ def test_infer_dependencies(ip, capsys):
         "SELECT last_name FROM author_sub;",
     )
     out, _ = capsys.readouterr()
-    result = ip.run_cell("%sqlrender final").result
+    result = ip.run_cell("%sqlcmd snippets final").result
     expected = (
         "WITH `author_sub` AS (\nSELECT last_name FROM author "
         "WHERE year_of_death > 1900)\nSELECT last_name FROM author_sub;"
@@ -168,7 +166,7 @@ def test_snippets_delete(ip, capsys):
         INNER JOIN customers ON o.customer_id=customers.customer_id;
         """,
     )
-    result = ip.run_cell("%sqlrender final").result
+    result = ip.run_cell("%sqlcmd snippets final").result
     expected = (
         "SELECT o.order_id, customers.name, "
         "o.order_value\n        "

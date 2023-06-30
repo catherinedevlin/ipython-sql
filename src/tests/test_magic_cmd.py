@@ -421,6 +421,40 @@ def test_snippet(ip_snippets):
     assert "high_price, high_price_a, high_price_b" in out
 
 
+@pytest.mark.parametrize(
+    "precmd, cmd, err_msg",
+    [
+        (
+            None,
+            "%sqlcmd snippets invalid",
+            (
+                "'invalid' is not a snippet. Available snippets are 'high_price', "
+                "'high_price_a', and 'high_price_b'."
+            ),
+        ),
+        (
+            "%sqlcmd snippets -d high_price_b",
+            "%sqlcmd snippets invalid",
+            (
+                "'invalid' is not a snippet. Available snippets are 'high_price', "
+                "and 'high_price_a'."
+            ),
+        ),
+        (
+            "%sqlcmd snippets -A high_price",
+            "%sqlcmd snippets invalid",
+            "'invalid' is not a snippet. There is no available snippet.",
+        ),
+    ],
+)
+def test_invalid_snippet(ip_snippets, precmd, cmd, err_msg):
+    if precmd:
+        ip_snippets.run_cell(precmd)
+    out = ip_snippets.run_cell(cmd)
+    assert isinstance(out.error_in_exec, UsageError)
+    assert str(out.error_in_exec) == err_msg
+
+
 @pytest.mark.parametrize("arg", ["--delete", "-d"])
 def test_delete_saved_key(ip_snippets, arg):
     out = ip_snippets.run_cell(f"%sqlcmd snippets {arg} high_price_a").result

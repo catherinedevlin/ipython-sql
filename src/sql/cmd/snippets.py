@@ -1,6 +1,7 @@
 from sql import util
 from sql.exceptions import UsageError
 from sql.cmd.cmd_utils import CmdParser
+from sql.store import store
 
 
 def _modify_display_msg(key, remaining_keys, dependent_keys=None):
@@ -62,6 +63,20 @@ def snippets(others):
         help="Force delete all stored snippets",
         required=False,
     )
+    if len(others) == 1:
+        all_snippets = util.get_all_keys()
+        if others[0] in all_snippets:
+            return str(store[others[0]])
+
+        base_err_msg = f"'{others[0]}' is not a snippet. "
+        if len(all_snippets) == 0:
+            err_msg = "%sThere is no available snippet."
+        else:
+            err_msg = "%sAvailable snippets are " f"{util.pretty_print(all_snippets)}."
+        err_msg = err_msg % (base_err_msg)
+
+        raise UsageError(err_msg)
+
     args = parser.parse_args(others)
     SNIPPET_ARGS = [args.delete, args.delete_force, args.delete_force_all]
     if SNIPPET_ARGS.count(None) == len(SNIPPET_ARGS):
