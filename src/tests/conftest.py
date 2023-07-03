@@ -1,9 +1,11 @@
+from traitlets.config import Config
 import os
 import urllib.request
 from pathlib import Path
 
 import pytest
 from IPython.core.interactiveshell import InteractiveShell
+
 
 from sql.magic import SqlMagic, RenderMagic
 from sql.magic_plot import SqlPlotMagic
@@ -50,7 +52,14 @@ def clean_conns():
 
 @pytest.fixture
 def ip_empty():
-    ip_session = InteractiveShell()
+    c = Config()
+    # By default, InteractiveShell will record command's history in a SQLite database
+    # which leads to "too many open files" error when running tests; this setting
+    # disables the history recording.
+    # https://ipython.readthedocs.io/en/stable/config/options/terminal.html#configtrait-HistoryAccessor.enabled
+    c.HistoryAccessor.enabled = False
+    ip_session = InteractiveShell(config=c)
+
     ip_session.register_magics(SqlMagic)
     ip_session.register_magics(RenderMagic)
     ip_session.register_magics(SqlPlotMagic)
@@ -107,6 +116,7 @@ def tmp_empty(tmp_path):
     Create temporary path using pytest native fixture,
     them move it, yield, and restore the original path
     """
+
     old = os.getcwd()
     os.chdir(str(tmp_path))
     yield str(Path(tmp_path).resolve())
