@@ -83,7 +83,7 @@ The percent format is also supported by `PyCharm Professional`:
 
 ![pycharm](../static/pycharm-interactive.png)
 
-[Click here](https://jupytext.readthedocs.io/en/latest/formats.html#the-percent-format) for more details on the percent format.
+[Click here](https://jupytext.readthedocs.io/en/latest/formats-scripts.html#the-percent-format) for more details on the percent format.
 
 ## Programmatic Execution
 
