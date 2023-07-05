@@ -367,7 +367,7 @@ class SqlMagic(Magics, Configurable):
         with_ = self._store.infer_dependencies(command.sql_original, args.save)
         if with_:
             command.set_sql_with(with_)
-            print(f"Generating CTE with stored snippets : {', '.join(with_)}")
+            display.message(f"Generating CTE with stored snippets: {', '.join(with_)}")
         else:
             with_ = None
 
