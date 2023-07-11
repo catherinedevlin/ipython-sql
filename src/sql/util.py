@@ -129,12 +129,15 @@ def is_table_exists(
                     f"There is no table with name {table!r} in the default schema"
                 )
 
-            suggestions = difflib.get_close_matches(invalid_input, expected)
-            suggestions_store = difflib.get_close_matches(invalid_input, list(store))
-            suggestions.extend(suggestions_store)
-            suggestions_message = get_suggestions_message(suggestions)
-            if suggestions_message:
-                err_message = f"{err_message}{suggestions_message}"
+            if table not in list(store):
+                suggestions = difflib.get_close_matches(invalid_input, expected)
+                suggestions_store = difflib.get_close_matches(
+                    invalid_input, list(store)
+                )
+                suggestions.extend(suggestions_store)
+                suggestions_message = get_suggestions_message(suggestions)
+                if suggestions_message:
+                    err_message = f"{err_message}{suggestions_message}"
             raise exceptions.TableNotFoundError(err_message)
 
     return _is_exist

@@ -27,7 +27,7 @@ pip install jupysql matplotlib
 ```
 
 
-```{versionchanged} 0.7.8
+```{versionchanged} 0.7.10
 ```
 
 ```{note}
@@ -157,6 +157,52 @@ We can verify the retrieved query returns the same result:
 %%sql
 {{final}}
 ```
+
+#### `--with` argument
+
+JupySQL also allows you to specify the snippet name explicitly by passing the `--with` argument. This is particularly useful when our parsing logic is unable to determine the table name due to dialect variations. For example, consider the below example:
+
+```{code-cell} ipython3
+%sql duckdb://
+```
+
+```{code-cell} ipython3
+%%sql --save first_cte --no-execute
+SELECT 1 AS column1, 2 AS column2
+```
+
+```{code-cell} ipython3
+%%sql --save second_cte --no-execute
+SELECT
+  sum(column1),
+  sum(column2) FILTER (column2 = 2)
+FROM first_cte
+```
+
+```{code-cell} ipython3
+:tags: [raises-exception]
+
+%%sql
+SELECT * FROM second_cte
+```
+
+Note that the query fails because the clause `FILTER (column2 = 2)` makes it difficult for the parser to extract the table name. While this syntax works on some dialects like `DuckDB`, the more common usage is to specify `WHERE` clause as well, like `FILTER (WHERE column2 = 2)`.
+
+Now let's run the same query by specifying `--with` argument.
+
+```{code-cell} ipython3
+%%sql --with first_cte --save second_cte --no-execute
+SELECT
+  sum(column1),
+  sum(column2) FILTER (column2 = 2)
+FROM first_cte
+```
+
+```{code-cell} ipython3
+%%sql
+SELECT * FROM second_cte
+```
+
 
 ## Summary
 

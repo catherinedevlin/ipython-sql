@@ -3,7 +3,9 @@ from matplotlib import pyplot as plt
 import pytest
 import warnings
 from sql.telemetry import telemetry
+from sql.error_message import CTE_MSG
 from unittest.mock import ANY, Mock
+from IPython.core.error import UsageError
 
 import math
 
@@ -623,9 +625,9 @@ def test_sqlcmd_tables(ip_with_dynamic_db, request):
 @pytest.mark.parametrize(
     "cell",
     [
-        "%%sql\nSELECT * FROM numbers WHERE 0=1",
+        "%%sql\nSELECT * FROM test_numbers WHERE 0=1",
         "%%sql --with subset\nSELECT * FROM subset WHERE 0=1",
-        "%%sql\nSELECT *\n-- %one $another\nFROM numbers WHERE 0=1",
+        "%%sql\nSELECT *\n-- %one $another\nFROM test_numbers WHERE 0=1",
     ],
     ids=[
         "simple-query",
@@ -637,9 +639,45 @@ def test_sqlcmd_tables(ip_with_dynamic_db, request):
 def test_sql_query(ip_with_dynamic_db, cell, request):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
     ip_with_dynamic_db.run_cell(
+        """
+    %%sql sqlite://
+    CREATE TABLE test_numbers (value_one, value_two);
+    INSERT INTO test_numbers VALUES (0, 1);
+    INSERT INTO test_numbers VALUES (0, 0);
+    INSERT INTO test_numbers VALUES (5, 2);
+    INSERT INTO test_numbers VALUES (6, 3);
+    """
+    )
+    ip_with_dynamic_db.run_cell(
         """%%sql --save subset --no-execute
 SELECT * FROM numbers WHERE 1=0
 """
     )
     out = ip_with_dynamic_db.run_cell(cell)
     assert out.error_in_exec is None
+
+
+@pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
+def test_sql_query_cte_suggestion(ip_with_dynamic_db, request):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    ip_with_dynamic_db.run_cell(
+        """%%sql --save first_cte --no-execute
+SELECT 1 AS column1, 2 AS column2
+"""
+    )
+    ip_with_dynamic_db.run_cell(
+        """
+    %%sql --save second_cte --no-execute
+SELECT
+  sum(column1),
+  sum(column2) FILTER (column2 = 2)
+FROM first_cte
+"""
+    )
+    out = ip_with_dynamic_db.run_cell(
+        """
+    %%sql
+SELECT * FROM second_cte"""
+    )
+    assert isinstance(out.error_in_exec, UsageError)
+    assert CTE_MSG in str(out.error_in_exec)

@@ -131,6 +131,13 @@ We can see the highest value is a bit over 6, that's expected since we set a 6.3
 
 +++
 
+If you wish to specify the saved snippet explicitly, please use the `--with` argument. 
+[Click here](../compose) for more details on when to specify `--with` explicitly.
+
+```{code-cell} ipython3
+%sqlplot boxplot --table short_trips --column trip_distance --with short_trips
+```
+
 ## Histogram
 
 To create a histogram, call `%sqlplot histogram`, and pass the name of the table, the column you want to plot, and the number of bins. Similarly to what we did in the [Boxplot](#boxplot) example, JupySQL detects a saved snippet and only plots such data subset.

@@ -99,13 +99,18 @@ def test_validate_arguments(tmp_empty, ip, cell, error_type, error_message):
         "%sqlplot box --table data.csv --column x",
         "%sqlplot boxplot --table data.csv --column x --orient h",
         "%sqlplot boxplot --table subset --column x",
+        "%sqlplot boxplot --table subset --column x --with subset",
         "%sqlplot boxplot -t subset -c x -w subset -o h",
         "%sqlplot boxplot --table nas.csv --column x",
         "%sqlplot bar -t data.csv -c x",
+        "%sqlplot bar --table subset --column x",
+        "%sqlplot bar --table subset --column x --with subset",
         "%sqlplot bar -t data.csv -c x -S",
         "%sqlplot bar -t data.csv -c x -o h",
         "%sqlplot bar -t data.csv -c x y",
         "%sqlplot pie -t data.csv -c x",
+        "%sqlplot pie --table subset --column x",
+        "%sqlplot pie --table subset --column x --with subset",
         "%sqlplot pie -t data.csv -c x -S",
         "%sqlplot pie -t data.csv -c x y",
         '%sqlplot boxplot --table spaces.csv --column "some column"',
@@ -147,16 +152,21 @@ def test_validate_arguments(tmp_empty, ip, cell, error_type, error_message):
         "histogram-bins",
         "histogram-nas",
         "boxplot",
+        "boxplot-with",
         "box",
         "boxplot-horizontal",
         "boxplot-with",
         "boxplot-shortcuts",
         "boxplot-nas",
         "bar-1-col",
+        "bar-subset",
+        "bar-subset-with",
         "bar-1-col-show_num",
         "bar-1-col-horizontal",
         "bar-2-col",
         "pie-1-col",
+        "pie-subset",
+        "pie-subset-with",
         "pie-1-col-show_num",
         "pie-2-col",
         "boxplot-column-name-with-spaces",
@@ -416,23 +426,6 @@ def test_hist_cust(load_penguin, ip):
     _ = ax.grid(True)
 
 
-def test_sqlplot_deprecation_warning(ip_snippets, capsys):
-    with pytest.warns(FutureWarning) as record:
-        res = ip_snippets.run_cell(
-            "%sqlplot boxplot --table subset --column x --with subset"
-        )
-    assert len(record) == 1
-    assert (
-        "CTE dependencies are now automatically inferred,"
-        " you can omit the --with arguments. Using --with will "
-        "raise an exception in the next major release so please "
-        "remove it." in record[0].message.args[0]
-    )
-    out, err = capsys.readouterr()
-    assert type(res.result).__name__ in {"Axes", "AxesSubplot"}
-    assert "Plotting using saved snippet : subset" in out
-
-
 @pytest.mark.parametrize(
     "arg", ["--delete", "-d", "--delete-force-all", "-A", "--delete-force", "-D"]
 )
@@ -454,3 +447,15 @@ def test_sqlplot_snippet_typo(ip_snippets, capsys):
     ip_snippets.run_cell("%sqlplot boxplot --table subst --column x")
     out, err = capsys.readouterr()
     assert TABLE_NAME_TYPO_MSG.strip() == err.strip()
+
+
+MISSING_TABLE_ERROR_MSG = """
+UsageError: There is no table with name 'missing' in the default schema
+If you need help solving this issue, send us a message: https://ploomber.io/community
+"""
+
+
+def test_sqlplot_missing_table(ip_snippets, capsys):
+    ip_snippets.run_cell("%sqlplot boxplot --table missing --column x")
+    out, err = capsys.readouterr()
+    assert MISSING_TABLE_ERROR_MSG.strip() == err.strip()

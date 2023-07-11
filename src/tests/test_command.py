@@ -95,6 +95,37 @@ drivername = sqlite
     assert cmd.sql_original == parsed_sql
 
 
+def test_parsed_sql_when_using_with(ip, sql_magic):
+    ip.run_cell_magic(
+        "sql",
+        "--save author_one",
+        """
+        SELECT * FROM author LIMIT 1
+        """,
+    )
+
+    cmd = SQLCommand(
+        sql_magic, ip.user_ns, line="--with author_one", cell="SELECT * FROM author_one"
+    )
+
+    sql = "WITH `author_one` AS (\n\n        SELECT * FROM author LIMIT 1\n        )\n\
+SELECT * FROM author_one"
+
+    sql_original = "\nSELECT * FROM author_one"
+
+    assert cmd.parsed == {
+        "connection": "",
+        "result_var": None,
+        "return_result_var": False,
+        "sql": sql,
+        "sql_original": sql_original,
+    }
+
+    assert cmd.connection == ""
+    assert cmd.sql == sql
+    assert cmd.sql_original == sql_original
+
+
 def test_parsed_sql_when_using_file(ip, sql_magic, tmp_empty):
     Path("query.sql").write_text("SELECT * FROM author")
     cmd = SQLCommand(sql_magic, ip.user_ns, "--file query.sql", "")

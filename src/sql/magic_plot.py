@@ -80,14 +80,21 @@ class SqlPlotMagic(Magics, Configurable):
                 "Example: %sqlplot histogram"
             )
 
+        if cmd.args.line[0] not in SUPPORTED_PLOTS + ["hist", "box"]:
+            plot_str = util.pretty_print(SUPPORTED_PLOTS, last_delimiter="or")
+            raise exceptions.UsageError(
+                f"Unknown plot {cmd.args.line[0]!r}. Must be any of: " f"{plot_str}"
+            )
+
         column = util.sanitize_identifier(column)
         table = util.sanitize_identifier(cmd.args.table)
 
         if cmd.args.with_:
-            util.show_deprecation_warning()
-        if cmd.args.line[0] in {"box", "boxplot"}:
+            with_ = cmd.args.with_
+        else:
             with_ = self._check_table_exists(table)
 
+        if cmd.args.line[0] in {"box", "boxplot"}:
             return plot.boxplot(
                 table=table,
                 column=column,
@@ -96,7 +103,6 @@ class SqlPlotMagic(Magics, Configurable):
                 conn=None,
             )
         elif cmd.args.line[0] in {"hist", "histogram"}:
-            with_ = self._check_table_exists(table)
             return plot.histogram(
                 table=table,
                 column=column,
@@ -105,7 +111,6 @@ class SqlPlotMagic(Magics, Configurable):
                 conn=None,
             )
         elif cmd.args.line[0] in {"bar"}:
-            with_ = self._check_table_exists(table)
             return plot.bar(
                 table=table,
                 column=column,
@@ -115,18 +120,12 @@ class SqlPlotMagic(Magics, Configurable):
                 conn=None,
             )
         elif cmd.args.line[0] in {"pie"}:
-            with_ = self._check_table_exists(table)
             return plot.pie(
                 table=table,
                 column=column,
                 with_=with_,
                 show_num=cmd.args.show_numbers,
                 conn=None,
-            )
-        else:
-            plot_str = util.pretty_print(SUPPORTED_PLOTS, last_delimiter="or")
-            raise exceptions.UsageError(
-                f"Unknown plot {cmd.args.line[0]!r}. Must be any of: " f"{plot_str}"
             )
 
     @staticmethod

@@ -31,7 +31,7 @@ from sql.magic_plot import SqlPlotMagic
 from sql.magic_cmd import SqlCmdMagic
 from sql._patch import patch_ipython_usage_error
 from sql import query_util
-from sql.util import get_suggestions_message, show_deprecation_warning
+from sql.util import get_suggestions_message, pretty_print
 from ploomber_core.dependencies import check_installed
 
 from sql.error_message import detail
@@ -214,6 +214,35 @@ class SqlMagic(Magics, Configurable):
                         "Unrecognized argument(s): {}".format(check_argument)
                     )
 
+    def _error_handling(self, e, query):
+        detailed_msg = detail(e)
+        if self.short_errors:
+            if detailed_msg is not None:
+                err = exceptions.UsageError(detailed_msg)
+                raise err
+                # TODO: move to error_messages.py
+                # Added here due to circular dependency issue (#545)
+            elif "no such table" in str(e):
+                tables = query_util.extract_tables_from_query(query)
+                for table in tables:
+                    suggestions = get_close_matches(table, list(self._store))
+                    err_message = f"There is no table with name {table!r}."
+                    # with_message = "Alternatively, please specify table
+                    # name using --with argument"
+                    if len(suggestions) > 0:
+                        suggestions_message = get_suggestions_message(suggestions)
+                        raise exceptions.TableNotFoundError(
+                            f"{err_message}{suggestions_message}"
+                        )
+                display.message(str(e))
+            else:
+                display.message(str(e))
+        else:
+            if detailed_msg is not None:
+                display.message(detailed_msg)
+            e.modify_exception = True
+            raise e
+
     @no_var_expand
     @needs_local_scope
     @line_magic("sql")
@@ -364,12 +393,17 @@ class SqlMagic(Magics, Configurable):
 
         args = command.args
 
-        with_ = self._store.infer_dependencies(command.sql_original, args.save)
-        if with_:
-            command.set_sql_with(with_)
-            display.message(f"Generating CTE with stored snippets: {', '.join(with_)}")
+        if args.with_:
+            with_ = args.with_
         else:
-            with_ = None
+            with_ = self._store.infer_dependencies(command.sql_original, args.save)
+            if with_:
+                command.set_sql_with(with_)
+                display.message(
+                    f"Generating CTE with stored snippets : {pretty_print(with_)}"
+                )
+            else:
+                with_ = None
 
         # Create the interactive slider
         if args.interact and not is_interactive_mode:
@@ -405,7 +439,7 @@ class SqlMagic(Magics, Configurable):
                         raw_args = raw_args[1:-1]
                 args.connection_arguments = json.loads(raw_args)
             except Exception as e:
-                print(e)
+                display.message(str(e))
                 raise e
         else:
             args.connection_arguments = {}
@@ -458,8 +492,7 @@ class SqlMagic(Magics, Configurable):
 
         if not command.sql:
             return
-        if args.with_:
-            show_deprecation_warning()
+
         # store the query if needed
         if args.save:
             if "-" in args.save:
@@ -514,30 +547,12 @@ class SqlMagic(Magics, Configurable):
         # JA: added DatabaseError for MySQL
         except (ProgrammingError, OperationalError, DatabaseError) as e:
             # Sqlite apparently return all errors as OperationalError :/
-            detailed_msg = detail(e, command.sql)
-            if self.short_errors:
-                if detailed_msg is not None:
-                    err = exceptions.UsageError(detailed_msg)
-                    raise err
-                    # TODO: move to error_messages.py
-                    # Added here due to circular dependency issue (#545)
-                elif "no such table" in str(e):
-                    tables = query_util.extract_tables_from_query(command.sql)
-                    for table in tables:
-                        suggestions = get_close_matches(table, list(self._store))
-                        if len(suggestions) > 0:
-                            err_message = f"There is no table with name {table!r}."
-                            suggestions_message = get_suggestions_message(suggestions)
-                            raise exceptions.TableNotFoundError(
-                                f"{err_message}{suggestions_message}"
-                            )
-                    print(e)
-                else:
-                    print(e)
+            self._error_handling(e, command.sql)
+        except Exception as e:
+            # handle DuckDB exceptions
+            if "Catalog Error" in str(e):
+                self._error_handling(e, command.sql)
             else:
-                if detailed_msg is not None:
-                    print(detailed_msg)
-                e.modify_exception = True
                 raise e
 
     legal_sql_identifier = re.compile(r"^[A-Za-z0-9#_$]+")
