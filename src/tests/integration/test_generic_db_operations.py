@@ -568,7 +568,7 @@ def test_profile_query(
     test_table_name_dict,
     message,
 ):
-    pytest.skip("Skip on unclosed session issue")
+    # pytest.skip("Skip on unclosed session issue")
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 
     out = ip_with_dynamic_db.run_cell(
