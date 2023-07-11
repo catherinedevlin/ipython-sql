@@ -8,6 +8,7 @@ from sqlalchemy import create_engine
 from sql.connection import Connection
 from sql.store import store
 from sql.inspect import _is_numeric
+from sql.display import Table, Message
 
 
 VALID_COMMANDS_MESSAGE = (
@@ -59,6 +60,14 @@ FROM "high_price"
 WHERE symbol == 'b'
 """
     )
+    yield ip
+
+
+@pytest.fixture
+def test_snippet_ip(ip):
+    for key in list(store):
+        del store[key]
+    ip.run_cell("%sql sqlite://")
     yield ip
 
 
@@ -416,9 +425,61 @@ def test_test_error(ip, cell, error_type, error_message):
     assert str(out.error_in_exec) == error_message
 
 
-def test_snippet(ip_snippets):
-    out = ip_snippets.run_cell("%sqlcmd snippets").result
-    assert "high_price, high_price_a, high_price_b" in out
+@pytest.mark.parametrize(
+    "cmds, result",
+    [
+        (["%sqlcmd snippets"], Message("No snippets stored")),
+        (
+            [
+                """%%sql --save test_snippet --no-execute
+SELECT * FROM "test_store" WHERE price >= 1.50
+""",
+                "%sqlcmd snippets",
+            ],
+            Table(
+                ["Stored snippets"],
+                [["test_snippet"]],
+            ),
+        ),
+        (
+            [
+                """%%sql --save test_snippet --no-execute
+SELECT * FROM "test_store" WHERE price >= 1.50
+""",
+                """%%sql --save test_snippet_a --no-execute
+SELECT * FROM "test_snippet" WHERE symbol == 'a'
+""",
+                "%sqlcmd snippets",
+            ],
+            Table(
+                ["Stored snippets"],
+                [["test_snippet"], ["test_snippet_a"]],
+            ),
+        ),
+        (
+            [
+                """%%sql --save test_snippet --no-execute
+SELECT * FROM "test_store" WHERE price >= 1.50
+""",
+                """%%sql --save test_snippet_a --no-execute
+SELECT * FROM "test_snippet" WHERE symbol == 'a'
+""",
+                """%%sql --save test_snippet_b --no-execute
+SELECT * FROM "test_snippet" WHERE symbol == 'b'
+""",
+                "%sqlcmd snippets",
+            ],
+            Table(
+                ["Stored snippets"],
+                [["test_snippet"], ["test_snippet_a"], ["test_snippet_b"]],
+            ),
+        ),
+    ],
+)
+def test_snippet(test_snippet_ip, cmds, result):
+    out = [test_snippet_ip.run_cell(cmd) for cmd in cmds][-1].result
+    assert str(out) == str(result)
+    assert isinstance(out, type(result))
 
 
 @pytest.mark.parametrize(

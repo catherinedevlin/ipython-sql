@@ -6,6 +6,7 @@
 * [Feature] Support flexible spacing `myvar=<<` operator ([#525](https://github.com/ploomber/jupysql/issues/525))
 * [Feature] Added a line under `ResultSet` to distinguish it from data frame and error message when invalid operations are performed (#468)
 * [Feature] Moved `%sqlrender` feature to `%sqlcmd snippets` (#647)
+* [Feature] Added tables listing stored snippets when `%sqlcmd snippets` is called (#648)
 
 * [Doc] Modified integrations content to ensure they're all consistent (#523)
 * [Doc] Document --persist-replace in API section (#539)

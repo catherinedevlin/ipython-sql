@@ -2,6 +2,7 @@ from sql import util
 from sql.exceptions import UsageError
 from sql.cmd.cmd_utils import CmdParser
 from sql.store import store
+from sql.display import Table, Message
 
 
 def _modify_display_msg(key, remaining_keys, dependent_keys=None):
@@ -63,8 +64,8 @@ def snippets(others):
         help="Force delete all stored snippets",
         required=False,
     )
+    all_snippets = util.get_all_keys()
     if len(others) == 1:
-        all_snippets = util.get_all_keys()
         if others[0] in all_snippets:
             return str(store[others[0]])
 
@@ -80,7 +81,11 @@ def snippets(others):
     args = parser.parse_args(others)
     SNIPPET_ARGS = [args.delete, args.delete_force, args.delete_force_all]
     if SNIPPET_ARGS.count(None) == len(SNIPPET_ARGS):
-        return ", ".join(util.get_all_keys())
+        if len(all_snippets) == 0:
+            return Message("No snippets stored")
+        else:
+            return Table(["Stored snippets"], [[snippet] for snippet in all_snippets])
+
     if args.delete:
         deps = util.get_key_dependents(args.delete)
         if deps:
