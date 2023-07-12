@@ -11,15 +11,17 @@ parts:
     - file: plot
     - file: compose
     - file: user-guide/tables-columns
-    - file: user-guide/testing-columns
-    - file: plot-legacy
-    - file: user-guide/template
-    - file: user-guide/interactive
-    - file: user-guide/data-profiling
     - file: user-guide/ggplot
+    - file: user-guide/template
     - file: user-guide/table_explorer
-    - file: user-guide/py-scripts
-    - file: user-guide/FAQ
+    - file: user-guide/data-profiling
+
+  - caption: JupyterLab integration
+    chapters:
+    - file: jupyterlab/sharing
+    - file: jupyterlab/syntax-highlighting
+    - file: jupyterlab/format-sql
+    - file: jupyterlab/autocompletion
 
   - caption: Integrations
     chapters:
@@ -38,7 +40,6 @@ parts:
       - file: integrations/oracle
       - file: integrations/trinodb
 
-
   - caption: API Reference
     chapters:
     - file: api/magic-sql
@@ -48,18 +49,19 @@ parts:
     - file: api/python
     - file: api/magic-tables-columns
     - file: api/magic-profile
+    - file: api/plot-legacy
 
   - caption: How-To
     chapters:
     - file: howto
     - file: howto/postgres-install
     - file: howto/json
-    - file: howto/syntax-highlighting
     - file: howto/csv
-    - file: howto/autocompletion
     - file: howto/ggplot-interact
-    - file: howto/format-sql
     - file: howto/benchmarking-time
+    - file: howto/py-scripts
+    - file: howto/interactive
+    - file: howto/testing-columns
 
   - caption: Tutorials
     chapters:
@@ -71,6 +73,7 @@ parts:
   - caption: Community
     chapters:
     - file: community/vs
+    - file: community/FAQ
     - file: community/coc
     - file: community/support
     - file: community/projects
