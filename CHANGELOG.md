@@ -7,7 +7,6 @@
 * [Feature] Added a line under `ResultSet` to distinguish it from data frame and error message when invalid operations are performed (#468)
 * [Feature] Moved `%sqlrender` feature to `%sqlcmd snippets` (#647)
 * [Feature] Added tables listing stored snippets when `%sqlcmd snippets` is called (#648)
-
 * [Doc] Modified integrations content to ensure they're all consistent (#523)
 * [Doc] Document --persist-replace in API section (#539)
 * [Fix] Fixed CI issue by updating `invalid_connection_string_duckdb` in `test_magic.py` (#631)
