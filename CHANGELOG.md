@@ -15,6 +15,7 @@
 * [Fix] Used display module when generating CTE (#649)
 * [Doc] Re-organized sections. Adds section showing how to share notebooks via Ploomber Cloud
 * [Fix] Adding `--with` back because of issues with sqlglot query parser (#684)
+* [Fix] Improving << parsing logic (#610)
 
 ## 0.7.9 (2023-06-19)
 

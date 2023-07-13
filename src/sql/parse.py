@@ -37,7 +37,6 @@ def parse(cell, config):
     We're grandfathering the
     connection string and `<<` operator in.
     """
-
     result = {
         "connection": "",
         "sql": "",
@@ -53,37 +52,21 @@ def parse(cell, config):
         if len(pieces) == 1:
             return result
         cell = pieces[1]
-    # handle no space situation around =
-    if pieces[0].endswith("=<<"):
-        result["result_var"] = pieces[0][:-3]
-        result["return_result_var"] = True
-        cell = pieces[1]
 
-    pieces = cell.split(None, 2)
-    # handle flexible spacing around <<
-    if len(pieces) > 1 and pieces[1] == "<<":
-        if pieces[0].endswith("="):
-            result["result_var"] = pieces[0][:-1]
+    pointer = cell.find("<<")
+    if pointer != -1:
+        left = cell[:pointer].replace(" ", "").replace("\n", "")
+        right = cell[pointer + 2 :].strip(" ")
+
+        if "=" in left:
+            result["result_var"] = left[:-1]
             result["return_result_var"] = True
         else:
-            result["result_var"] = pieces[0]
+            result["result_var"] = left
 
-        if len(pieces) == 2:
-            return result
-        cell = pieces[2]
-    # handle flexible spacing around =<<
-    elif len(pieces) > 1 and (
-        (pieces[1] == "=<<") or (pieces[1] == "=" and pieces[2].startswith("<<"))
-    ):
-        result["result_var"] = pieces[0]
-        result["return_result_var"] = True
-        if pieces[1] == "=<<":
-            cell = pieces[2]
-        else:
-            pieces = cell.split(None, 3)
-            cell = pieces[3]
-
-    result["sql"] = cell
+        result["sql"] = right
+    else:
+        result["sql"] = cell
     return result
 
 
