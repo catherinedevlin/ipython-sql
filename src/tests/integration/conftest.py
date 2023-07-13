@@ -4,6 +4,7 @@ import pytest
 from sqlalchemy import MetaData, Table, create_engine
 from sql import _testing
 import uuid
+import duckdb
 
 
 def pytest_addoption(parser):
@@ -220,6 +221,54 @@ def ip_with_SQLite(ip_empty, setup_SQLite):
     yield ip_empty
     # Disconnect database
     ip_empty.run_cell("%sql -x " + alias)
+
+
+@pytest.fixture(scope="session")
+def setup_duckDB_native(test_table_name_dict, skip_on_live_mode):
+    engine = duckdb.connect(database=":memory:", read_only=False)
+    return engine
+
+
+def load_generic_testing_data_duckdb_native(ip, test_table_name_dict):
+    ip.run_cell("import pandas as pd")
+    ip.run_cell(
+        f"""{test_table_name_dict['taxi']} = pd.DataFrame({{'taxi_driver_name':
+          ["Eric Ken", "John Smith", "Kevin Kelly"] * 15}} )"""
+    )
+    ip.run_cell(
+        f"""{test_table_name_dict['plot_something']} = pd.DataFrame(
+            {{"x": range(0, 5), "y": range(5, 10)}} )"""
+    )
+    ip.run_cell(
+        f"""{test_table_name_dict['numbers']} = pd.DataFrame(
+            {{"numbers_elements": [1, 2, 3] * 20}} )"""
+    )
+    return ip
+
+
+def teardown_generic_testing_data_duckdb_native(ip, test_table_name_dict):
+    ip.run_cell(f"del {test_table_name_dict['taxi']}")
+    ip.run_cell(f"del {test_table_name_dict['plot_something']}")
+    ip.run_cell(f"del {test_table_name_dict['numbers']}")
+    return ip
+
+
+@pytest.fixture
+def ip_with_duckDB_native(ip_empty, setup_duckDB_native, test_table_name_dict):
+    configKey = "duckDB"
+    alias = _testing.DatabaseConfigHelper.get_database_config(configKey)["alias"]
+
+    engine = setup_duckDB_native
+    ip_empty.push({"conn": engine})
+
+    ip_empty.run_cell("%sql conn" + " --alias " + alias)
+    ip_empty = load_generic_testing_data_duckdb_native(ip_empty, test_table_name_dict)
+    yield ip_empty
+
+    ip_empty = teardown_generic_testing_data_duckdb_native(
+        ip_empty, test_table_name_dict
+    )
+    ip_empty.run_cell("%sql --close " + alias)
 
 
 @pytest.fixture(scope="session")
