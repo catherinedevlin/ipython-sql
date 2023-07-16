@@ -16,6 +16,7 @@
 * [Doc] Re-organized sections. Adds section showing how to share notebooks via Ploomber Cloud
 * [Fix] Adding `--with` back because of issues with sqlglot query parser (#684)
 * [Fix] Improving << parsing logic (#610)
+* [Fix] Migrate user feedback to use display module (#548)
 
 ## 0.7.9 (2023-06-19)
 

@@ -529,7 +529,7 @@ def _commit(conn, config, manual_commit):
             with Session(conn.session) as session:
                 session.commit()
         except sqlalchemy.exc.OperationalError:
-            print("The database does not support the COMMIT command")
+            display.message("The database does not support the COMMIT command")
 
 
 def is_postgres_or_redshift(dialect):

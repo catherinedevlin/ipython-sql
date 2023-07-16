@@ -489,7 +489,7 @@ class Connection:
             conn.close(key)
 
             if verbose:
-                print(f"Closing {key}")
+                display.message(f"Closing {key}")
 
         cls.connections = {}
 

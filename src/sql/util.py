@@ -4,7 +4,7 @@ from sql import inspect
 import difflib
 from sql.connection import Connection
 from sql.store import store, _get_dependents_for_key
-from sql import exceptions
+from sql import exceptions, display
 import json
 
 SINGLE_QUOTE = "'"
@@ -182,7 +182,7 @@ def strip_multiple_chars(string: str, chars: str) -> str:
 
 def is_saved_snippet(table: str) -> bool:
     if table in list(store):
-        print(f"Plotting using saved snippet : {table}")
+        display.message(f"Plotting using saved snippet : {table}")
         return True
     return False
 
