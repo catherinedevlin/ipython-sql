@@ -15,6 +15,10 @@ jobs:
         python-version: ['3.11']
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
+
+    env:
+      PLOOMBER_VERSION_CHECK_DISABLED: true
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
