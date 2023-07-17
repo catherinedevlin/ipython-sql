@@ -27,7 +27,7 @@ pip install jupysql matplotlib
 ```
 
 
-```{versionchanged} 0.7.10
+```{versionchanged} 0.8.0
 ```
 
 ```{note}

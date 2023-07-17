@@ -20,7 +20,7 @@ myst:
 # DuckDB
 
 ```{important}
-Beginning in version `0.7.10`, we're now recommending to use DuckDB native
+Beginning in version `0.8.0`, we're now recommending to use DuckDB native
 connections. We'll still support
 [SQLALchemy connections](../integrations/duckdb-sqlalchemy.md) but new features will
 primarily ship to native connections.

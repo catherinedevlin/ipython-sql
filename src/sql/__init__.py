@@ -1,7 +1,7 @@
 from .magic import RenderMagic, SqlMagic, load_ipython_extension
 from .connection import PLOOMBER_DOCS_LINK_STR
 
-__version__ = "0.7.10dev"
+__version__ = "0.8.0dev"
 
 
 __all__ = [
