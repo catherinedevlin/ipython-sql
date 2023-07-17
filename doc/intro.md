@@ -96,15 +96,18 @@ However, this isn’t supported with the line magic (e.g., `%sql one SELECT * FR
 
 +++
 
-For secure access, you may dynamically access your credentials (e.g. from your system environment or `getpass.getpass`) to avoid storing your password in the notebook itself. Use the `$` before any variable to access it in your `%sql` command.
+For secure access, you may dynamically access your credentials (e.g. from your system environment or `getpass.getpass`) to avoid storing your password in the notebook itself. Then, create the connection and pass it to the magic:
 
 +++
 
-```
+```python
+from sqlalchemy import create_engine
+
 user = os.getenv('SOME_USER')
 password = os.getenv('SOME_PASSWORD')
-connection_string = "postgresql://{user}:{password}@localhost/some_database".format(user=user, password=password)
-%sql $connection_string
+
+engine = create_engine(f"postgresql://{user}:{password}@localhost/some_database")
+%sql engine
 ```
 
 +++
