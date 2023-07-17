@@ -6,7 +6,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import ResourceClosedError
 
 import sql.connection
-from sql.connection import Connection, CustomConnection
+from sql.connection import Connection, DBAPIConnection
 from IPython.core.error import UsageError
 import sqlglot
 import sqlalchemy
@@ -337,7 +337,7 @@ class dummy_connection:
     [
         [sqlite3.connect(""), True],
         [
-            CustomConnection(engine=sqlalchemy.create_engine("sqlite://")),
+            DBAPIConnection(engine=sqlalchemy.create_engine("sqlite://")),
             True,
         ],
         [
@@ -350,15 +350,15 @@ class dummy_connection:
     ],
     ids=[
         "sqlite3_connection",
-        "custom_connection",
+        "dbapi_connection",
         "normal_connection",
         "dummy_connection",
         "str",
         "int",
     ],
 )
-def test_custom_connection(conn, expected):
-    is_custom = Connection.is_custom_connection(conn)
+def test_dbapi_connection(conn, expected):
+    is_custom = Connection.is_dbapi_connection(conn)
     assert is_custom == expected
 
 

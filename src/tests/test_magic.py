@@ -85,7 +85,7 @@ def test_result_var(ip, capsys):
     assert "Returning data to local variable" not in out
 
 
-def test_result_var_link(ip, capsys):
+def test_result_var_link(ip):
     ip.run_cell_magic(
         "sql",
         "",
@@ -96,14 +96,16 @@ def test_result_var_link(ip, capsys):
         """,
     )
     result = ip.user_global_ns["x"]
-    out, _ = capsys.readouterr()
+
     assert (
         "<a href=https://en.wikipedia.org/wiki/Bertolt_Brecht>"
-        "https://en.wikipedia.org/wiki/Bertolt_Brecht</a>" in result._repr_html_()
-        and "<a href=https://en.wikipedia.org/wiki/William_Shakespeare>"
-        "https://en.wikipedia.org/wiki/William_Shakespeare</a>" in result._repr_html_()
-    )
-    assert "Returning data to local variable" not in out
+        "https://en.wikipedia.org/wiki/Bertolt_Brecht</a>"
+    ) in result._repr_html_()
+
+    assert (
+        "<a href=https://en.wikipedia.org/wiki/William_Shakespeare>"
+        "https://en.wikipedia.org/wiki/William_Shakespeare</a>"
+    ) in result._repr_html_()
     assert "<a href=google_link>google_link</a>" not in result._repr_html_()
 
 
@@ -567,6 +569,8 @@ def test_displaylimit(ip):
 
     assert "Brecht" in result._repr_html_()
     assert "Shakespeare" not in result._repr_html_()
+    assert "Brecht" in repr(result)
+    assert "Shakespeare" not in repr(result)
 
 
 @pytest.mark.parametrize("config_value, expected_length", [(3, 3), (6, 6)])
@@ -912,7 +916,7 @@ def test_alias_existing_engine(clean_conns, ip_empty, tmp_empty):
     assert {"one"} == set(Connection.connections)
 
 
-def test_alias_custom_connection(clean_conns, ip_empty, tmp_empty):
+def test_alias_dbapi_connection(clean_conns, ip_empty, tmp_empty):
     ip_empty.user_global_ns["first"] = create_engine("sqlite://")
     ip_empty.run_cell("%sql first --alias one")
     assert {"one"} == set(Connection.connections)
@@ -951,7 +955,7 @@ def test_close_connection_with_existing_engine_and_alias(ip, tmp_empty):
     assert "second" not in Connection.connections
 
 
-def test_close_connection_with_custom_connection_and_alias(ip, tmp_empty):
+def test_close_connection_with_dbapi_connection_and_alias(ip, tmp_empty):
     ip.user_global_ns["first"] = create_engine("sqlite:///first.db")
     ip.user_global_ns["second"] = create_engine("sqlite:///second.db")
 

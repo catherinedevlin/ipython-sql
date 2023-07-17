@@ -149,14 +149,14 @@ conn.execute("CREATE TABLE some_table (name, age)")
 ### Non SQLAlchemy supported engines
 
 When working with engines that are not supported by SQLAlchemy, e.g. `QuestDB`, we won't be able to use `sqlalchemy.create_engine`.
-Instead, we should initiate an engine using the native method and use the `CustomConnection` object.
+Instead, we should initiate an engine using the native method and use the `DBAPIConnection` object.
 
 ```python
 import psycopg as pg
-from sql.connection import CustomConnection
+from sql.connection import DBAPIConnection
 
 engine = pg.connect("dbname='qdb' user='admin' host='127.0.0.1' port='8812' password='quest'")
-conn = CustomConnection(engine)
+conn = DBAPIConnection(engine)
 
 plot.histogram("my_table", "column_name", bins=50, conn=conn)
 ```
@@ -164,7 +164,7 @@ plot.histogram("my_table", "column_name", bins=50, conn=conn)
 For a full example on how to use JupySQL with a non SQLAlchemy supported engine please see [QuestDB](./../integrations/questdb).
 
 ```{note}
-Please be advised that there may be some features/functionalities that won't be fully compatible with JupySQL when using `CustomConnection`.
+Please be advised that there may be some features/functionalities that won't be fully compatible with JupySQL when using `DBAPIConnection`.
 ```
 
 ## Unit testing

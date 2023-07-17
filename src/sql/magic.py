@@ -110,7 +110,7 @@ class SqlMagic(Magics, Configurable):
         help="Don't display the full traceback on SQL Programming Error",
     )
     displaylimit = Int(
-        sql.run.DEFAULT_DISPLAYLIMIT_VALUE,
+        10,
         config=True,
         allow_none=True,
         help=(
@@ -609,9 +609,7 @@ class SqlMagic(Magics, Configurable):
             if_exists = "fail"
 
         try:
-            frame.to_sql(
-                table_name, conn.session.engine, if_exists=if_exists, index=index
-            )
+            frame.to_sql(table_name, conn.session, if_exists=if_exists, index=index)
         except ValueError:
             raise exceptions.ValueError(
                 f"""Table {table_name!r} already exists. Consider using \

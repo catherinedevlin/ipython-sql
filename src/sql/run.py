@@ -11,8 +11,10 @@ import prettytable
 import sqlalchemy
 import sqlparse
 from sql.connection import Connection
+from sqlalchemy.exc import ResourceClosedError
 from sql import exceptions, display
 from .column_guesser import ColumnGuesserMixin
+from sql.warnings import JupySQLDataFramePerformanceWarning
 
 try:
     from pgspecial.main import PGSpecial
@@ -24,8 +26,6 @@ from sql.telemetry import telemetry
 import logging
 import warnings
 from collections.abc import Iterable
-
-DEFAULT_DISPLAYLIMIT_VALUE = 10
 
 
 def unduplicate_field_names(field_names):
@@ -104,69 +104,166 @@ _cell_with_spaces_pattern = re.compile(r"(<td>)( {2,})")
 
 class ResultSet(ColumnGuesserMixin):
     """
-    Results of a SQL query.
-
-    Can access rows listwise, or by string value of leftmost column.
+    Results of a SQL query. Fetches rows lazily (only the necessary rows to show the
+    preview based on the current configuration)
     """
 
-    def __init__(self, sqlaproxy, config):
+    # user to overcome a duckdb-engine limitation, see @sqlaproxy for details
+    LAST_BY_CONNECTION = {}
+
+    def __init__(self, sqlaproxy, config, statement=None, conn=None):
+        ResultSet.LAST_BY_CONNECTION[conn] = self
+
         self.config = config
-        self.keys = {}
-        self._results = []
         self.truncated = False
-        self.sqlaproxy = sqlaproxy
+        self.statement = statement
+
+        self._sqlaproxy = sqlaproxy
+        self._conn = conn
+        self._dialect = conn._get_curr_sqlglot_dialect()
+        self._keys = None
+        self._field_names = None
+        self._results = []
 
         # https://peps.python.org/pep-0249/#description
         self.is_dbapi_results = hasattr(sqlaproxy, "description")
 
-        self.pretty = None
+        # note that calling this will fetch the keys
+        self.pretty_table = self._init_table()
+
+        self._mark_fetching_as_done = False
+
+        if self.config.autolimit == 1:
+            # if autolimit is 1, we only want to fetch one row
+            self.fetchmany(size=1)
+            self._done_fetching()
+        else:
+            # in all other cases, 2 allows us to know if there are more rows
+            # for example when creating a table, the results contains one row, in
+            # such case, fetching 2 rows will tell us that there are no more rows
+            # and can set the _mark_fetching_as_done flag to True
+            self.fetchmany(size=2)
+
+        self._finished_init = True
+
+    @property
+    def sqlaproxy(self):
+        # there is a problem when using duckdb + sqlalchemy: duckdb-engine doesn't
+        # create separate cursors, so whenever we have >1 ResultSet, the old ones
+        # become outdated and fetching their results will return the results from
+        # the last ResultSet. To fix this, we have to re-issue the query
+        is_last_result = ResultSet.LAST_BY_CONNECTION.get(self._conn) is self
+        is_duckdb_sqlalchemy = (
+            self._dialect == "duckdb" and not self._conn.is_dbapi_connection()
+        )
+
+        if (
+            # skip this if we're initializing the object (we're running __init__)
+            hasattr(self, "_finished_init")
+            # this only applies to duckdb + sqlalchemy with outdated results
+            and is_duckdb_sqlalchemy
+            and not is_last_result
+        ):
+            self._sqlaproxy = self._conn.session.execute(self.statement)
+            self._sqlaproxy.fetchmany(size=len(self._results))
+
+            ResultSet.LAST_BY_CONNECTION[self._conn] = self
+
+        return self._sqlaproxy
+
+    def _extend_results(self, elements):
+        """Store the DB fetched results into the internal list of results"""
+        to_add = self.config.displaylimit - len(self._results)
+        self._results.extend(elements)
+        self.pretty_table.add_rows(elements[:to_add])
+
+    def mark_fetching_as_done(self):
+        self._mark_fetching_as_done = True
+        # NOTE: don't close the connection here (self.sqlaproxy.close()),
+        # because we need to keep it open for the next query
+
+    def _done_fetching(self):
+        return self._mark_fetching_as_done
+
+    @property
+    def field_names(self):
+        if self._field_names is None:
+            self._field_names = unduplicate_field_names(self.keys)
+
+        return self._field_names
+
+    @property
+    def keys(self):
+        """
+        Return the keys of the results (the column names)
+        """
+        if self._keys is not None:
+            return self._keys
+
+        if not self.is_dbapi_results:
+            try:
+                self._keys = self.sqlaproxy.keys()
+            # sqlite raises this error when running a script that doesn't return rows
+            # e.g, 'CREATE TABLE' but others don't (e.g., duckdb)
+            except ResourceClosedError:
+                self._keys = []
+                return self._keys
+
+        elif isinstance(self.sqlaproxy.description, Iterable):
+            self._keys = [i[0] for i in self.sqlaproxy.description]
+        else:
+            self._keys = []
+
+        return self._keys
 
     def _repr_html_(self):
-        _cell_with_spaces_pattern = re.compile(r"(<td>)( {2,})")
-        if self.pretty:
-            self.pretty.add_rows(self)
-            result = self.pretty.get_html_string()
-            HTML = (
-                "%s\n<span style='font-style:italic;font-size:11px'>"
-                "<code>ResultSet</code> : to convert to pandas, call <a href="
-                "'https://jupysql.ploomber.io/en/latest/integrations/pandas.html'>"
-                "<code>.DataFrame()</code></a> or to polars, call <a href="
-                "'https://jupysql.ploomber.io/en/latest/integrations/polars.html'>"
-                "<code>.PolarsDataFrame()</code></a></span><br>"
-            )
-            result = HTML % (result)
+        self.fetch_for_repr_if_needed()
 
-            # to create clickable links
-            result = html.unescape(result)
-            result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
-            if self.truncated:
-                HTML = (
-                    '%s\n<span style="font-style:italic;text-align:center;">'
-                    "Truncated to displaylimit of %d</span>"
-                    "<br>"
-                    '<span style="font-style:italic;text-align:center;">'
-                    "If you want to see more, please visit "
-                    '<a href="https://jupysql.ploomber.io/en/latest/api/configuration.html#displaylimit">displaylimit</a>'  # noqa: E501
-                    " configuration</span>"
-                )
-                result = HTML % (result, self.pretty.row_count)
-            return result
-        else:
-            return None
+        _cell_with_spaces_pattern = re.compile(r"(<td>)( {2,})")
+
+        result = self.pretty_table.get_html_string()
+
+        HTML = (
+            "%s\n<span style='font-style:italic;font-size:11px'>"
+            "<code>ResultSet</code> : to convert to pandas, call <a href="
+            "'https://jupysql.ploomber.io/en/latest/integrations/pandas.html'>"
+            "<code>.DataFrame()</code></a> or to polars, call <a href="
+            "'https://jupysql.ploomber.io/en/latest/integrations/polars.html'>"
+            "<code>.PolarsDataFrame()</code></a></span><br>"
+        )
+        result = HTML % (result)
+
+        # to create clickable links
+        result = html.unescape(result)
+        result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
+
+        if self.config.displaylimit != 0 and not self._done_fetching():
+            HTML = (
+                '%s\n<span style="font-style:italic;text-align:center;">'
+                "Truncated to displaylimit of %d</span>"
+                "<br>"
+                '<span style="font-style:italic;text-align:center;">'
+                "If you want to see more, please visit "
+                '<a href="https://jupysql.ploomber.io/en/latest/api/configuration.html#displaylimit">displaylimit</a>'  # noqa: E501
+                " configuration</span>"
+            )
+            result = HTML % (result, self.config.displaylimit)
+        return result
 
     def __len__(self):
+        self.fetchall()
+
         return len(self._results)
 
     def __iter__(self):
-        results = self._fetch_query_results(fetch_all=True)
+        self.fetchall()
 
-        for result in results:
+        for result in self._results:
             yield result
 
-    def __str__(self, *arg, **kwarg):
-        if self.pretty:
-            self.pretty.add_rows(self)
-        return str(self.pretty or "")
+    def __str__(self):
+        self.fetch_for_repr_if_needed()
+        return str(self.pretty_table)
 
     def __repr__(self) -> str:
         return str(self)
@@ -189,17 +286,13 @@ class ResultSet(ColumnGuesserMixin):
                 raise KeyError('%d results for "%s"' % (len(result), key))
             return result[0]
 
-    def __getattribute__(self, attr):
-        "Raises AttributeError when invalid operation is performed."
-        try:
-            return object.__getattribute__(self, attr)
-        except AttributeError:
-            err_msg = (
-                f"'{attr}' is not a valid operation, you can convert this "
-                "into a pandas data frame by calling '.DataFrame()' or a "
-                "polars data frame by calling '.PolarsDataFrame()'"
-            )
-            raise AttributeError(err_msg) from None
+    def __getattr__(self, attr):
+        err_msg = (
+            f"'{attr}' is not a valid operation, you can convert this "
+            "into a pandas data frame by calling '.DataFrame()' or a "
+            "polars data frame by calling '.PolarsDataFrame()'"
+        )
+        raise AttributeError(err_msg)
 
     def dict(self):
         """Returns a single dict built from the result set
@@ -214,24 +307,20 @@ class ResultSet(ColumnGuesserMixin):
 
     @telemetry.log_call("data-frame", payload=True)
     def DataFrame(self, payload):
-        "Returns a Pandas DataFrame instance built from the result set."
+        """Returns a Pandas DataFrame instance built from the result set."""
+        payload["connection_info"] = self._conn._get_curr_sqlalchemy_connection_info()
         import pandas as pd
 
-        frame = pd.DataFrame(self, columns=(self and self.keys) or [])
-        payload[
-            "connection_info"
-        ] = Connection.current._get_curr_sqlalchemy_connection_info()
-        return frame
+        kwargs = {"columns": (self and self.keys) or []}
+        return _convert_to_data_frame(self, "df", pd.DataFrame, kwargs)
 
     @telemetry.log_call("polars-data-frame")
     def PolarsDataFrame(self, **polars_dataframe_kwargs):
-        "Returns a Polars DataFrame instance built from the result set."
+        """Returns a Polars DataFrame instance built from the result set."""
         import polars as pl
 
-        frame = pl.DataFrame(
-            (tuple(row) for row in self), schema=self.keys, **polars_dataframe_kwargs
-        )
-        return frame
+        polars_dataframe_kwargs["schema"] = self.keys
+        return _convert_to_data_frame(self, "pl", pl.DataFrame, polars_dataframe_kwargs)
 
     @telemetry.log_call("pie")
     def pie(self, key_word_sep=" ", title=None, **kwargs):
@@ -342,9 +431,6 @@ class ResultSet(ColumnGuesserMixin):
     def csv(self, filename=None, **format_params):
         """Generate results in comma-separated form.  Write to ``filename`` if given.
         Any other parameters will be passed on to csv.writer."""
-        if not self.pretty:
-            return None  # no results
-        self.pretty.add_rows(self)
         if filename:
             encoding = format_params.get("encoding", "utf-8")
             outfile = open(filename, "w", newline="", encoding=encoding)
@@ -361,104 +447,51 @@ class ResultSet(ColumnGuesserMixin):
         else:
             return outfile.getvalue()
 
-    def fetch_results(self, fetch_all=False):
-        """
-        Returns a limited representation of the query results.
+    def fetchmany(self, size):
+        """Fetch n results and add it to the results"""
+        if not self._done_fetching():
+            try:
+                returned = self.sqlaproxy.fetchmany(size=size)
+            # sqlite raises this error when running a script that doesn't return rows
+            # e.g, 'CREATE TABLE' but others don't (e.g., duckdb)
+            except ResourceClosedError:
+                self.mark_fetching_as_done()
+                return
 
-        Parameters
-        ----------
-        fetch_all : bool default False
-            Return all query rows
-        """
-        is_dbapi_results = self.is_dbapi_results
-        sqlaproxy = self.sqlaproxy
-        config = self.config
+            self._extend_results(returned)
 
-        if is_dbapi_results:
-            should_try_fetch_results = True
-        else:
-            should_try_fetch_results = sqlaproxy.returns_rows
+            if len(returned) < size:
+                self.mark_fetching_as_done()
 
-        if should_try_fetch_results:
-            # sql alchemy results
-            if not is_dbapi_results:
-                self.keys = sqlaproxy.keys()
-            elif isinstance(sqlaproxy.description, Iterable):
-                self.keys = [i[0] for i in sqlaproxy.description]
-            else:
-                self.keys = []
+            if (
+                self.config.autolimit is not None
+                and self.config.autolimit != 0
+                and len(self._results) >= self.config.autolimit
+            ):
+                self.mark_fetching_as_done()
 
-            if len(self.keys) > 0:
-                self._results = self._fetch_query_results(fetch_all=fetch_all)
+    def fetch_for_repr_if_needed(self):
+        if self.config.displaylimit == 0:
+            self.fetchall()
 
-                self.field_names = unduplicate_field_names(self.keys)
+        missing = self.config.displaylimit - len(self._results)
 
-                _style = None
+        if missing > 0:
+            self.fetchmany(missing)
 
-                self.pretty = PrettyTable(self.field_names)
+    def fetchall(self):
+        if not self._done_fetching():
+            self._extend_results(self.sqlaproxy.fetchall())
+            self.mark_fetching_as_done()
 
-                if isinstance(config.style, str):
-                    _style = prettytable.__dict__[config.style.upper()]
-                    self.pretty.set_style(_style)
+    def _init_table(self):
+        pretty = CustomPrettyTable(self.field_names)
 
-        return self
+        if isinstance(self.config.style, str):
+            _style = prettytable.__dict__[self.config.style.upper()]
+            pretty.set_style(_style)
 
-    def _fetch_query_results(self, fetch_all=False):
-        """
-        Returns rows of a query result as a list of tuples.
-
-        Parameters
-        ----------
-        fetch_all : bool default False
-            Return all query rows
-        """
-        sqlaproxy = self.sqlaproxy
-        config = self.config
-        _should_try_lazy_fetch = hasattr(sqlaproxy, "_soft_closed")
-
-        _should_fetch_all = (
-            (config.displaylimit == 0 or not config.displaylimit)
-            or fetch_all
-            or not _should_try_lazy_fetch
-        )
-
-        is_autolimit = isinstance(config.autolimit, int) and config.autolimit > 0
-        is_connection_closed = (
-            sqlaproxy._soft_closed if _should_try_lazy_fetch else False
-        )
-
-        should_return_results = is_connection_closed or (
-            len(self._results) > 0 and is_autolimit
-        )
-
-        if should_return_results:
-            # this means we already loaded all
-            # the results to self._results or we use
-            # autolimit and shouldn't fetch more
-            results = self._results
-        else:
-            if is_autolimit:
-                results = sqlaproxy.fetchmany(size=config.autolimit)
-            else:
-                if _should_fetch_all:
-                    all_results = sqlaproxy.fetchall()
-                    results = self._results + all_results
-                    self._results = results
-                else:
-                    results = sqlaproxy.fetchmany(size=config.displaylimit)
-
-                if _should_try_lazy_fetch:
-                    # Try to fetch an extra row to find out
-                    # if there are more results to fetch
-                    row = sqlaproxy.fetchone()
-                    if row is not None:
-                        results += [row]
-
-        # Check if we have more rows to show
-        if config.displaylimit > 0:
-            self.truncated = len(results) > config.displaylimit
-
-        return results
+        return pretty
 
 
 def display_affected_rowcount(rowcount):
@@ -604,10 +637,6 @@ def run(conn, sql, config):
     config
         Configuration object
     """
-    info = conn._get_curr_sqlalchemy_connection_info()
-
-    duckdb_autopandas = info and info.get("dialect") == "duckdb" and config.autopandas
-
     if not sql.strip():
         # returning only when sql is empty string
         return "Connected: %s" % conn.name
@@ -627,60 +656,30 @@ def run(conn, sql, config):
         # regular query
         else:
             manual_commit = set_autocommit(conn, config)
-            is_custom_connection = Connection.is_custom_connection(conn)
+            is_dbapi_connection = Connection.is_dbapi_connection(conn)
 
             # if regular sqlalchemy, pass a text object
-            if not is_custom_connection:
+            if not is_dbapi_connection:
                 statement = sqlalchemy.sql.text(statement)
 
-            if duckdb_autopandas:
-                conn = conn.engine.raw_connection()
-                cursor = conn.cursor()
-                cursor.execute(str(statement))
+            result = conn.session.execute(statement)
+            _commit(conn=conn, config=config, manual_commit=manual_commit)
 
-            else:
-                result = conn.session.execute(statement)
-                _commit(conn=conn, config=config, manual_commit=manual_commit)
+            if result and config.feedback:
+                if hasattr(result, "rowcount"):
+                    display_affected_rowcount(result.rowcount)
 
-                if result and config.feedback:
-                    if hasattr(result, "rowcount"):
-                        display_affected_rowcount(result.rowcount)
-
-    # bypass ResultSet and use duckdb's native method to return a pandas data frame
-    if duckdb_autopandas:
-        df = cursor.df()
-        conn.close()
-        return df
-    else:
-        resultset = ResultSet(result, config)
-
-        # lazy load
-        resultset.fetch_results()
-        return select_df_type(resultset, config)
+    resultset = ResultSet(result, config, statement, conn)
+    return select_df_type(resultset, config)
 
 
 def raw_run(conn, sql):
     return conn.session.execute(sqlalchemy.sql.text(sql))
 
 
-class PrettyTable(prettytable.PrettyTable):
-    def __init__(self, *args, **kwargs):
-        self.row_count = 0
-        self.displaylimit = DEFAULT_DISPLAYLIMIT_VALUE
-        return super(PrettyTable, self).__init__(*args, **kwargs)
-
+class CustomPrettyTable(prettytable.PrettyTable):
     def add_rows(self, data):
-        if self.row_count and (data.config.displaylimit == self.displaylimit):
-            return  # correct number of rows already present
-        self.clear_rows()
-        self.displaylimit = data.config.displaylimit
-        if self.displaylimit == 0:
-            self.displaylimit = None
-        if self.displaylimit in (None, 0):
-            self.row_count = len(data)
-        else:
-            self.row_count = min(len(data), self.displaylimit)
-        for row in data[: self.displaylimit]:
+        for row in data:
             formatted_row = []
             for cell in row:
                 if isinstance(cell, str) and cell.startswith("http"):
@@ -688,3 +687,58 @@ class PrettyTable(prettytable.PrettyTable):
                 else:
                     formatted_row.append(cell)
             self.add_row(formatted_row)
+
+
+def _statement_is_select(statement):
+    statement_ = statement.lower().strip()
+    # duckdb also allows FROM without SELECT
+    return statement_.startswith("select") or statement_.startswith("from")
+
+
+def _convert_to_data_frame(
+    result_set, converter_name, constructor, constructor_kwargs=None
+):
+    constructor_kwargs = constructor_kwargs or {}
+    has_converter_method = hasattr(result_set.sqlaproxy, converter_name)
+
+    # native duckdb connection
+    if hasattr(result_set.sqlaproxy, converter_name):
+        # we need to re-execute the statement because if we fetched some rows
+        # already, .df() will return None. But only if it's a select statement
+        # otherwise we might end up re-execute INSERT INTO or CREATE TABLE
+        # statements
+        is_select = _statement_is_select(result_set.statement)
+
+        if is_select:
+            result_set.sqlaproxy.execute(result_set.statement)
+
+        return getattr(result_set.sqlaproxy, converter_name)()
+    else:
+        frame = constructor(
+            (tuple(row) for row in result_set),
+            **constructor_kwargs,
+        )
+
+        # NOTE: in JupySQL 0.7.9, we were opening a raw new connection so people
+        # using SQLALchemy still had the native performance to convert to data frames
+        # but this led to other problems because the native connection didn't
+        # have the same state as the SQLAlchemy connection, yielding confusing
+        # errors. So we decided to remove this and just warn the user that
+        # performance might be slow and they could use a native connection
+        if (
+            result_set._dialect == "duckdb"
+            and not has_converter_method
+            and len(frame) >= 1_000
+        ):
+            DOCS = "https://jupysql.ploomber.io/en/latest/integrations/duckdb.html"
+            WARNINGS = "https://jupysql.ploomber.io/en/latest/tutorials/duckdb-native-sqlalchemy.html#supress-warnings"  # noqa: E501
+
+            warnings.warn(
+                "It looks like you're using DuckDB with SQLAlchemy. "
+                "For faster conversions, use "
+                f" a DuckDB native connection. Docs: {DOCS}."
+                f" to suppress this warning, see: {WARNINGS}",
+                category=JupySQLDataFramePerformanceWarning,
+            )
+
+        return frame

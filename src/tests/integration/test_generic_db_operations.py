@@ -38,7 +38,6 @@ def mock_log_api(monkeypatch):
     yield mock_log_api
 
 
-# Query
 @pytest.mark.parametrize(
     "ip_with_dynamic_db, expected",
     [
@@ -53,6 +52,7 @@ def mock_log_api(monkeypatch):
 )
 def test_query_count(ip_with_dynamic_db, expected, request, test_table_name_dict):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+
     out = ip_with_dynamic_db.run_cell(
         f"%sql SELECT * FROM {test_table_name_dict['taxi']} LIMIT 3"
     )
@@ -70,7 +70,47 @@ def test_query_count(ip_with_dynamic_db, expected, request, test_table_name_dict
     assert len(out_query_with_save_arg.result) == expected
 
 
-# Create
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        "ip_with_postgreSQL",
+        "ip_with_mySQL",
+        "ip_with_mariaDB",
+        "ip_with_SQLite",
+        "ip_with_duckDB",
+        "ip_with_duckDB_native",
+        "ip_with_Snowflake",
+    ],
+)
+def test_handle_multiple_open_result_sets(
+    ip_with_dynamic_db, request, test_table_name_dict
+):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    taxi_table = test_table_name_dict["taxi"]
+    numbers_table = test_table_name_dict["numbers"]
+
+    ip_with_dynamic_db.run_cell("%config SqlMagic.displaylimit = 2")
+
+    taxi = ip_with_dynamic_db.run_cell(
+        f"%sql SELECT * FROM {taxi_table} LIMIT 5"
+    ).result
+
+    numbers = ip_with_dynamic_db.run_cell(
+        f"%sql SELECT * FROM {numbers_table} LIMIT 5"
+    ).result
+
+    # NOTE: we do not check the value of the indexes because snowflake does not support
+    # them
+    assert taxi.dict()["taxi_driver_name"] == (
+        "Eric Ken",
+        "John Smith",
+        "Kevin Kelly",
+        "Eric Ken",
+        "John Smith",
+    )
+    assert numbers.dict()["numbers_elements"] == (1, 2, 3, 1, 2)
+
+
 @pytest.mark.parametrize(
     "ip_with_dynamic_db, expected, limit",
     [
@@ -101,6 +141,7 @@ def test_create_table_with_indexed_df(
     ip_with_dynamic_db.run_cell(
         f"%sql DROP TABLE IF EXISTS {test_table_name_dict['new_table_from_df']}"
     )
+
     # Prepare DF
     ip_with_dynamic_db.run_cell(
         f"results = %sql SELECT * FROM {test_table_name_dict['taxi']}\
@@ -123,12 +164,13 @@ def test_create_table_with_indexed_df(
     )
     assert persist_out.error_in_exec is None and out_df.error_in_exec is None
     assert len(out_df.result) == expected
-    assert expected_df.result.DataFrame().equals(
-        out_df.result.DataFrame().loc[:, out_df.result.DataFrame().columns != "level_0"]
-    )
+
+    expected_df_ = expected_df.result.DataFrame()
+    out_df_ = out_df.result.DataFrame()
+
+    assert expected_df_.equals(out_df_.loc[:, out_df_.columns != "level_0"])
 
 
-# Connection
 def get_connection_count(ip_with_dynamic_db):
     out = ip_with_dynamic_db.run_line_magic("sql", "-l")
     print("Current connections:", out)
@@ -136,7 +178,6 @@ def get_connection_count(ip_with_dynamic_db):
     return connections_count
 
 
-# Test - Number of active connection
 @pytest.mark.parametrize(
     "ip_with_dynamic_db, expected",
     [
@@ -187,8 +228,6 @@ def test_close_and_connect(
     assert get_connection_count(ip_with_dynamic_db) == 1
 
 
-# Telemetry
-# Test - Number of active connection
 @pytest.mark.parametrize(
     "ip_with_dynamic_db, expected_dialect, expected_driver",
     [

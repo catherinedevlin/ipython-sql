@@ -1,12 +1,26 @@
-from dockerctx import new_container
 from contextlib import contextmanager
 import sys
 import time
-import docker
-from docker import errors
+
 from sqlalchemy.engine import URL
 import os
 import sqlalchemy
+
+from ploomber_core.dependencies import requires
+
+# SQLite and DuckDB do not require Docker, so we make docker packages optional
+# in case we want to run those tests
+
+try:
+    from dockerctx import new_container
+except ModuleNotFoundError:
+    new_container = None
+
+try:
+    import docker
+except ModuleNotFoundError:
+    docker = None
+
 
 TMP_DIR = "tmp"
 
@@ -117,7 +131,7 @@ databaseConfig = {
         "username": os.getenv("SF_USERNAME"),
         "password": os.getenv("SF_PASSWORD"),
         # database/schema
-        "database": os.getenv("SF_DATABASE"),
+        "database": os.getenv("SF_DATABASE", "JUPYSQL_INTEGRATION_TESTING/GENERAL"),
         "host": "lpb17716.us-east-1",
         "port": None,
         "alias": "snowflakeTest",
@@ -160,9 +174,6 @@ def _get_database_url(database):
         database=databaseConfig[database]["database"],
         query=databaseConfig[database]["query"],
     ).render_as_string(hide_password=False)
-
-
-client = docker.from_env()
 
 
 def database_ready(
@@ -208,6 +219,7 @@ def get_docker_client():
 
 
 @contextmanager
+@requires(["docker", "dockerctx"])
 def postgres(is_bypass_init=False):
     if is_bypass_init:
         yield None
@@ -217,7 +229,7 @@ def postgres(is_bypass_init=False):
         client = get_docker_client()
         container = client.containers.get(db_config["docker_ct"]["name"])
         yield container
-    except errors.NotFound:
+    except docker.errors.NotFound:
         print("Creating new container: postgreSQL")
         with new_container(
             new_container_name=db_config["docker_ct"]["name"],
@@ -240,6 +252,7 @@ def postgres(is_bypass_init=False):
 
 
 @contextmanager
+@requires(["docker", "dockerctx"])
 def mysql(is_bypass_init=False):
     if is_bypass_init:
         yield None
@@ -249,7 +262,7 @@ def mysql(is_bypass_init=False):
         client = get_docker_client()
         container = client.containers.get(db_config["docker_ct"]["name"])
         yield container
-    except errors.NotFound:
+    except docker.errors.NotFound:
         print("Creating new container: mysql")
         with new_container(
             new_container_name=db_config["docker_ct"]["name"],
@@ -280,6 +293,7 @@ def mysql(is_bypass_init=False):
 
 
 @contextmanager
+@requires(["docker", "dockerctx"])
 def mariadb(is_bypass_init=False):
     if is_bypass_init:
         yield None
@@ -289,7 +303,7 @@ def mariadb(is_bypass_init=False):
         client = get_docker_client()
         curr = client.containers.get(db_config["docker_ct"]["name"])
         yield curr
-    except errors.NotFound:
+    except docker.errors.NotFound:
         print("Creating new container: mariaDB")
         with new_container(
             new_container_name=db_config["docker_ct"]["name"],
@@ -320,6 +334,7 @@ def mariadb(is_bypass_init=False):
 
 
 @contextmanager
+@requires(["docker", "dockerctx"])
 def mssql(is_bypass_init=False):
     if is_bypass_init:
         yield None
@@ -329,7 +344,7 @@ def mssql(is_bypass_init=False):
         client = get_docker_client()
         curr = client.containers.get(db_config["docker_ct"]["name"])
         yield curr
-    except errors.NotFound:
+    except docker.errors.NotFound:
         print("Creating new container: MSSQL")
         with new_container(
             new_container_name=db_config["docker_ct"]["name"],
@@ -353,6 +368,7 @@ def mssql(is_bypass_init=False):
 
 
 @contextmanager
+@requires(["docker", "dockerctx"])
 def oracle(is_bypass_init=False):
     if is_bypass_init:
         yield None
@@ -362,7 +378,7 @@ def oracle(is_bypass_init=False):
         client = get_docker_client()
         curr = client.containers.get(db_config["docker_ct"]["name"])
         yield curr
-    except errors.NotFound:
+    except docker.errors.NotFound:
         print("Creating new container: oracle")
         with new_container(
             new_container_name=db_config["docker_ct"]["name"],

@@ -6,7 +6,7 @@ def test_connection_string_displayed(ip_empty, capsys):
     assert "Running query in 'duckdb://'" in captured.out
 
 
-def test_custom_connection_display(ip_empty, capsys, tmp_empty):
+def test_dbapi_connection_display(ip_empty, capsys, tmp_empty):
     ip_empty.run_cell("import duckdb")
     ip_empty.run_cell("custom = duckdb.connect('anotherdb')")
     ip_empty.run_cell("%sql custom")

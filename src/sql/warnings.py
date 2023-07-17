@@ -1,0 +1,2 @@
+class JupySQLDataFramePerformanceWarning(UserWarning):
+    pass

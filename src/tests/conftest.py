@@ -50,6 +50,21 @@ def clean_conns():
     yield
 
 
+class TestingShell(InteractiveShell):
+    """
+    A custom InteractiveShell that raises exceptions instead of silently suppressing
+    them.
+    """
+
+    def run_cell(self, *args, **kwargs):
+        result = super().run_cell(*args, **kwargs)
+
+        if result.error_in_exec is not None:
+            raise result.error_in_exec
+
+        return result
+
+
 @pytest.fixture
 def ip_empty():
     c = Config()
@@ -64,6 +79,32 @@ def ip_empty():
     ip_session.register_magics(RenderMagic)
     ip_session.register_magics(SqlPlotMagic)
     ip_session.register_magics(SqlCmdMagic)
+
+    # there is some weird bug in ipython that causes this function to hang the pytest
+    # process when all tests have been executed (an internal call to gc.collect()
+    # hangs). This is a workaround.
+    ip_session.displayhook.flush = lambda: None
+
+    yield ip_session
+    Connection.close_all()
+
+
+@pytest.fixture
+def ip_empty_testing():
+    c = Config()
+    c.HistoryAccessor.enabled = False
+    ip_session = TestingShell(config=c)
+
+    ip_session.register_magics(SqlMagic)
+    ip_session.register_magics(RenderMagic)
+    ip_session.register_magics(SqlPlotMagic)
+    ip_session.register_magics(SqlCmdMagic)
+
+    # there is some weird bug in ipython that causes this function to hang the pytest
+    # process when all tests have been executed (an internal call to gc.collect()
+    # hangs). This is a workaround.
+    ip_session.displayhook.flush = lambda: None
+
     yield ip_session
     Connection.close_all()
 

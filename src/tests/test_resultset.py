@@ -1,17 +1,18 @@
-from sqlalchemy import create_engine
-from sql.connection import Connection
+from unittest.mock import Mock, call
+
+import duckdb
+from sqlalchemy import create_engine, text
 from pathlib import Path
-from unittest.mock import Mock
+
 
 import pytest
 import pandas as pd
 import polars as pl
 import sqlalchemy
 
+from sql.connection import DBAPIConnection, Connection
 from sql.run import ResultSet
 from sql import run as run_module
-
-import re
 
 
 @pytest.fixture
@@ -35,7 +36,7 @@ def result():
 
 @pytest.fixture
 def result_set(result, config):
-    return ResultSet(result, config).fetch_results()
+    return ResultSet(result, config, statement=None, conn=Mock())
 
 
 def test_resultset_getitem(result_set):
@@ -45,6 +46,10 @@ def test_resultset_getitem(result_set):
 
 def test_resultset_dict(result_set):
     assert result_set.dict() == {"x": (0, 1, 2)}
+
+
+def test_resultset_len(result_set):
+    assert len(result_set) == 3
 
 
 def test_resultset_dicts(result_set):
@@ -72,19 +77,15 @@ def test_resultset_str(result_set):
 
 
 def test_resultset_repr_html(result_set):
-    assert result_set._repr_html_() == (
-        "<table>\n    <thead>\n        <tr>\n            "
-        "<th>x</th>\n        </tr>\n    </thead>\n    <tbody>\n        "
-        "<tr>\n            <td>0</td>\n        </tr>\n        <tr>\n            "
-        "<td>1</td>\n        </tr>\n        <tr>\n            <td>2</td>\n        "
-        "</tr>\n    </tbody>\n</table>\n"
+    html_ = result_set._repr_html_()
+    assert (
         "<span style='font-style:italic;font-size:11px'>"
         "<code>ResultSet</code> : to convert to pandas, call <a href="
         "'https://jupysql.ploomber.io/en/latest/integrations/pandas.html'>"
         "<code>.DataFrame()</code></a> or to polars, call <a href="
         "'https://jupysql.ploomber.io/en/latest/integrations/polars.html'>"
         "<code>.PolarsDataFrame()</code></a></span><br>"
-    )
+    ) in html_
 
 
 @pytest.mark.parametrize(
@@ -109,177 +110,475 @@ def test_invalid_operation_error(result_set, fname, parameters):
 
 def test_resultset_config_autolimit_dict(result, config):
     config.autolimit = 1
-    resultset = ResultSet(result, config).fetch_results()
+    resultset = ResultSet(result, config, statement=None, conn=Mock())
     assert resultset.dict() == {"x": (0,)}
 
 
-def test_resultset_with_non_sqlalchemy_results(config):
-    df = pd.DataFrame({"x": range(3)})  # noqa
-    conn = Connection(engine=create_engine("duckdb://"))
-    result = conn.execute("SELECT * FROM df")
-    assert ResultSet(result, config).fetch_results() == [(0,), (1,), (2,)]
+@pytest.fixture
+def results(ip_empty):
+    engine = create_engine("duckdb://")
+    session = engine.connect()
+
+    session.execute(text("CREATE TABLE a (x INT,);"))
+
+    session.execute(text("INSERT INTO a(x) VALUES (1),(2),(3),(4),(5);"))
+
+    sql = "SELECT * FROM a"
+    results = session.execute(text(sql))
+
+    results.fetchmany = Mock(wraps=results.fetchmany)
+    results.fetchall = Mock(wraps=results.fetchall)
+    results.fetchone = Mock(wraps=results.fetchone)
+
+    yield results
+
+    session.close()
 
 
-def test_none_pretty(config):
-    conn = Connection(engine=create_engine("sqlite://"))
-    result = conn.execute("create table some_table (name, age)")
-    result_set = ResultSet(result, config)
-    assert result_set.pretty is None
-    assert "" == str(result_set)
+@pytest.fixture
+def duckdb_sqlalchemy(ip_empty):
+    conn = Connection(create_engine("duckdb://"))
+    yield conn
 
 
-def test_lazy_loading(result, config):
-    resultset = ResultSet(result, config)
-    assert len(resultset._results) == 0
-    resultset.fetch_results()
-    assert len(resultset._results) == 3
+@pytest.fixture
+def sqlite_sqlalchemy(ip_empty):
+    conn = Connection(create_engine("sqlite://"))
+    yield conn
 
 
-@pytest.mark.parametrize(
-    "autolimit, expected",
-    [
-        (None, 3),
-        (False, 3),
-        (0, 3),
-        (1, 1),
-        (2, 2),
-        (3, 3),
-        (4, 3),
-    ],
-)
-def test_lazy_loading_autolimit(result, config, autolimit, expected):
-    config.autolimit = autolimit
-    resultset = ResultSet(result, config)
-    assert len(resultset._results) == 0
-    resultset.fetch_results()
-    assert len(resultset._results) == expected
+@pytest.fixture
+def duckdb_dbapi():
+    conn_ = duckdb.connect(":memory:")
+    conn = DBAPIConnection(conn_)
+    yield conn
 
 
-@pytest.mark.parametrize(
-    "displaylimit, expected",
-    [
-        (0, 3),
-        (1, 1),
-        (2, 2),
-        (3, 3),
-        (4, 3),
-    ],
-)
-def test_lazy_loading_displaylimit(result, config, displaylimit, expected):
-    config.displaylimit = displaylimit
-    result_set = ResultSet(result, config)
-
-    assert len(result_set._results) == 0
-    result_set.fetch_results()
-    html = result_set._repr_html_()
-    row_count = _get_number_of_rows_in_html_table(html)
-    assert row_count == expected
+@pytest.fixture
+def mock_config():
+    mock = Mock()
+    mock.displaylimit = 100
+    mock.autolimit = 100000
+    yield mock
 
 
 @pytest.mark.parametrize(
-    "displaylimit, expected_display",
+    "session, expected_value",
     [
-        (0, 3),
-        (1, 1),
-        (2, 2),
-        (3, 3),
-        (4, 3),
+        ("duckdb_sqlalchemy", {}),
+        ("duckdb_dbapi", {"Count": {}}),
+        ("sqlite_sqlalchemy", {}),
     ],
 )
-def test_lazy_loading_displaylimit_fetch_all(
-    result, config, displaylimit, expected_display
+def test_convert_to_dataframe_create_table(
+    session, expected_value, request, mock_config
 ):
-    max_results_count = 3
-    config.autolimit = False
-    config.displaylimit = displaylimit
-    result_set = ResultSet(result, config)
+    session = request.getfixturevalue(session)
 
-    # Initialize result_set without fetching results
-    assert len(result_set._results) == 0
+    statement = "CREATE TABLE a (x INT);"
+    results = session.execute(statement)
 
-    # Fetch the min number of rows (based on configuration)
-    result_set.fetch_results()
+    rs = ResultSet(results, mock_config, statement=statement, conn=session)
+    df = rs.DataFrame()
 
-    html = result_set._repr_html_()
-    row_count = _get_number_of_rows_in_html_table(html)
-    expected_results = (
-        max_results_count
-        if expected_display + 1 >= max_results_count
-        else expected_display + 1
-    )
-
-    assert len(result_set._results) == expected_results
-    assert row_count == expected_display
-
-    # Fetch the the rest results, but don't display them in the table
-    result_set.fetch_results(fetch_all=True)
-
-    html = result_set._repr_html_()
-    row_count = _get_number_of_rows_in_html_table(html)
-
-    assert len(result_set._results) == max_results_count
-    assert row_count == expected_display
+    assert df.to_dict() == expected_value
 
 
 @pytest.mark.parametrize(
-    "displaylimit, expected_display",
+    "session, expected_value",
     [
-        (0, 3),
-        (1, 1),
-        (2, 2),
-        (3, 3),
-        (4, 3),
+        ("duckdb_sqlalchemy", {"Count": {0: 5}}),
+        ("duckdb_dbapi", {"Count": {0: 5}}),
+        ("sqlite_sqlalchemy", {}),
     ],
 )
-def test_lazy_loading_list(result, config, displaylimit, expected_display):
-    max_results_count = 3
-    config.autolimit = False
-    config.displaylimit = displaylimit
-    result_set = ResultSet(result, config)
+def test_convert_to_dataframe_insert_into(
+    session, expected_value, request, mock_config
+):
+    session = request.getfixturevalue(session)
 
-    # Initialize result_set without fetching results
-    assert len(result_set._results) == 0
+    session.execute("CREATE TABLE a (x INT,);")
+    statement = "INSERT INTO a(x) VALUES (1),(2),(3),(4),(5);"
+    results = session.execute(statement)
+    rs = ResultSet(results, mock_config, statement=statement, conn=session)
+    df = rs.DataFrame()
 
-    # Fetch the min number of rows (based on configuration)
-    result_set.fetch_results()
-
-    expected_results = (
-        max_results_count
-        if expected_display + 1 >= max_results_count
-        else expected_display + 1
-    )
-
-    assert len(result_set._results) == expected_results
-    assert len(list(result_set)) == max_results_count
+    assert df.to_dict() == expected_value
 
 
 @pytest.mark.parametrize(
-    "autolimit, expected_results",
+    "session",
     [
-        (0, 3),
-        (1, 1),
-        (2, 2),
-        (3, 3),
-        (4, 3),
+        "duckdb_sqlalchemy",
+        "duckdb_dbapi",
+        "sqlite_sqlalchemy",
     ],
 )
-def test_lazy_loading_autolimit_list(result, config, autolimit, expected_results):
-    config.autolimit = autolimit
-    result_set = ResultSet(result, config)
-    assert len(result_set._results) == 0
+def test_convert_to_dataframe_select(session, request, mock_config):
+    session = request.getfixturevalue(session)
 
-    result_set.fetch_results()
+    session.execute("CREATE TABLE a (x INT);")
+    session.execute("INSERT INTO a(x) VALUES (1),(2),(3),(4),(5);")
+    statement = "SELECT * FROM a"
+    results = session.execute(statement)
 
-    assert len(result_set._results) == expected_results
-    assert len(list(result_set)) == expected_results
+    rs = ResultSet(results, mock_config, statement=statement, conn=session)
+    df = rs.DataFrame()
+
+    assert df.to_dict() == {"x": {0: 1, 1: 2, 2: 3, 3: 4, 4: 5}}
 
 
-def _get_number_of_rows_in_html_table(html):
-    """
-    Returns the number of <tr> tags within the <tbody> section
-    """
-    pattern = r"<tbody>(.*?)<\/tbody>"
-    tbody_content = re.findall(pattern, html, re.DOTALL)[0]
-    row_count = len(re.findall(r"<tr>", tbody_content))
+@pytest.mark.parametrize(
+    "query",
+    [
+        "SELECT * FROM a",
+        "\nSELECT * FROM a",
+        "    SELECT * FROM a",
+        "FROM a",
+        "\nFROM a",
+        "    FROM a",
+    ],
+    ids=[
+        "select",
+        "select-with-newline",
+        "select-with-spaces",
+        "from",
+        "from-with-newline",
+        "from-with-spaces",
+    ],
+)
+@pytest.mark.parametrize(
+    "to_df_method, expected_value",
+    [
+        ("DataFrame", {"x": {0: 1, 1: 2, 2: 3, 3: 4, 4: 5}}),
+        ("PolarsDataFrame", {"x": [1, 2, 3, 4, 5]}),
+    ],
+)
+def test_convert_to_dataframe_using_native_duckdb(
+    ip_empty, query, to_df_method, expected_value, mock_config
+):
+    session = duckdb.connect()
 
-    return row_count
+    session.execute("CREATE TABLE a (x INT);")
+    session.execute("INSERT INTO a(x) VALUES (1),(2),(3),(4),(5);")
+    results = session.execute(query)
+
+    rs = ResultSet(results, mock_config, statement=query, conn=DBAPIConnection(session))
+    # force fetching
+    list(rs)
+
+    df = getattr(rs, to_df_method)()
+
+    d = df.to_dict()
+
+    if to_df_method == "PolarsDataFrame":
+        d["x"] = list(d["x"])
+
+    assert d == expected_value
+
+
+def test_done_fetching_if_reached_autolimit(results):
+    mock = Mock()
+    mock.autolimit = 2
+    mock.displaylimit = 100
+
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
+
+    assert rs._done_fetching() is True
+
+
+def test_done_fetching_if_reached_autolimit_2(results):
+    mock = Mock()
+    mock.autolimit = 4
+    mock.displaylimit = 100
+
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
+    # force fetching from db
+    list(rs)
+
+    assert rs._done_fetching() is True
+
+
+@pytest.mark.parametrize("method", ["__repr__", "_repr_html_"])
+@pytest.mark.parametrize("autolimit", [1000_000, 0])
+def test_no_displaylimit(results, method, autolimit):
+    mock = Mock()
+    mock.displaylimit = 0
+    mock.autolimit = autolimit
+
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
+    getattr(rs, method)()
+
+    assert rs._results == [(1,), (2,), (3,), (4,), (5,)]
+    assert rs._done_fetching() is True
+
+
+def test_no_fetching_if_one_result():
+    engine = create_engine("duckdb://")
+    session = engine.connect()
+
+    session.execute(text("CREATE TABLE a (x INT,);"))
+    session.execute(text("INSERT INTO a(x) VALUES (1);"))
+
+    mock = Mock()
+    mock.displaylimit = 100
+    mock.autolimit = 1000_000
+
+    results = session.execute(text("SELECT * FROM a"))
+    results.fetchmany = Mock(wraps=results.fetchmany)
+    results.fetchall = Mock(wraps=results.fetchall)
+    results.fetchone = Mock(wraps=results.fetchone)
+
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
+
+    assert rs._done_fetching() is True
+    results.fetchall.assert_not_called()
+    results.fetchmany.assert_called_once_with(size=2)
+    results.fetchone.assert_not_called()
+
+    str(rs)
+    list(rs)
+
+    results.fetchall.assert_not_called()
+    results.fetchmany.assert_called_once_with(size=2)
+    results.fetchone.assert_not_called()
+
+
+def test_resultset_fetches_minimum_number_of_rows(results):
+    mock = Mock()
+    mock.displaylimit = 3
+    mock.autolimit = 1000_000
+
+    ResultSet(results, mock, statement=None, conn=Mock())
+
+    results.fetchall.assert_not_called()
+    results.fetchmany.assert_called_once_with(size=2)
+    results.fetchone.assert_not_called()
+
+
+@pytest.mark.parametrize("method", ["__repr__", "_repr_html_"])
+def test_resultset_fetches_minimum_number_of_rows_for_repr(results, method):
+    mock = Mock()
+    mock.displaylimit = 3
+    mock.autolimit = 1000_000
+
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
+    getattr(rs, method)()
+
+    results.fetchall.assert_not_called()
+    assert results.fetchmany.call_args_list == [call(size=2), call(size=1)]
+    results.fetchone.assert_not_called()
+
+
+def test_fetches_remaining_rows(results):
+    mock = Mock()
+    mock.displaylimit = 1
+    mock.autolimit = 1000_000
+
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
+
+    # this will trigger fetching two
+    str(rs)
+
+    results.fetchall.assert_not_called()
+    results.fetchmany.assert_has_calls([call(size=2)])
+    results.fetchone.assert_not_called()
+
+    # this will trigger fetching the rest
+    assert list(rs) == [(1,), (2,), (3,), (4,), (5,)]
+
+    results.fetchall.assert_called_once_with()
+    results.fetchmany.assert_has_calls([call(size=2)])
+    results.fetchone.assert_not_called()
+
+    rs.sqlaproxy.fetchmany = Mock(side_effect=ValueError("fetchmany called"))
+    rs.sqlaproxy.fetchall = Mock(side_effect=ValueError("fetchall called"))
+    rs.sqlaproxy.fetchone = Mock(side_effect=ValueError("fetchone called"))
+
+    # this should not trigger any more fetching
+    assert list(rs) == [(1,), (2,), (3,), (4,), (5,)]
+
+
+@pytest.mark.parametrize(
+    "method, repr_expected",
+    [
+        [
+            "__repr__",
+            "+---+\n| x |\n+---+\n| 1 |\n| 2 |\n| 3 |\n+---+",
+        ],
+        [
+            "_repr_html_",
+            "<table>\n    <thead>\n        <tr>\n            <th>x</th>\n        "
+            "</tr>\n    </thead>\n    <tbody>\n        <tr>\n            "
+            "<td>1</td>\n        </tr>\n        <tr>\n            "
+            "<td>2</td>\n        </tr>\n        <tr>\n            "
+            "<td>3</td>\n        </tr>\n    </tbody>\n</table>",
+        ],
+    ],
+    ids=[
+        "repr",
+        "repr_html",
+    ],
+)
+def test_resultset_fetches_required_rows_repr(results, method, repr_expected):
+    mock = Mock()
+    mock.displaylimit = 3
+    mock.autolimit = 1000_000
+
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
+    repr_returned = getattr(rs, method)()
+
+    assert repr_expected in repr_returned
+    assert rs._done_fetching() is False
+    results.fetchall.assert_not_called()
+    results.fetchmany.assert_has_calls([call(size=2), call(size=1)])
+    results.fetchone.assert_not_called()
+
+
+def test_resultset_autolimit_one(results):
+    mock = Mock()
+    mock.displaylimit = 10
+    mock.autolimit = 1
+
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
+    repr(rs)
+    str(rs)
+    rs._repr_html_()
+    list(rs)
+
+    results.fetchmany.assert_has_calls([call(size=1)])
+    results.fetchone.assert_not_called()
+    results.fetchall.assert_not_called()
+
+
+def test_display_limit_respected_even_when_feched_all(results):
+    mock = Mock()
+    mock.displaylimit = 2
+    mock.autolimit = 0
+
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
+    elements = list(rs)
+
+    assert len(elements) == 5
+    assert str(rs) == "+---+\n| x |\n+---+\n| 1 |\n| 2 |\n+---+"
+    assert (
+        "<table>\n    <thead>\n        <tr>\n            <th>x</th>\n        "
+        "</tr>\n    </thead>\n    <tbody>\n        <tr>\n            "
+        "<td>1</td>\n        </tr>\n        <tr>\n            <td>2</td>\n"
+        "        </tr>\n    </tbody>\n</table>" in rs._repr_html_()
+    )
+
+
+@pytest.mark.parametrize(
+    "displaylimit, message",
+    [
+        (1, "Truncated to displaylimit of 1"),
+        (2, "Truncated to displaylimit of 2"),
+    ],
+)
+def test_displaylimit_message(displaylimit, message, results):
+    mock = Mock()
+    mock.displaylimit = displaylimit
+    mock.autolimit = 0
+
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
+
+    assert message in rs._repr_html_()
+
+
+@pytest.mark.parametrize("displaylimit", [0, 1000])
+def test_no_displaylimit_message(results, displaylimit):
+    mock = Mock()
+    mock.displaylimit = displaylimit
+    mock.autolimit = 0
+
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
+
+    assert "Truncated to displaylimit" not in rs._repr_html_()
+
+
+def test_refreshes_sqlaproxy_for_sqlalchemy_duckdb():
+    first = Connection(create_engine("duckdb://"))
+    first.execute("CREATE TABLE numbers (x INTEGER)")
+    first.execute("INSERT INTO numbers VALUES (1), (2), (3), (4), (5)")
+    first.execute("CREATE TABLE characters (c VARCHAR)")
+    first.execute("INSERT INTO characters VALUES ('a'), ('b'), ('c'), ('d'), ('e')")
+
+    mock = Mock()
+    mock.displaylimit = 10
+    mock.autolimit = 0
+
+    statement = text("SELECT * FROM numbers")
+    first_set = ResultSet(
+        first.session.execute(statement), mock, statement=statement, conn=first
+    )
+
+    original_id = id(first_set._sqlaproxy)
+
+    # create a new resultset so the other one is no longer the latest one
+    statement = text("SELECT * FROM characters")
+    ResultSet(first.session.execute(statement), mock, statement=statement, conn=first)
+
+    # force fetching data, this should trigger a refresh
+    list(first_set)
+
+    assert id(first_set._sqlaproxy) != original_id
+
+
+def test_doesnt_refresh_sqlaproxy_for_if_not_sqlalchemy_and_duckdb():
+    first = DBAPIConnection(duckdb.connect(":memory:"))
+    first.execute("CREATE TABLE numbers (x INTEGER)")
+    first.execute("INSERT INTO numbers VALUES (1), (2), (3), (4), (5)")
+    first.execute("CREATE TABLE characters (c VARCHAR)")
+    first.execute("INSERT INTO characters VALUES ('a'), ('b'), ('c'), ('d'), ('e')")
+
+    mock = Mock()
+    mock.displaylimit = 10
+    mock.autolimit = 0
+
+    statement = "SELECT * FROM numbers"
+    first_set = ResultSet(
+        first.session.execute(statement), mock, statement=statement, conn=first
+    )
+
+    original_id = id(first_set._sqlaproxy)
+
+    # create a new resultset so the other one is no longer the latest one
+    statement = "SELECT * FROM characters"
+    ResultSet(first.session.execute(statement), mock, statement=statement, conn=first)
+
+    # force fetching data, this should not trigger a refresh
+    list(first_set)
+
+    assert id(first_set._sqlaproxy) == original_id
+
+
+def test_doesnt_refresh_sqlaproxy_if_different_connection():
+    first = Connection(create_engine("duckdb://"))
+    first.execute("CREATE TABLE numbers (x INTEGER)")
+    first.execute("INSERT INTO numbers VALUES (1), (2), (3), (4), (5)")
+
+    second = Connection(create_engine("duckdb://"))
+    second.execute("CREATE TABLE characters (c VARCHAR)")
+    second.execute("INSERT INTO characters VALUES ('a'), ('b'), ('c'), ('d'), ('e')")
+
+    mock = Mock()
+    mock.displaylimit = 10
+    mock.autolimit = 0
+
+    statement = "SELECT * FROM numbers"
+    first_set = ResultSet(
+        first.session.execute(text(statement)), mock, statement=statement, conn=first
+    )
+
+    original_id = id(first_set._sqlaproxy)
+
+    statement = "SELECT * FROM characters"
+    ResultSet(
+        second.session.execute(text(statement)), mock, statement=statement, conn=second
+    )
+
+    # force fetching data
+    list(first_set)
+
+    assert id(first_set._sqlaproxy) == original_id
