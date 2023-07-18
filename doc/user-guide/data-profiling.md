@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.5
+    jupytext_version: 1.14.7
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -67,38 +67,16 @@ Load the extension and connect to an in-memory DuckDB database:
 %sql duckdb://
 ```
 
-Profile table
-
 ```{code-cell} ipython3
-%sqlcmd profile --table "yellow_tripdata_2021-01.parquet"
+%%sql
+CREATE TABLE taxi_trips AS
+SELECT * FROM 'yellow_tripdata_2021-01.parquet'
 ```
 
-### SQLite
-
-We can easily explore large SQLite database using DuckDB.
+Profile table:
 
 ```{code-cell} ipython3
-:tags: [hide-output]
-
-import urllib.request
-from pathlib import Path
-
-if not Path("example.db").is_file():
-    url = "https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite"  # noqa
-    urllib.request.urlretrieve(url, "example.db")
-```
-
-```{code-cell} ipython3
-:tags: [hide-output]
-
-%%sql duckdb:///
-INSTALL 'sqlite_scanner';
-LOAD 'sqlite_scanner';
-CALL sqlite_attach('example.db');
-```
-
-```{code-cell} ipython3
-%sqlcmd profile -t track
+%sqlcmd profile --table taxi_trips
 ```
 
 ### Saving report as HTML
@@ -108,7 +86,7 @@ To save the generated report as an HTML file, use the `--output`/`-o` attribute 
 ```{code-cell} ipython3
 :tags: [hide-output]
 
-%sqlcmd profile -t track --output my-report.html
+%sqlcmd profile --table taxi_trips --output my-report.html
 ```
 
 ```{code-cell} ipython3
@@ -124,43 +102,20 @@ To profile a specific table from various tables in different schemas, we can use
 ```{code-cell} ipython3
 :tags: [hide-output]
 
-import sqlite3
-
-with sqlite3.connect("a.db") as conn:
-    conn.execute("CREATE TABLE my_numbers (number FLOAT)")
-    conn.execute("INSERT INTO my_numbers VALUES (1)")
-    conn.execute("INSERT INTO my_numbers VALUES (2)")
-    conn.execute("INSERT INTO my_numbers VALUES (3)")
+%%sql
+CREATE SCHEMA some_schema
 ```
 
 ```{code-cell} ipython3
 :tags: [hide-output]
 
 %%sql
-ATTACH DATABASE 'a.db' AS a_schema
-```
-
-```{code-cell} ipython3
-:tags: [hide-output]
-
-import sqlite3
-
-with sqlite3.connect("b.db") as conn:
-    conn.execute("CREATE TABLE my_numbers (number FLOAT)")
-    conn.execute("INSERT INTO my_numbers VALUES (11)")
-    conn.execute("INSERT INTO my_numbers VALUES (22)")
-    conn.execute("INSERT INTO my_numbers VALUES (33)")
-```
-
-```{code-cell} ipython3
-:tags: [hide-output]
-
-%%sql
-ATTACH DATABASE 'b.db' AS b_schema
+CREATE TABLE some_schema.trips AS
+SELECT * FROM 'yellow_tripdata_2021-01.parquet'
 ```
 
 Let's profile `my_numbers` of `b_schema`
 
 ```{code-cell} ipython3
-%sqlcmd profile --table my_numbers --schema b_schema
+%sqlcmd profile --table trips --schema some_schema
 ```

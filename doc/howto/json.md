@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.4
+    jupytext_version: 1.14.7
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -160,7 +160,7 @@ SELECT
     json ->> '$.friends[0]' AS first_friend,
     json ->> '$.likes.pizza' AS likes_pizza,
     json ->> '$.likes.tacos' AS likes_tacos
-FROM read_json_objects('people.jsonl')
+FROM read_json_objects('people.jsonl', format="auto")
 ```
 
 Looks like everybody likes tacos!
@@ -176,7 +176,7 @@ Infer the JSON schema:
 SELECT
     json_structure(json),
     json_structure(json ->> '$.likes'),
-FROM read_json_objects('people.jsonl')
+FROM read_json_objects('people.jsonl', format="auto")
 ```
 
 ```{code-cell} ipython3
@@ -184,7 +184,7 @@ FROM read_json_objects('people.jsonl')
 SELECT
     json_structure(json) AS schema_all,
     json_structure(json ->> '$.likes') AS schema_likes,
-FROM read_json_objects('people.jsonl')
+FROM read_json_objects('people.jsonl', format="auto")
 ```
 
 Pretty print the inferred schema:
@@ -229,7 +229,7 @@ SELECT
     json ->> '$.friends[0]' AS first_friend,
     json ->> '$.likes.pizza' AS likes_pizza,
     json ->> '$.likes.tacos' AS likes_tacos
-FROM read_json_objects('people.jsonl')
+FROM read_json_objects('people.jsonl', format="auto")
 ```
 
 ```{code-cell} ipython3
@@ -253,7 +253,7 @@ COPY (
     friends[1] AS first_friend, 
     likes.pizza AS likes_pizza, 
     likes.tacos AS likes_tacos
-    FROM read_json_auto('people.json')
+    FROM read_json_auto('people.json', format="auto")
 )
 
 TO 'people.csv' (HEADER, DELIMITER ',');

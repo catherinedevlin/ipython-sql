@@ -186,38 +186,6 @@ ax = avg_trip_distance.plot()
 _ = ax.set_title("Avg trip distance by num of passengers")
 ```
 
-## Load sample data from a SQLite database
-
-If you have a large SQlite database, you can use DuckDB to perform analytical queries it with much better performance.
-
-```{code-cell} ipython3
-%load_ext sql
-```
-
-```{code-cell} ipython3
-import urllib.request
-from pathlib import Path
-
-# download sample database
-if not Path("my.db").is_file():
-    url = "https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite"  # noqa
-    urllib.request.urlretrieve(url, "my.db")
-```
-
-We'll use `sqlite_scanner` extension to load a sample SQLite database into DuckDB:
-
-```{code-cell} ipython3
-%%sql duckdb://
-INSTALL 'sqlite_scanner';
-LOAD 'sqlite_scanner';
-CALL sqlite_attach('my.db');
-```
-
-```{code-cell} ipython3
-%%sql
-SELECT * FROM track LIMIT 5
-```
-
 ## Plotting large datasets
 
 ```{versionadded} 0.5.2
@@ -234,6 +202,9 @@ Let's install the required package:
 Now, we download a sample data: NYC Taxi data split in 3 parquet files:
 
 ```{code-cell} ipython3
+from pathlib import Path
+from urllib.request import urlretrieve
+
 N_MONTHS = 3
 
 # https://www1.nyc.gov/site/tlc/about/tlc-trip-record-data.page
@@ -242,7 +213,7 @@ for i in range(1, N_MONTHS + 1):
     if not Path(filename).is_file():
         print(f"Downloading: {filename}")
         url = f"https://d37ci6vzurychx.cloudfront.net/trip-data/{filename}"
-        urllib.request.urlretrieve(url, filename)
+        urlretrieve(url, filename)
 ```
 
 In total, this contains more then 4.6M observations:
@@ -312,7 +283,7 @@ from sqlalchemy import create_engine
 some_engine = create_engine(
     "duckdb:///:memory:",
     connect_args={
-        "preload_extensions": ["excel"],
+        "preload_extensions": [],
     },
 )
 ```

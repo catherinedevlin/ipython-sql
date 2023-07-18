@@ -1,8 +1,19 @@
+# documentation dependencies, note that readthedocs uses
+# the environment.lock.yml file, which can be re-generated with
+# the following script:
+# docker run -it --rm continuumio/miniconda3 bash
+# git clone https://github.com/ploomber/jupysql
+# cd jupysql/doc
+# apt update
+# apt install gcc -y
+# conda env create -f environment.yml
+# conda env export --name jupysql-doc --no-build
+# once generated, remove the line that begins "jupysql==" and replace it
+# with "-e .."
 name: jupysql-doc
 
 channels:
   - conda-forge
-
 
 dependencies:
   - python=3.10

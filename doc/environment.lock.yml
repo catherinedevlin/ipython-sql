@@ -1,289 +1,203 @@
-name: jupysql
+name: jupysql-doc
 channels:
   - conda-forge
+  - defaults
 dependencies:
-  - _libgcc_mutex=0.1
   - _openmp_mutex=4.5
-  - alabaster=0.7.13
-  - alsa-lib=1.2.8
-  - attr=2.5.1
-  - babel=2.12.1
   - brotli=1.0.9
   - brotli-bin=1.0.9
-  - brotlipy=0.7.0
   - bzip2=1.0.8
-  - ca-certificates=2022.12.7
-  - cairo=1.16.0
-  - certifi=2022.12.7
-  - cffi=1.15.1
-  - charset-normalizer=3.1.0
-  - contourpy=1.0.7
-  - cryptography=40.0.1
+  - ca-certificates=2023.5.7
+  - certifi=2023.5.7
+  - contourpy=1.1.0
   - cycler=0.11.0
-  - dbus=1.13.6
-  - expat=2.5.0
-  - font-ttf-dejavu-sans-mono=2.37
-  - font-ttf-inconsolata=3.000
-  - font-ttf-source-code-pro=2.038
-  - font-ttf-ubuntu=0.83
-  - fontconfig=2.14.2
-  - fonts-conda-ecosystem=1
-  - fonts-conda-forge=1
-  - fonttools=4.39.3
+  - fonttools=4.41.0
   - freetype=2.12.1
-  - gettext=0.21.1
-  - glib=2.74.1
-  - glib-tools=2.74.1
-  - graphite2=1.3.13
-  - gst-plugins-base=1.22.0
-  - gstreamer=1.22.0
-  - harfbuzz=6.0.0
-  - icu=72.1
-  - idna=3.4
-  - imagesize=1.4.1
-  - importlib-metadata=6.3.0
-  - jinja2=3.1.2
-  - keyutils=1.6.1
   - kiwisolver=1.4.4
-  - krb5=1.20.1
-  - lame=3.100
   - lcms2=2.15
-  - ld_impl_linux-64=2.40
+  - ld_impl_linux-aarch64=2.40
   - lerc=4.0.0
   - libblas=3.9.0
   - libbrotlicommon=1.0.9
   - libbrotlidec=1.0.9
   - libbrotlienc=1.0.9
-  - libcap=2.67
   - libcblas=3.9.0
-  - libclang=16.0.1
-  - libclang13=16.0.1
-  - libcups=2.3.3
   - libdeflate=1.18
-  - libedit=3.1.20191231
-  - libevent=2.1.10
-  - libexpat=2.5.0
   - libffi=3.4.2
-  - libflac=1.4.2
-  - libgcc-ng=12.2.0
-  - libgcrypt=1.10.1
-  - libgfortran-ng=12.2.0
-  - libgfortran5=12.2.0
-  - libglib=2.74.1
-  - libgomp=12.2.0
-  - libgpg-error=1.46
-  - libiconv=1.17
+  - libgcc-ng=13.1.0
+  - libgfortran-ng=13.1.0
+  - libgfortran5=13.1.0
+  - libgomp=13.1.0
   - libjpeg-turbo=2.1.5.1
   - liblapack=3.9.0
-  - libllvm16=16.0.1
   - libnsl=2.0.0
-  - libogg=1.3.4
-  - libopenblas=0.3.21
-  - libopus=1.3.1
+  - libopenblas=0.3.23
   - libpng=1.6.39
-  - libpq=15.2
-  - libsndfile=1.2.0
-  - libsqlite=3.40.0
-  - libstdcxx-ng=12.2.0
-  - libsystemd0=253
-  - libtiff=4.5.0
+  - libsqlite=3.42.0
+  - libstdcxx-ng=13.1.0
+  - libtiff=4.5.1
   - libuuid=2.38.1
-  - libvorbis=1.3.7
-  - libwebp-base=1.3.0
-  - libxcb=1.13
-  - libxkbcommon=1.5.0
-  - libxml2=2.10.4
+  - libwebp-base=1.3.1
+  - libxcb=1.15
   - libzlib=1.2.13
-  - lz4-c=1.9.4
-  - markupsafe=2.1.2
-  - matplotlib=3.7.1
-  - matplotlib-base=3.7.1
-  - mock=5.0.1
-  - mpg123=1.31.3
+  - matplotlib=3.7.2
+  - matplotlib-base=3.7.2
   - munkres=1.1.4
-  - mysql-common=8.0.32
-  - mysql-libs=8.0.32
-  - ncurses=6.3
-  - nspr=4.35
-  - nss=3.89
-  - numpy=1.24.2
+  - ncurses=6.4
+  - numpy=1.25.1
   - openjpeg=2.5.0
-  - openssl=3.1.0
+  - openssl=3.1.1
   - packaging=23.1
-  - pandas=2.0.0
-  - pcre2=10.40
-  - pillow=9.5.0
-  - pip=23.0.1
-  - pixman=0.40.0
-  - ply=3.11
+  - pandas=2.0.3
+  - pillow=10.0.0
+  - pip=23.2
   - pthread-stubs=0.4
-  - pulseaudio-client=16.1
-  - pycparser=2.21
-  - pygments=2.15.0
-  - pyopenssl=23.1.1
   - pyparsing=3.0.9
-  - pyqt=5.15.7
-  - pyqt5-sip=12.11.0
-  - pysocks=1.7.1
-  - python=3.10.10
+  - python=3.10.12
   - python-dateutil=2.8.2
   - python-tzdata=2023.3
   - python_abi=3.10
   - pytz=2023.3
-  - qt-main=5.15.8
   - readline=8.2
-  - requests=2.28.2
-  - setuptools=67.6.1
-  - sip=6.7.8
+  - setuptools=68.0.0
   - six=1.16.0
-  - snowballstemmer=2.2.0
-  - sphinx_rtd_theme=1.2.0
-  - sphinxcontrib-applehelp=1.0.4
-  - sphinxcontrib-devhelp=1.0.2
-  - sphinxcontrib-htmlhelp=2.0.1
-  - sphinxcontrib-jquery=4.1
-  - sphinxcontrib-jsmath=1.0.1
-  - sphinxcontrib-qthelp=1.0.3
-  - sphinxcontrib-serializinghtml=1.1.5
   - tk=8.6.12
-  - toml=0.10.2
-  - tomli=2.0.1
-  - tornado=6.2
+  - tornado=6.3.2
   - tzdata=2023c
   - unicodedata2=15.0.0
-  - urllib3=1.26.15
   - wheel=0.40.0
-  - xcb-util=0.4.0
-  - xcb-util-image=0.4.0
-  - xcb-util-keysyms=0.4.0
-  - xcb-util-renderutil=0.3.9
-  - xcb-util-wm=0.4.1
-  - xkeyboard-config=2.38
-  - xorg-kbproto=1.0.7
-  - xorg-libice=1.0.10
-  - xorg-libsm=1.2.3
-  - xorg-libx11=1.8.4
-  - xorg-libxau=1.0.9
+  - xorg-libxau=1.0.11
   - xorg-libxdmcp=1.1.3
-  - xorg-libxext=1.3.4
-  - xorg-libxrender=0.9.10
-  - xorg-renderproto=0.11.1
-  - xorg-xextproto=7.3.0
-  - xorg-xf86vidmodeproto=2.3.1
-  - xorg-xproto=7.0.31
   - xz=5.2.6
-  - zipp=3.15.0
-  - zlib=1.2.13
   - zstd=1.5.2
   - pip:
-    - -e ..
-    - accessible-pygments==0.0.4
-    - asttokens==2.2.1
-    - attrs==22.2.0
-    - autopep8==2.0.2
-    - awscli==1.27.112
-    - backcall==0.2.0
-    - backoff==2.2.1
-    - beautifulsoup4==4.12.2
-    - black==23.3.0
-    - botocore==1.29.112
-    - click==8.1.3
-    - colorama==0.4.4
-    - comm==0.1.3
-    - commonmark==0.9.1
-    - debugpy==1.6.7
-    - decorator==5.1.1
-    - docutils==0.16
-    - duckdb==0.7.1
-    - duckdb-engine==0.7.0
-    - exceptiongroup==1.1.1
-    - executing==1.2.0
-    - fastjsonschema==2.16.3
-    - flake8==6.0.0
-    - greenlet==2.0.2
-    - iniconfig==2.0.0
-    - invoke==2.0.0
-    - ipykernel==6.22.0
-    - ipython==8.12.0
-    - ipython-genutils==0.2.0
-    - ipywidgets==8.0.6
-    - jedi==0.18.2
-    - jmespath==1.0.1
-    - jsonschema==4.17.3
-    - jupyter-book==0.15.1
-    - jupyter-cache==0.5.0
-    - jupyter-client==8.1.0
-    - jupyter-core==5.3.0
-    - jupyterlab-widgets==3.0.7
-    - jupytext==1.14.5
-    - latexcodec==2.0.1
-    - linkify-it-py==2.0.0
-    - markdown-it-py==2.2.0
-    - matplotlib-inline==0.1.6
-    - mccabe==0.7.0
-    - mdit-py-plugins==0.3.5
-    - mdurl==0.1.2
-    - memory-profiler==0.61.0
-    - monotonic==1.6
-    - mypy-extensions==1.0.0
-    - myst-nb==0.17.1
-    - myst-parser==0.18.1
-    - nbclient==0.5.13
-    - nbformat==5.8.0
-    - nbqa==1.7.0
-    - nest-asyncio==1.5.6
-    - parso==0.8.3
-    - pathspec==0.11.1
-    - pexpect==4.8.0
-    - pickleshare==0.7.5
-    - pkgmt==0.3.0
-    - platformdirs==3.2.0
-    - ploomber-core==0.2.9
-    - pluggy==1.0.0
-    - polars==0.17.2
-    - posthog==2.5.0
-    - prettytable==3.7.0
-    - prompt-toolkit==3.0.38
-    - psutil==5.9.4
-    - ptyprocess==0.7.0
-    - pure-eval==0.2.2
-    - pyarrow==11.0.0
-    - pyasn1==0.4.8
-    - pybtex==0.24.0
-    - pybtex-docutils==1.0.2
-    - pycodestyle==2.10.0
-    - pydata-sphinx-theme==0.13.1
-    - pyflakes==3.0.1
-    - pyrsistent==0.19.3
-    - pytest==7.3.0
-    - pyyaml==5.4.1
-    - pyzmq==25.0.2
-    - readthedocs-sphinx-ext==2.2.0
-    - recommonmark==0.7.1
-    - rich==13.3.4
-    - rsa==4.7.2
-    - s3transfer==0.6.0
-    - soupsieve==2.4
-    - sphinx==5.0.2
-    - sphinx-book-theme==1.0.0
-    - sphinx-comments==0.0.3
-    - sphinx-copybutton==0.5.1
-    - sphinx-design==0.3.0
-    - sphinx-external-toc==0.3.1
-    - sphinx-jupyterbook-latex==0.5.2
-    - sphinx-multitoc-numbering==0.1.3
-    - sphinx-thebe==0.2.1
-    - sphinx-togglebutton==0.3.2
-    - sphinxcontrib-bibtex==2.5.0
-    - sqlalchemy==1.4.47
-    - sqlglot==11.5.3
-    - sqlparse==0.4.3
-    - stack-data==0.6.2
-    - tabulate==0.9.0
-    - tokenize-rt==5.0.0
-    - traitlets==5.9.0
-    - typing-extensions==4.5.0
-    - uc-micro-py==1.0.1
-    - wcwidth==0.2.6
-    - widgetsnbextension==4.0.7
-prefix: /opt/conda/envs/jupysql
+      - -e ..
+      - accessible-pygments==0.0.4
+      - alabaster==0.7.13
+      - asttokens==2.2.1
+      - attrs==23.1.0
+      - autopep8==2.0.2
+      - awscli==1.29.4
+      - babel==2.12.1
+      - backcall==0.2.0
+      - backoff==2.2.1
+      - beautifulsoup4==4.12.2
+      - black==23.7.0
+      - botocore==1.31.4
+      - charset-normalizer==3.2.0
+      - click==8.1.5
+      - colorama==0.4.4
+      - comm==0.1.3
+      - debugpy==1.6.7
+      - decorator==5.1.1
+      - docutils==0.16
+      - duckdb==0.8.1
+      - duckdb-engine==0.9.1
+      - exceptiongroup==1.1.2
+      - executing==1.2.0
+      - fastjsonschema==2.17.1
+      - flake8==6.0.0
+      - greenlet==2.0.2
+      - idna==3.4
+      - imagesize==1.4.1
+      - importlib-metadata==6.8.0
+      - iniconfig==2.0.0
+      - invoke==2.2.0
+      - ipykernel==6.24.0
+      - ipython==8.14.0
+      - ipython-genutils==0.2.0
+      - ipywidgets==8.0.7
+      - jedi==0.18.2
+      - jinja2==3.1.2
+      - jmespath==1.0.1
+      - jsonschema==4.18.3
+      - jsonschema-specifications==2023.6.1
+      - jupyter-book==0.15.1
+      - jupyter-cache==0.6.1
+      - jupyter-client==8.3.0
+      - jupyter-core==5.3.1
+      - jupyterlab-widgets==3.0.8
+      - jupytext==1.14.7
+      - latexcodec==2.0.1
+      - linkify-it-py==2.0.2
+      - markdown-it-py==2.2.0
+      - markupsafe==2.1.3
+      - matplotlib-inline==0.1.6
+      - mccabe==0.7.0
+      - mdit-py-plugins==0.3.5
+      - mdurl==0.1.2
+      - memory-profiler==0.61.0
+      - monotonic==1.6
+      - mypy-extensions==1.0.0
+      - myst-nb==0.17.2
+      - myst-parser==0.18.1
+      - nbclient==0.7.4
+      - nbformat==5.9.1
+      - nbqa==1.7.0
+      - nest-asyncio==1.5.6
+      - parso==0.8.3
+      - pathspec==0.11.1
+      - pexpect==4.8.0
+      - pickleshare==0.7.5
+      - pkgmt==0.7.1
+      - platformdirs==3.9.1
+      - ploomber-core==0.2.13
+      - pluggy==1.2.0
+      - polars==0.18.7
+      - posthog==3.0.1
+      - prettytable==3.8.0
+      - prompt-toolkit==3.0.39
+      - psutil==5.9.5
+      - ptyprocess==0.7.0
+      - pure-eval==0.2.2
+      - pyarrow==12.0.1
+      - pyasn1==0.5.0
+      - pybtex==0.24.0
+      - pybtex-docutils==1.0.2
+      - pycodestyle==2.10.0
+      - pydata-sphinx-theme==0.13.3
+      - pyflakes==3.0.1
+      - pygments==2.15.1
+      - pytest==7.4.0
+      - pyyaml==6.0.1
+      - pyzmq==25.1.0
+      - referencing==0.29.1
+      - requests==2.31.0
+      - rpds-py==0.8.11
+      - rsa==4.7.2
+      - s3transfer==0.6.1
+      - snowballstemmer==2.2.0
+      - soupsieve==2.4.1
+      - sphinx==5.0.2
+      - sphinx-book-theme==1.0.1
+      - sphinx-comments==0.0.3
+      - sphinx-copybutton==0.5.2
+      - sphinx-design==0.3.0
+      - sphinx-external-toc==0.3.1
+      - sphinx-jupyterbook-latex==0.5.2
+      - sphinx-multitoc-numbering==0.1.3
+      - sphinx-thebe==0.2.1
+      - sphinx-togglebutton==0.3.2
+      - sphinxcontrib-applehelp==1.0.4
+      - sphinxcontrib-bibtex==2.5.0
+      - sphinxcontrib-devhelp==1.0.2
+      - sphinxcontrib-htmlhelp==2.0.1
+      - sphinxcontrib-jsmath==1.0.1
+      - sphinxcontrib-qthelp==1.0.3
+      - sphinxcontrib-serializinghtml==1.1.5
+      - sqlalchemy==2.0.19
+      - sqlglot==17.4.1
+      - sqlparse==0.4.4
+      - stack-data==0.6.2
+      - tabulate==0.9.0
+      - tokenize-rt==5.1.0
+      - toml==0.10.2
+      - tomli==2.0.1
+      - traitlets==5.9.0
+      - typing-extensions==4.7.1
+      - uc-micro-py==1.0.2
+      - urllib3==1.26.16
+      - wcwidth==0.2.6
+      - widgetsnbextension==4.0.8
+      - zipp==3.16.2
+prefix: /opt/conda/envs/jupysql-doc
