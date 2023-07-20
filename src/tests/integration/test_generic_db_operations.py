@@ -734,34 +734,17 @@ def test_sqlcmd_tables(ip_with_dynamic_db, request):
 @pytest.mark.parametrize(
     "cell",
     [
-        "%%sql\nSELECT * FROM test_numbers WHERE 0=1",
-        "%%sql --with subset\nSELECT * FROM subset WHERE 0=1",
-        "%%sql\nSELECT *\n-- %one $another\nFROM test_numbers WHERE 0=1",
+        "%%sql\nSELECT * FROM numbers WHERE 0=1",
+        "%%sql\nSELECT *\n-- %one $another\nFROM numbers WHERE 0=1",
     ],
     ids=[
         "simple-query",
-        "cte",
         "interpolation-like-comment",
     ],
 )
 @pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
 def test_sql_query(ip_with_dynamic_db, cell, request, test_table_name_dict):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
-    ip_with_dynamic_db.run_cell(
-        """
-    %%sql sqlite://
-    CREATE TABLE test_numbers (value_one, value_two);
-    INSERT INTO test_numbers VALUES (0, 1);
-    INSERT INTO test_numbers VALUES (0, 0);
-    INSERT INTO test_numbers VALUES (5, 2);
-    INSERT INTO test_numbers VALUES (6, 3);
-    """
-    )
-    ip_with_dynamic_db.run_cell(
-        """%%sql --save subset --no-execute
-SELECT * FROM numbers WHERE 1=0
-"""
-    )
 
     if "numbers" in cell:
         cell = cell.replace("numbers", test_table_name_dict["numbers"])
@@ -770,27 +753,140 @@ SELECT * FROM numbers WHERE 1=0
     assert out.error_in_exec is None
 
 
-@pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
-def test_sql_query_cte_suggestion(ip_with_dynamic_db, request):
+@pytest.mark.parametrize(
+    "cell",
+    [
+        "%%sql\nSELECT * FROM subset",
+        "%%sql --with subset\nSELECT * FROM subset",
+    ],
+    ids=[
+        "cte-inferred",
+        "cte-explicit",
+    ],
+)
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        "ip_with_postgreSQL",
+        "ip_with_mySQL",
+        "ip_with_mariaDB",
+        "ip_with_SQLite",
+        "ip_with_duckDB_native",
+        "ip_with_duckDB",
+        pytest.param(
+            "ip_with_MSSQL",
+            marks=pytest.mark.xfail(
+                reason="We need to close any pending results for this to work"
+            ),
+        ),
+        "ip_with_Snowflake",
+        "ip_with_oracle",
+    ],
+)
+def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+
     ip_with_dynamic_db.run_cell(
-        """%%sql --save first_cte --no-execute
-SELECT 1 AS column1, 2 AS column2
-"""
+        "%%sql --save subset --no-execute \n"
+        f"SELECT * FROM {test_table_name_dict['numbers']}"
     )
-    ip_with_dynamic_db.run_cell(
-        """
-    %%sql --save second_cte --no-execute
-SELECT
-  sum(column1),
-  sum(column2) FILTER (column2 = 2)
-FROM first_cte
-"""
-    )
+
+    out = ip_with_dynamic_db.run_cell(cell)
+    assert out.error_in_exec is None
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        "ip_with_postgreSQL",
+        "ip_with_mySQL",
+        "ip_with_mariaDB",
+        "ip_with_SQLite",
+        pytest.param(
+            "ip_with_duckDB_native",
+            marks=pytest.mark.xfail(reason="Not yet implemented"),
+        ),
+        "ip_with_duckDB",
+        "ip_with_Snowflake",
+        pytest.param(
+            "ip_with_MSSQL", marks=pytest.mark.xfail(reason="Not yet implemented")
+        ),
+        pytest.param(
+            "ip_with_oracle", marks=pytest.mark.xfail(reason="Not yet implemented")
+        ),
+    ],
+)
+def test_sql_error_suggests_using_cte(ip_with_dynamic_db, request):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+
     out = ip_with_dynamic_db.run_cell(
         """
     %%sql
-SELECT * FROM second_cte"""
+S"""
     )
     assert isinstance(out.error_in_exec, UsageError)
+    assert out.error_in_exec.error_type == "RuntimeError"
     assert CTE_MSG in str(out.error_in_exec)
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        "ip_with_SQLite",
+        pytest.param(
+            "ip_with_duckDB_native",
+            marks=pytest.mark.xfail(
+                reason="We're currently running each command in a new cursor"
+            ),
+        ),
+        "ip_with_duckDB",
+        "ip_with_postgreSQL",
+    ],
+)
+def test_temp_table(ip_with_dynamic_db, request):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    out = ip_with_dynamic_db.run_cell(
+        """%%sql
+create temp table my_table as select 42;
+select * from my_table;
+"""
+    )
+
+    assert out.error_in_exec is None
+    assert list(out.result) == [(42,)]
+
+
+def test_results_sets_are_closed(tmp_empty, ip_empty):
+    ip_empty.run_cell("%config SqlMagic.displaylimit = 3")
+
+    ip_empty.run_cell(
+        "%sql sqlite:///test_results_sets_are_closed.db --alias first-conn"
+    )
+
+    ip_empty.run_cell(
+        "%sql sqlite:///test_results_sets_are_closed.db --alias second-conn"
+    )
+
+    ip_empty.run_cell(
+        """%%sql first-conn
+CREATE TABLE numbers (
+    x INT PRIMARY KEY
+);
+
+INSERT INTO numbers (x)
+VALUES (1), (2), (3), (4), (5), (6), (7), (8), (9), (10);
+"""
+    )
+
+    ip_empty.run_cell("%sql SELECT * FROM numbers")
+
+    ip_empty.run_cell("%sql --close first-conn")
+
+    # if the close command above doesn't close all results, this drop will fail
+    result = ip_empty.run_cell(
+        """%%sql second-conn
+DROP TABLE numbers
+        """
+    )
+
+    assert result.error_in_exec is None

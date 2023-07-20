@@ -234,20 +234,20 @@ def test_persist_no_index(ip):
 @pytest.mark.parametrize(
     "sql_statement, expected_error",
     [
-        ("%%sql --stuff\n SELECT * FROM test", "Unrecognized argument(s)"),
-        ("%%sql --unknown\n SELECT * FROM test", "Unrecognized argument(s)"),
-        ("%%sql --invalid-arg\n SELECT * FROM test", "Unrecognized argument(s)"),
-        ("%%sql -invalid-arg\n SELECT * FROM test", "Unrecognized argument(s)"),
+        ("%%sql --arg\n SELECT * FROM test", "Unrecognized argument(s): --arg"),
+        ("%%sql -arg\n SELECT * FROM test", "Unrecognized argument(s): -arg"),
         ("%%sql \n SELECT * FROM test", None),
-        ("%sql select * FROM penguins.csv --some", None),
+        ("%sql select * FROM test --some", None),
         ("%%sql --persist '--some' \n SELECT * FROM test", "not a valid identifier"),
     ],
 )
 def test_unrecognized_arguments_cell_magic(ip, sql_statement, expected_error):
     result = ip.run_cell(sql_statement)
-    assert (result.error_in_exec is not None) == (expected_error is not None)
+
     if expected_error:
         assert expected_error in str(result.error_in_exec)
+    else:
+        assert result.error_in_exec is None
 
 
 def test_persist_invalid_identifier(ip):
@@ -557,7 +557,8 @@ def test_displaylimit_default(ip):
     ip.run_cell("%sql INSERT INTO number_table VALUES (4, 3)")
     ip.run_cell("%sql INSERT INTO number_table VALUES (4, 3)")
 
-    out = runsql(ip, "SELECT * FROM number_table;")
+    out = ip.run_cell("%sql SELECT * FROM number_table;").result
+
     assert "Truncated to displaylimit of 10" in out._repr_html_()
 
 
@@ -1245,10 +1246,14 @@ def test_save_with_non_existing_with(ip):
     assert isinstance(out.error_in_exec, UsageError)
 
 
-def test_save_with_non_existing_table(ip, capsys):
-    ip.run_cell("%sql --save my_query SELECT * FROM non_existing_table")
-    out, _ = capsys.readouterr()
-    assert "(sqlite3.OperationalError) no such table: non_existing_table" in out
+def test_save_with_non_existing_table(ip):
+    out = ip.run_cell("%sql --save my_query SELECT * FROM non_existing_table")
+
+    assert isinstance(out.error_in_exec, UsageError)
+    assert out.error_in_exec.error_type == "RuntimeError"
+    assert "(sqlite3.OperationalError) no such table: non_existing_table" in str(
+        out.error_in_exec
+    )
 
 
 def test_save_with_bad_query_save(ip, capsys):

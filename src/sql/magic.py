@@ -16,6 +16,8 @@ from IPython.core.magic import (
 )
 from IPython.core.magic_arguments import argument, magic_arguments, parse_argstring
 from sqlalchemy.exc import OperationalError, ProgrammingError, DatabaseError
+from traitlets.config.configurable import Configurable
+from traitlets import Bool, Int, TraitError, Unicode, Dict, observe, validate
 
 import warnings
 import shlex
@@ -32,11 +34,11 @@ from sql.magic_cmd import SqlCmdMagic
 from sql._patch import patch_ipython_usage_error
 from sql import query_util
 from sql.util import get_suggestions_message, pretty_print
-from ploomber_core.dependencies import check_installed
-
+from sql.exceptions import RuntimeError
 from sql.error_message import detail
-from traitlets.config.configurable import Configurable
-from traitlets import Bool, Int, TraitError, Unicode, Dict, observe, validate
+
+
+from ploomber_core.dependencies import check_installed
 
 
 try:
@@ -220,8 +222,7 @@ class SqlMagic(Magics, Configurable):
         detailed_msg = detail(e)
         if self.short_errors:
             if detailed_msg is not None:
-                err = exceptions.UsageError(detailed_msg)
-                raise err
+                raise exceptions.RuntimeError(detailed_msg) from e
                 # TODO: move to error_messages.py
                 # Added here due to circular dependency issue (#545)
             elif "no such table" in str(e):
@@ -235,10 +236,9 @@ class SqlMagic(Magics, Configurable):
                         suggestions_message = get_suggestions_message(suggestions)
                         raise exceptions.TableNotFoundError(
                             f"{err_message}{suggestions_message}"
-                        )
-                display.message(str(e))
-            else:
-                display.message(str(e))
+                        ) from e
+
+            raise RuntimeError(str(e)) from e
         else:
             if detailed_msg is not None:
                 display.message(detailed_msg)
@@ -402,7 +402,7 @@ class SqlMagic(Magics, Configurable):
             if with_:
                 command.set_sql_with(with_)
                 display.message(
-                    f"Generating CTE with stored snippets : {pretty_print(with_)}"
+                    f"Generating CTE with stored snippets: {pretty_print(with_)}"
                 )
             else:
                 with_ = None
@@ -422,7 +422,9 @@ class SqlMagic(Magics, Configurable):
         if args.connections:
             return sql.connection.Connection.connections_table()
         elif args.close:
-            return sql.connection.Connection.close(args.close)
+            return sql.connection.Connection.close_connection_with_descriptor(
+                args.close
+            )
 
         connect_arg = command.connection
 

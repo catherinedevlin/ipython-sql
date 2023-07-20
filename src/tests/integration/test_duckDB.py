@@ -19,7 +19,7 @@ from sql.warnings import JupySQLDataFramePerformanceWarning
         ),
         (
             "ip_with_duckDB_native",
-            "'DBAPISession' object has no attribute '_has_events'",
+            "'DBAPISession' object has no attribute 'execution_options'",
         ),
     ],
 )
@@ -186,69 +186,6 @@ def test_multiple_statements(ip, config, sql, tables, request):
     if ip == "ip_with_duckdb_sqlalchemy_empty":
         out_tables = ip_.run_cell("%sqlcmd tables")
         assert set(tables) == set(r[0] for r in out_tables.result._table.rows)
-
-
-@pytest.mark.parametrize(
-    "config",
-    [
-        "%config SqlMagic.autopandas = True",
-        "%config SqlMagic.autopandas = False",
-    ],
-    ids=[
-        "autopandas_on",
-        "autopandas_off",
-    ],
-)
-@pytest.mark.parametrize(
-    "sql, tables",
-    [
-        [
-            (
-                "%sql CREATE TEMP TABLE some_table (city VARCHAR,);"
-                "CREATE TABLE more_names (city VARCHAR,);"
-                "INSERT INTO some_table VALUES ('NYC');"
-                "SELECT * FROM some_table;"
-            ),
-            ["more_names"],
-        ],
-    ],
-    ids=[
-        "multiple_selects",
-    ],
-)
-@pytest.mark.parametrize(
-    "ip",
-    [
-        pytest.param(
-            "ip_with_duckdb_native_empty",
-            marks=pytest.mark.xfail(
-                reason="Currently, native DuckDB runs each "
-                "statement in a separate cursor"
-            ),
-        ),
-        pytest.param(
-            "ip_with_duckdb_sqlalchemy_empty",
-            marks=pytest.mark.xfail(
-                reason="There is some issue with this tests that I was unable "
-                "to reproduce. It returns different results on local "
-                "and on CI."
-            ),
-        ),
-    ],
-)
-def test_tmp_table(ip, config, sql, tables, request):
-    ip = request.getfixturevalue(ip)
-    ip.run_cell(config)
-
-    out = ip.run_cell(sql)
-
-    if config == "%config SqlMagic.autopandas = True":
-        assert out.result.to_dict() == {"city": {0: "NYC"}}
-    else:
-        assert out.result.dict() == {"city": ("NYC",)}
-
-    out_tables = ip.run_cell("%sqlcmd tables")
-    assert set(tables) == set(r[0] for r in out_tables.result._table.rows)
 
 
 @pytest.mark.parametrize(

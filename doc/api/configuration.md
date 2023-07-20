@@ -1,13 +1,13 @@
 ---
 jupytext:
-  notebook_metadata_filter: myst
   cell_metadata_filter: -all
   formats: md:myst
+  notebook_metadata_filter: myst
   text_representation:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.4
+    jupytext_version: 1.14.7
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -208,9 +208,9 @@ Print number of rows affected by DML.
 
 ```{code-cell} ipython3
 %%sql
-CREATE TABLE points (x, y);
-INSERT INTO points VALUES (0, 0);
-INSERT INTO points VALUES (1, 1);
+CREATE TABLE my_points (x, y);
+INSERT INTO my_points VALUES (0, 0);
+INSERT INTO my_points VALUES (1, 1);
 ```
 
 ```{code-cell} ipython3

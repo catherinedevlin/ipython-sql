@@ -145,6 +145,9 @@ def ip(ip_empty):
         ],
     )
     yield ip_empty
+
+    Connection.close_all()
+
     runsql(ip_empty, "DROP TABLE IF EXISTS test")
     runsql(ip_empty, "DROP TABLE IF EXISTS author")
     runsql(ip_empty, "DROP TABLE IF EXISTS website")

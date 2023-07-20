@@ -4,9 +4,11 @@ import shutil
 import pandas as pd
 import pytest
 from sqlalchemy import MetaData, Table, create_engine
-from sql import _testing
 import uuid
 import duckdb
+
+from sql import _testing
+from sql import connection
 
 
 def pytest_addoption(parser):
@@ -164,6 +166,7 @@ def ip_with_mySQL(ip_empty, setup_mySQL):
         + alias
     )
     yield ip_empty
+
     # Disconnect database
     ip_empty.run_cell("%sql -x " + alias)
 
@@ -209,6 +212,7 @@ def setup_SQLite(test_table_name_dict, skip_on_live_mode):
     # Load pre-defined datasets
     load_generic_testing_data(engine, test_table_name_dict)
     yield engine
+
     tear_down_generic_testing_data(engine, test_table_name_dict)
     engine.dispose()
 
@@ -229,6 +233,8 @@ def ip_with_SQLite(ip_empty, setup_SQLite):
     yield ip_empty
     # Disconnect database
     ip_empty.run_cell("%sql -x " + alias)
+
+    connection.Connection.current.close()
 
 
 @pytest.fixture(scope="session")

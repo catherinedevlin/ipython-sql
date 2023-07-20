@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## 0.8.1dev
+* [Fix] Fix error that was incorrectly converted into a print message
 
 ## 0.8.0 (2023-07-18)
 

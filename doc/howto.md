@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.5
+    jupytext_version: 1.14.7
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -307,7 +307,7 @@ Hence, we can skip it in upcoming queries:
 
 ```{code-cell} ipython3
 %%sql
-SELECT * FROM one
+SELECT * FROM two
 ```
 
 +++ {"user_expressions": []}
@@ -315,8 +315,8 @@ SELECT * FROM one
 Switch connection:
 
 ```{code-cell} ipython3
-%%sql two
-SELECT * FROM two
+%%sql one
+SELECT * FROM one
 ```
 
 ```{code-cell} ipython3

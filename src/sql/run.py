@@ -146,6 +146,9 @@ class ResultSet(ColumnGuesserMixin):
 
         self._finished_init = True
 
+        if conn:
+            conn._result_sets.append(self)
+
     @property
     def sqlaproxy(self):
         # there is a problem when using duckdb + sqlalchemy: duckdb-engine doesn't

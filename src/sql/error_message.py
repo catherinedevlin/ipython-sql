@@ -1,7 +1,7 @@
 ORIGINAL_ERROR = "\nOriginal error message from DB driver:\n"
 CTE_MSG = (
     "If using snippets, you may pass the --with argument explicitly.\n"
-    "For more details please refer : "
+    "For more details please refer: "
     "https://jupysql.ploomber.io/en/latest/compose.html#with-argument"
 )
 

@@ -207,6 +207,9 @@ class Connection:
 
         self.connections[alias or self.url] = self
         self.connect_args = None
+
+        self._result_sets = []
+
         Connection.current = self
 
     @classmethod
@@ -460,7 +463,9 @@ class Connection:
         )
 
     @classmethod
-    def close(cls, descriptor):
+    def close_connection_with_descriptor(cls, descriptor):
+        """Close a connection with the given descriptor"""
+
         if isinstance(descriptor, Connection):
             conn = descriptor
         else:
@@ -479,17 +484,25 @@ class Connection:
             cls.connections.pop(
                 str(conn.metadata.bind.url) if IS_SQLALCHEMY_ONE else str(conn.url)
             )
-            conn.session.close()
+
+        conn.close()
+
+    def close(self):
+        """Close the current connection"""
+        for rs in self._result_sets:
+            rs._sqlaproxy.close()
+
+        self.session.close()
 
     @classmethod
     def close_all(cls, verbose=False):
-        """Close all active connections"""
+        """Close all connections"""
         connections = Connection.connections.copy()
-        for key, conn in connections.items():
-            conn.close(key)
+        for name, conn in connections.items():
+            conn.close()
 
             if verbose:
-                display.message(f"Closing {key}")
+                display.message(f"Closing {name}")
 
         cls.connections = {}
 
@@ -658,7 +671,7 @@ class Connection:
 atexit.register(Connection.close_all, verbose=True)
 
 
-class DBAPISession(sqlalchemy.engine.base.Connection):
+class DBAPISession:
     """
     A session object for generic DBAPI connections
     """
@@ -679,6 +692,9 @@ class DBAPISession(sqlalchemy.engine.base.Connection):
         cur = self.engine.cursor()
         cur.execute(query)
         return cur
+
+    def close(self):
+        pass
 
 
 class DBAPIConnection(Connection):
@@ -710,6 +726,9 @@ class DBAPIConnection(Connection):
         self.connect_args = None
         self.alias = alias
         Connection.current = self
+
+        # TODO: create an abstract class
+        self._result_sets = []
 
 
 def _check_if_duckdb_dbapi_connection(conn):

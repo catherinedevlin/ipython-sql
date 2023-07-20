@@ -1,0 +1,16 @@
+name: jupysql
+
+channels:
+  - conda-forge
+
+dependencies:
+  - pyarrow
+  - psycopg2
+  - pymysql
+  - snowflake-sqlalchemy
+  - oracledb
+  - pip
+  - pip:
+    - dockerctx
+    - pgspecial==2.0.1
+    - pyodbc==4.0.34
