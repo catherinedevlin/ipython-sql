@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.5
+    jupytext_version: 1.14.7
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -183,6 +183,12 @@ We can show a histogram of multiple columns by setting `x=['cut', 'color']`
 
 ```{code-cell} ipython3
 (ggplot("diamonds", aes(x=["cut", "color"])) + geom_histogram())
+```
+
+We can also plot histograms for a combination of categorical and numerical columns.
+
+```{code-cell} ipython3
+(ggplot("diamonds", aes(x=["color", "carat"])) + geom_histogram(bins=30))
 ```
 
 Apply a custom color with `color` and `fill`

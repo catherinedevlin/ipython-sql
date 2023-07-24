@@ -306,14 +306,30 @@ def _are_numeric_values(*values):
     return all([isinstance(value, (int, float)) for value in values])
 
 
-def _get_bar_width(ax, bins):
+def _get_bar_width(ax, bins, bin_size):
     """
     Return a single bar width based on number of bins
     If bins values are str, calculate value based on figure size.
+
+    Parameters
+    ----------
+    ax : matplotlib.Axes
+        Generated plot
+
+    bins : tuple
+        Contains bins' midpoints as float
+
+    bin_size : int or None
+        Calculated bin_size from the _histogram function
+
+    Returns
+    -------
+    width : float
+        A single bar width
     """
 
-    if _are_numeric_values(bins[-1], bins[-2]):
-        width = bins[-1] - bins[-2]
+    if _are_numeric_values(bin_size):
+        width = bin_size
     else:
         fig = plt.gcf()
         bbox = ax.get_window_extent()
@@ -398,7 +414,7 @@ def histogram(
             raise ValueError("Column name has not been specified")
 
         bin_, height, bin_size = _histogram(table, column, bins, with_=with_, conn=conn)
-        width = _get_bar_width(ax, bin_)
+        width = _get_bar_width(ax, bin_, bin_size)
         data = _histogram_stacked(
             table, column, category, bin_, bin_size, with_=with_, conn=conn, facet=facet
         )
@@ -441,10 +457,10 @@ def histogram(
         ax.set_title(f"Histogram from {table!r}")
         ax.legend()
     elif isinstance(column, str):
-        bin_, height, _ = _histogram(
+        bin_, height, bin_size = _histogram(
             table, column, bins, with_=with_, conn=conn, facet=facet
         )
-        width = _get_bar_width(ax, bin_)
+        width = _get_bar_width(ax, bin_, bin_size)
 
         ax.bar(
             bin_,
@@ -460,10 +476,10 @@ def histogram(
 
     else:
         for i, col in enumerate(column):
-            bin_, height, _ = _histogram(
+            bin_, height, bin_size = _histogram(
                 table, col, bins, with_=with_, conn=conn, facet=facet
             )
-            width = _get_bar_width(ax, bin_)
+            width = _get_bar_width(ax, bin_, bin_size)
 
             if isinstance(color, list):
                 color_ = color[i]
