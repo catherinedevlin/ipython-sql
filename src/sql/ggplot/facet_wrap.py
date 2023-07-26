@@ -18,7 +18,7 @@ class facet:
         )
         query = template.render(table=table, column=column)
 
-        conn = sql.connection.Connection.current
+        conn = sql.connection.ConnectionManager.current
 
         values = conn.execute(query, with_).fetchall()
         # Added to make histogram more inclusive to NULLs

@@ -4,7 +4,7 @@ from collections.abc import Mapping
 import numpy as np
 from matplotlib import cbook
 from sql import plot
-from sql.connection import Connection
+from sql.connection import ConnectionManager
 from pathlib import Path
 import pytest
 from sqlalchemy.exc import OperationalError
@@ -47,6 +47,9 @@ class DictOfFloats(Mapping):
 
 
 def test_boxplot_stats(chinook_db, ip_empty):
+    # there's some werid behavior in duckdb-engine that will cause the
+    # table not to be found if we call commit
+    ip_empty.run_cell("%config SqlMagic.autocommit=False")
     ip_empty.run_cell("%sql duckdb://")
     ip_empty.run_cell("%sql INSTALL 'sqlite_scanner';")
     ip_empty.run_cell("%sql commit")
@@ -56,12 +59,15 @@ def test_boxplot_stats(chinook_db, ip_empty):
     res = ip_empty.run_cell("%sql SELECT * FROM Invoice").result
     X = res.DataFrame().Total
     expected = cbook.boxplot_stats(X)
-    result = plot._boxplot_stats(Connection.current, "Invoice", "Total")
+    result = plot._boxplot_stats(ConnectionManager.current, "Invoice", "Total")
 
     assert DictOfFloats(result) == DictOfFloats(expected[0])
 
 
 def test_boxplot_stats_exception(chinook_db, ip_empty):
+    # there's some werid behavior in duckdb-engine that will cause the
+    # table not to be found if we call commit
+    ip_empty.run_cell("%config SqlMagic.autocommit=False")
     ip_empty.run_cell("%sql duckdb://")
     ip_empty.run_cell("%sql INSTALL 'sqlite_scanner';")
     ip_empty.run_cell("%sql commit")
@@ -76,7 +82,7 @@ def test_boxplot_stats_exception(chinook_db, ip_empty):
         BaseException, match="whis must be a float or list of percentiles.*"
     ):
         plot._boxplot_stats(
-            Connection.current,
+            ConnectionManager.current,
             "Invoice",
             "Total",
             "Not a float or list of percentiles whis param",
@@ -94,22 +100,29 @@ x, y
 9, 9
 """
     )
+
+    # there's some werid behavior in duckdb-engine that will cause the
+    # table not to be found if we call commit
+    ip_empty.run_cell("%config SqlMagic.autocommit=False")
     ip_empty.run_cell("%sql duckdb://")
     ip_empty.run_cell("%sql INSTALL 'sqlite_scanner';")
     ip_empty.run_cell("%sql commit")
     ip_empty.run_cell("%sql LOAD 'sqlite_scanner';")
-    result = plot._summary_stats(Connection.current, "data.csv", column="x")
+    result = plot._summary_stats(ConnectionManager.current, "data.csv", column="x")
     expected = {"q1": 1.0, "med": 2.0, "q3": 5.0, "mean": 3.4, "N": 5.0}
     assert result == expected
 
 
 def test_summary_stats_missing_file(chinook_db, ip_empty):
+    # there's some werid behavior in duckdb-engine that will cause the
+    # table not to be found if we call commit
+    ip_empty.run_cell("%config SqlMagic.autocommit=False")
     ip_empty.run_cell("%sql duckdb://")
     ip_empty.run_cell("%sql INSTALL 'sqlite_scanner';")
     ip_empty.run_cell("%sql commit")
     ip_empty.run_cell("%sql LOAD 'sqlite_scanner';")
     with pytest.raises(OperationalError) as e:
-        plot._summary_stats(Connection.current, "data.csv", column="x")
+        plot._summary_stats(ConnectionManager.current, "data.csv", column="x")
     assert 'No files found that match the pattern "data.csv"' in str(e)
 
 

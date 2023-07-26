@@ -10,9 +10,8 @@ import pandas as pd
 import polars as pl
 import sqlalchemy
 
-from sql.connection import DBAPIConnection, Connection
-from sql.run import ResultSet
-from sql import run as run_module
+from sql.connection import DBAPIConnection, SQLAlchemyConnection
+from sql.run.resultset import ResultSet, ResultSetsManager
 
 
 @pytest.fixture
@@ -57,8 +56,6 @@ def test_resultset_dicts(result_set):
 
 
 def test_resultset_dataframe(result_set, monkeypatch):
-    monkeypatch.setattr(run_module.Connection, "current", Mock())
-
     assert result_set.DataFrame().equals(pd.DataFrame({"x": range(3)}))
 
 
@@ -137,13 +134,13 @@ def results(ip_empty):
 
 @pytest.fixture
 def duckdb_sqlalchemy(ip_empty):
-    conn = Connection(create_engine("duckdb://"))
+    conn = SQLAlchemyConnection(create_engine("duckdb://"))
     yield conn
 
 
 @pytest.fixture
 def sqlite_sqlalchemy(ip_empty):
-    conn = Connection(create_engine("sqlite://"))
+    conn = SQLAlchemyConnection(create_engine("sqlite://"))
     yield conn
 
 
@@ -498,7 +495,7 @@ def test_no_displaylimit_message(results, displaylimit):
 
 
 def test_refreshes_sqlaproxy_for_sqlalchemy_duckdb():
-    first = Connection(create_engine("duckdb://"))
+    first = SQLAlchemyConnection(create_engine("duckdb://"))
     first.execute("CREATE TABLE numbers (x INTEGER)")
     first.execute("INSERT INTO numbers VALUES (1), (2), (3), (4), (5)")
     first.execute("CREATE TABLE characters (c VARCHAR)")
@@ -508,16 +505,16 @@ def test_refreshes_sqlaproxy_for_sqlalchemy_duckdb():
     mock.displaylimit = 10
     mock.autolimit = 0
 
-    statement = text("SELECT * FROM numbers")
+    statement = "SELECT * FROM numbers"
     first_set = ResultSet(
-        first.session.execute(statement), mock, statement=statement, conn=first
+        first.raw_execute(statement), mock, statement=statement, conn=first
     )
 
     original_id = id(first_set._sqlaproxy)
 
     # create a new resultset so the other one is no longer the latest one
-    statement = text("SELECT * FROM characters")
-    ResultSet(first.session.execute(statement), mock, statement=statement, conn=first)
+    statement = "SELECT * FROM characters"
+    ResultSet(first.raw_execute(statement), mock, statement=statement, conn=first)
 
     # force fetching data, this should trigger a refresh
     list(first_set)
@@ -538,14 +535,14 @@ def test_doesnt_refresh_sqlaproxy_for_if_not_sqlalchemy_and_duckdb():
 
     statement = "SELECT * FROM numbers"
     first_set = ResultSet(
-        first.session.execute(statement), mock, statement=statement, conn=first
+        first.raw_execute(statement), mock, statement=statement, conn=first
     )
 
     original_id = id(first_set._sqlaproxy)
 
     # create a new resultset so the other one is no longer the latest one
     statement = "SELECT * FROM characters"
-    ResultSet(first.session.execute(statement), mock, statement=statement, conn=first)
+    ResultSet(first.raw_execute(statement), mock, statement=statement, conn=first)
 
     # force fetching data, this should not trigger a refresh
     list(first_set)
@@ -554,11 +551,11 @@ def test_doesnt_refresh_sqlaproxy_for_if_not_sqlalchemy_and_duckdb():
 
 
 def test_doesnt_refresh_sqlaproxy_if_different_connection():
-    first = Connection(create_engine("duckdb://"))
+    first = SQLAlchemyConnection(create_engine("duckdb://"))
     first.execute("CREATE TABLE numbers (x INTEGER)")
     first.execute("INSERT INTO numbers VALUES (1), (2), (3), (4), (5)")
 
-    second = Connection(create_engine("duckdb://"))
+    second = SQLAlchemyConnection(create_engine("duckdb://"))
     second.execute("CREATE TABLE characters (c VARCHAR)")
     second.execute("INSERT INTO characters VALUES ('a'), ('b'), ('c'), ('d'), ('e')")
 
@@ -568,17 +565,50 @@ def test_doesnt_refresh_sqlaproxy_if_different_connection():
 
     statement = "SELECT * FROM numbers"
     first_set = ResultSet(
-        first.session.execute(text(statement)), mock, statement=statement, conn=first
+        first.raw_execute(statement), mock, statement=statement, conn=first
     )
 
     original_id = id(first_set._sqlaproxy)
 
     statement = "SELECT * FROM characters"
-    ResultSet(
-        second.session.execute(text(statement)), mock, statement=statement, conn=second
-    )
+    ResultSet(second.raw_execute(statement), mock, statement=statement, conn=second)
 
     # force fetching data
     list(first_set)
 
     assert id(first_set._sqlaproxy) == original_id
+
+
+def test_manager_append():
+    m = ResultSetsManager()
+    first = object()
+    second = object()
+
+    m.append_to_key("first", first)
+    assert m._results == {"first": [first]}
+
+    m.append_to_key("second", second)
+    assert m._results == {"first": [first], "second": [second]}
+
+    final = object()
+    m.append_to_key("first", final)
+    assert m._results == {"first": [first, final], "second": [second]}
+
+    # if it already exists, appending should move it to the end
+    m.append_to_key("first", first)
+    assert m._results == {"first": [final, first], "second": [second]}
+
+
+def test_manager_is_last_for_key():
+    m = ResultSetsManager()
+    first = object()
+    second = object()
+
+    m.append_to_key("first", first)
+
+    assert m.is_last_for_key("unknown-key", object()) is True
+    assert m.is_last_for_key("first", first) is True
+
+    m.append_to_key("first", second)
+    assert m.is_last_for_key("first", first) is False
+    assert m.is_last_for_key("first", second) is True

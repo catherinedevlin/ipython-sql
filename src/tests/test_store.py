@@ -1,5 +1,5 @@
 import pytest
-from sql.connection import Connection
+from sql.connection import SQLAlchemyConnection, ConnectionManager
 from IPython.core.error import UsageError
 from sql.store import SQLStore, SQLQuery
 from sqlalchemy import create_engine
@@ -7,7 +7,7 @@ from sqlalchemy import create_engine
 
 @pytest.fixture(autouse=True)
 def setup_no_current_connect(monkeypatch):
-    monkeypatch.setattr(Connection, "current", None)
+    monkeypatch.setattr(ConnectionManager, "current", None)
 
 
 def test_sqlstore_setitem():
@@ -128,7 +128,7 @@ def test_serial(with_, is_dialect_support_backtick, monkeypatch):
     monkeypatch : Monkeypatch
         A convenient fixture for monkey-patching
     """
-    conn = Connection(engine=create_engine("sqlite://"))
+    conn = SQLAlchemyConnection(engine=create_engine("sqlite://"))
 
     monkeypatch.setattr(
         conn,
@@ -173,7 +173,7 @@ def test_branch_root(is_dialect_support_backtick, monkeypatch):
     monkeypatch : Monkeypatch
         A convenient fixture for monkey-patching
     """
-    conn = Connection(engine=create_engine("sqlite://"))
+    conn = SQLAlchemyConnection(engine=create_engine("sqlite://"))
     monkeypatch.setattr(
         conn,
         "is_use_backtick_template",
@@ -218,7 +218,7 @@ def test_branch_root_reverse_final_with(is_dialect_support_backtick, monkeypatch
     monkeypatch : Monkeypatch
         A convenient fixture for monkey-patching
     """
-    conn = Connection(engine=create_engine("sqlite://"))
+    conn = SQLAlchemyConnection(engine=create_engine("sqlite://"))
 
     monkeypatch.setattr(
         conn,
@@ -263,7 +263,7 @@ def test_branch(is_dialect_support_backtick, monkeypatch):
     monkeypatch : Monkeypatch
         A convenient fixture for monkey-patching
     """
-    conn = Connection(engine=create_engine("sqlite://"))
+    conn = SQLAlchemyConnection(engine=create_engine("sqlite://"))
 
     monkeypatch.setattr(
         conn,

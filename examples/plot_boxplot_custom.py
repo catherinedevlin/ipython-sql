@@ -1,8 +1,10 @@
 from pathlib import Path
 import urllib.request
 
-from sql.connection import Connection
+from sqlalchemy import create_engine
 
+
+from sql.connection import SQLAlchemyConnection
 from sql import plot
 
 
@@ -12,7 +14,7 @@ if not Path("iris.csv").is_file():
         "iris.csv",
     )
 
-conn = Connection.from_connect_str("duckdb://")
+conn = SQLAlchemyConnection(create_engine("duckdb://"))
 
 # returns matplotlib.Axes object
 ax = plot.boxplot("iris.csv", "petal width", conn=conn)

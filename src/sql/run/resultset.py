@@ -1,105 +1,51 @@
-import codecs
-import csv
-import operator
-import os.path
+import warnings
 import re
+import operator
 from functools import reduce
 from io import StringIO
 import html
+from collections.abc import Iterable
+from collections import defaultdict
+
 
 import prettytable
-import sqlalchemy
-import sqlparse
-from sql.connection import Connection
-from sqlalchemy.exc import ResourceClosedError
-from sql import exceptions, display
-from .column_guesser import ColumnGuesserMixin
+
+from sql.column_guesser import ColumnGuesserMixin
+from sql.run.csv import CSVWriter, CSVResultDescriptor
+from sql.telemetry import telemetry
+from sql.run.table import CustomPrettyTable
 from sql.warnings import JupySQLDataFramePerformanceWarning
 
-try:
-    from pgspecial.main import PGSpecial
-except ModuleNotFoundError:
-    PGSpecial = None
-from sqlalchemy.orm import Session
 
-from sql.telemetry import telemetry
-import logging
-import warnings
-from collections.abc import Iterable
+class ResultSetsManager:
+    def __init__(self) -> None:
+        self._results = defaultdict(list)
 
+    def append_to_key(self, key, result):
+        """
+        Append object to a given key, if it already exists, it doesn't add
+        a duplicate but moves it to the end
+        """
+        results_for_key = self._results[key]
 
-def unduplicate_field_names(field_names):
-    """Append a number to duplicate field names to make them unique."""
-    res = []
-    for k in field_names:
-        if k in res:
-            i = 1
-            while k + "_" + str(i) in res:
-                i += 1
-            k += "_" + str(i)
-        res.append(k)
-    return res
+        if result in results_for_key:
+            results_for_key.remove(result)
 
+        results_for_key.append(result)
 
-class UnicodeWriter(object):
-    """
-    A CSV writer which will write rows to CSV file "f",
-    which is encoded in the given encoding.
-    """
+    def is_last_for_key(self, key, result):
+        """
+        Check if the passed result is the last one for the given key,
+        returns True if there are no results for the key
+        """
+        results_for_key = self._results[key]
 
-    def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
-        # Redirect output to a queue
-        self.queue = StringIO()
-        self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
-        self.stream = f
-        self.encoder = codecs.getincrementalencoder(encoding)()
+        # if there are no results, return True to prevent triggering
+        # a query in the database
+        if not len(results_for_key):
+            return True
 
-    def writerow(self, row):
-        _row = row
-        self.writer.writerow(_row)
-        # Fetch UTF-8 output from the queue ...
-        data = self.queue.getvalue()
-        # write to the target stream
-        self.stream.write(data)
-        # empty queue
-        self.queue.truncate(0)
-        self.queue.seek(0)
-
-    def writerows(self, rows):
-        for row in rows:
-            self.writerow(row)
-
-
-class CsvResultDescriptor(object):
-    """
-    Provides IPython Notebook-friendly output for the
-    feedback after a ``.csv`` called.
-    """
-
-    def __init__(self, file_path):
-        self.file_path = file_path
-
-    def __repr__(self):
-        return "CSV results at %s" % os.path.join(os.path.abspath("."), self.file_path)
-
-    def _repr_html_(self):
-        return '<a href="%s">CSV results</a>' % os.path.join(
-            ".", "files", self.file_path
-        )
-
-
-def _nonbreaking_spaces(match_obj):
-    """
-    Make spaces visible in HTML by replacing all `` `` with ``&nbsp;``
-
-    Call with a ``re`` match object.  Retain group 1, replace group 2
-    with nonbreaking spaces.
-    """
-    spaces = "&nbsp;" * len(match_obj.group(2))
-    return "%s%s" % (match_obj.group(1), spaces)
-
-
-_cell_with_spaces_pattern = re.compile(r"(<td>)( {2,})")
+        return results_for_key[-1] is result
 
 
 class ResultSet(ColumnGuesserMixin):
@@ -108,32 +54,27 @@ class ResultSet(ColumnGuesserMixin):
     preview based on the current configuration)
     """
 
-    # user to overcome a duckdb-engine limitation, see @sqlaproxy for details
-    LAST_BY_CONNECTION = {}
+    # user to overcome drivers limitations, see @sqlaproxy for details
+    BY_CONNECTION = ResultSetsManager()
 
     def __init__(self, sqlaproxy, config, statement=None, conn=None):
-        ResultSet.LAST_BY_CONNECTION[conn] = self
-
-        self.config = config
-        self.truncated = False
-        self.statement = statement
-
+        self._config = config
+        self._statement = statement
         self._sqlaproxy = sqlaproxy
         self._conn = conn
-        self._dialect = conn._get_curr_sqlglot_dialect()
+        self._dialect = conn._get_sqlglot_dialect()
         self._keys = None
         self._field_names = None
         self._results = []
-
         # https://peps.python.org/pep-0249/#description
-        self.is_dbapi_results = hasattr(sqlaproxy, "description")
+        self._is_dbapi_results = hasattr(sqlaproxy, "description")
 
         # note that calling this will fetch the keys
-        self.pretty_table = self._init_table()
+        self._pretty_table = self._init_table()
 
         self._mark_fetching_as_done = False
 
-        if self.config.autolimit == 1:
+        if self._config.autolimit == 1:
             # if autolimit is 1, we only want to fetch one row
             self.fetchmany(size=1)
             self._done_fetching()
@@ -146,8 +87,11 @@ class ResultSet(ColumnGuesserMixin):
 
         self._finished_init = True
 
+        # TODO: clean up, this is redundant
         if conn:
             conn._result_sets.append(self)
+
+        ResultSet.BY_CONNECTION.append_to_key(conn, self)
 
     @property
     def sqlaproxy(self):
@@ -155,10 +99,12 @@ class ResultSet(ColumnGuesserMixin):
         # create separate cursors, so whenever we have >1 ResultSet, the old ones
         # become outdated and fetching their results will return the results from
         # the last ResultSet. To fix this, we have to re-issue the query
-        is_last_result = ResultSet.LAST_BY_CONNECTION.get(self._conn) is self
+        is_last_result = ResultSet.BY_CONNECTION.is_last_for_key(self._conn, self)
         is_duckdb_sqlalchemy = (
-            self._dialect == "duckdb" and not self._conn.is_dbapi_connection()
+            self._dialect == "duckdb" and not self._conn.is_dbapi_connection
         )
+
+        # TODO: re-open it if closed
 
         if (
             # skip this if we're initializing the object (we're running __init__)
@@ -167,18 +113,18 @@ class ResultSet(ColumnGuesserMixin):
             and is_duckdb_sqlalchemy
             and not is_last_result
         ):
-            self._sqlaproxy = self._conn.session.execute(self.statement)
+            self._sqlaproxy = self._conn.raw_execute(self._statement)
             self._sqlaproxy.fetchmany(size=len(self._results))
 
-            ResultSet.LAST_BY_CONNECTION[self._conn] = self
+            ResultSet.BY_CONNECTION.append_to_key(self._conn, self)
 
         return self._sqlaproxy
 
     def _extend_results(self, elements):
         """Store the DB fetched results into the internal list of results"""
-        to_add = self.config.displaylimit - len(self._results)
+        to_add = self._config.displaylimit - len(self._results)
         self._results.extend(elements)
-        self.pretty_table.add_rows(elements[:to_add])
+        self._pretty_table.add_rows(elements[:to_add])
 
     def mark_fetching_as_done(self):
         self._mark_fetching_as_done = True
@@ -203,12 +149,14 @@ class ResultSet(ColumnGuesserMixin):
         if self._keys is not None:
             return self._keys
 
-        if not self.is_dbapi_results:
+        if not self._is_dbapi_results:
             try:
                 self._keys = self.sqlaproxy.keys()
-            # sqlite raises this error when running a script that doesn't return rows
-            # e.g, 'CREATE TABLE' but others don't (e.g., duckdb)
-            except ResourceClosedError:
+            # sqlite with sqlalchemy raises sqlalchemy.exc.ResourceClosedError,
+            # psycopg2 raises psycopg2.ProgrammingError error when running a script
+            # that doesn't return rows e.g, 'CREATE TABLE' but others don't
+            # (e.g., duckdb), so here we catch all
+            except Exception:
                 self._keys = []
                 return self._keys
 
@@ -224,7 +172,7 @@ class ResultSet(ColumnGuesserMixin):
 
         _cell_with_spaces_pattern = re.compile(r"(<td>)( {2,})")
 
-        result = self.pretty_table.get_html_string()
+        result = self._pretty_table.get_html_string()
 
         HTML = (
             "%s\n<span style='font-style:italic;font-size:11px'>"
@@ -240,7 +188,7 @@ class ResultSet(ColumnGuesserMixin):
         result = html.unescape(result)
         result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
 
-        if self.config.displaylimit != 0 and not self._done_fetching():
+        if self._config.displaylimit != 0 and not self._done_fetching():
             HTML = (
                 '%s\n<span style="font-style:italic;text-align:center;">'
                 "Truncated to displaylimit of %d</span>"
@@ -250,7 +198,7 @@ class ResultSet(ColumnGuesserMixin):
                 '<a href="https://jupysql.ploomber.io/en/latest/api/configuration.html#displaylimit">displaylimit</a>'  # noqa: E501
                 " configuration</span>"
             )
-            result = HTML % (result, self.config.displaylimit)
+            result = HTML % (result, self._config.displaylimit)
         return result
 
     def __len__(self):
@@ -266,7 +214,7 @@ class ResultSet(ColumnGuesserMixin):
 
     def __str__(self):
         self.fetch_for_repr_if_needed()
-        return str(self.pretty_table)
+        return str(self._pretty_table)
 
     def __repr__(self) -> str:
         return str(self)
@@ -311,7 +259,7 @@ class ResultSet(ColumnGuesserMixin):
     @telemetry.log_call("data-frame", payload=True)
     def DataFrame(self, payload):
         """Returns a Pandas DataFrame instance built from the result set."""
-        payload["connection_info"] = self._conn._get_curr_sqlalchemy_connection_info()
+        payload["connection_info"] = self._conn._get_database_information()
         import pandas as pd
 
         kwargs = {"columns": (self and self.keys) or []}
@@ -440,13 +388,13 @@ class ResultSet(ColumnGuesserMixin):
         else:
             outfile = StringIO()
 
-        writer = UnicodeWriter(outfile, **format_params)
+        writer = CSVWriter(outfile, **format_params)
         writer.writerow(self.field_names)
         for row in self:
             writer.writerow(row)
         if filename:
             outfile.close()
-            return CsvResultDescriptor(filename)
+            return CSVResultDescriptor(filename)
         else:
             return outfile.getvalue()
 
@@ -455,9 +403,11 @@ class ResultSet(ColumnGuesserMixin):
         if not self._done_fetching():
             try:
                 returned = self.sqlaproxy.fetchmany(size=size)
-            # sqlite raises this error when running a script that doesn't return rows
-            # e.g, 'CREATE TABLE' but others don't (e.g., duckdb)
-            except ResourceClosedError:
+            # sqlite with sqlalchemy raises sqlalchemy.exc.ResourceClosedError,
+            # psycopg2 raises psycopg2.ProgrammingError error when running a script
+            # that doesn't return rows e.g, 'CREATE TABLE' but others don't
+            # (e.g., duckdb), so here we catch all
+            except Exception:
                 self.mark_fetching_as_done()
                 return
 
@@ -467,17 +417,17 @@ class ResultSet(ColumnGuesserMixin):
                 self.mark_fetching_as_done()
 
             if (
-                self.config.autolimit is not None
-                and self.config.autolimit != 0
-                and len(self._results) >= self.config.autolimit
+                self._config.autolimit is not None
+                and self._config.autolimit != 0
+                and len(self._results) >= self._config.autolimit
             ):
                 self.mark_fetching_as_done()
 
     def fetch_for_repr_if_needed(self):
-        if self.config.displaylimit == 0:
+        if self._config.displaylimit == 0:
             self.fetchall()
 
-        missing = self.config.displaylimit - len(self._results)
+        missing = self._config.displaylimit - len(self._results)
 
         if missing > 0:
             self.fetchmany(missing)
@@ -490,212 +440,24 @@ class ResultSet(ColumnGuesserMixin):
     def _init_table(self):
         pretty = CustomPrettyTable(self.field_names)
 
-        if isinstance(self.config.style, str):
-            _style = prettytable.__dict__[self.config.style.upper()]
+        if isinstance(self._config.style, str):
+            _style = prettytable.__dict__[self._config.style.upper()]
             pretty.set_style(_style)
 
         return pretty
 
 
-def display_affected_rowcount(rowcount):
-    if rowcount > 0:
-        display.message_success(f"{rowcount} rows affected.")
-
-
-class FakeResultProxy(object):
-    """A fake class that pretends to behave like the ResultProxy from
-    SqlAlchemy.
-    """
-
-    def __init__(self, cursor, headers):
-        if cursor is None:
-            cursor = []
-            headers = []
-        if isinstance(cursor, list):
-            self.from_list(source_list=cursor)
-        else:
-            self.fetchall = cursor.fetchall
-            self.fetchmany = cursor.fetchmany
-            self.rowcount = cursor.rowcount
-        self.keys = lambda: headers
-        self.returns_rows = True
-
-    def from_list(self, source_list):
-        "Simulates SQLA ResultProxy from a list."
-
-        self.fetchall = lambda: source_list
-        self.rowcount = len(source_list)
-
-        def fetchmany(size):
-            pos = 0
-            while pos < len(source_list):
-                yield source_list[pos : pos + size]
-                pos += size
-
-        self.fetchmany = fetchmany
-
-
-# some dialects have autocommit
-# specific dialects break when commit is used:
-
-_COMMIT_BLACKLIST_DIALECTS = (
-    "athena",
-    "bigquery",
-    "clickhouse",
-    "ingres",
-    "mssql",
-    "teradata",
-    "vertica",
-)
-
-
-def _commit(conn, config, manual_commit):
-    """Issues a commit, if appropriate for current config and dialect"""
-
-    _should_commit = (
-        config.autocommit
-        and all(
-            dialect not in str(conn.dialect) for dialect in _COMMIT_BLACKLIST_DIALECTS
-        )
-        and manual_commit
-    )
-
-    if _should_commit:
-        try:
-            with Session(conn.session) as session:
-                session.commit()
-        except sqlalchemy.exc.OperationalError:
-            display.message("The database does not support the COMMIT command")
-
-
-def is_postgres_or_redshift(dialect):
-    """Checks if dialect is postgres or redshift"""
-    return "postgres" in str(dialect) or "redshift" in str(dialect)
-
-
-def is_pytds(dialect):
-    """Checks if driver is pytds"""
-    return "pytds" in str(dialect)
-
-
-def handle_postgres_special(conn, statement):
-    """Execute a PostgreSQL special statement using PGSpecial module."""
-    if not PGSpecial:
-        raise exceptions.MissingPackageError("pgspecial not installed")
-
-    pgspecial = PGSpecial()
-    _, cur, headers, _ = pgspecial.execute(conn.session.connection.cursor(), statement)[
-        0
-    ]
-    return FakeResultProxy(cur, headers)
-
-
-def set_autocommit(conn, config):
-    """Sets the autocommit setting for a database connection."""
-    if is_pytds(conn.dialect):
-        warnings.warn(
-            "Autocommit is not supported for pytds, thus is automatically disabled"
-        )
-        return False
-    if config.autocommit:
-        try:
-            conn.session.execution_options(isolation_level="AUTOCOMMIT")
-        except Exception as e:
-            logging.debug(
-                f"The database driver doesn't support such "
-                f"AUTOCOMMIT execution option"
-                f"\nPerhaps you can try running a manual COMMIT command"
-                f"\nMessage from the database driver\n\t"
-                f"Exception:  {e}\n",  # noqa: F841
-            )
-            return True
-    return False
-
-
-def select_df_type(resultset, config):
-    """
-    Converts the input resultset to either a Pandas DataFrame
-    or Polars DataFrame based on the config settings.
-    """
-    if config.autopandas:
-        return resultset.DataFrame()
-    elif config.autopolars:
-        return resultset.PolarsDataFrame(**config.polars_dataframe_kwargs)
-    else:
-        return resultset
-    # returning only last result, intentionally
-
-
-def run(conn, sql, config):
-    """Run a SQL query with the given connection
-
-    Parameters
-    ----------
-    conn : sql.connection.Connection
-        The connection to use
-
-    sql : str
-        SQL query to execution
-
-    config
-        Configuration object
-    """
-    if not sql.strip():
-        # returning only when sql is empty string
-        return "Connected: %s" % conn.name
-
-    for statement in sqlparse.split(sql):
-        first_word = sql.strip().split()[0].lower()
-        manual_commit = False
-
-        # attempting to run a transaction
-        if first_word == "begin":
-            raise exceptions.RuntimeError("JupySQL does not support transactions")
-
-        # postgres metacommand
-        if first_word.startswith("\\") and is_postgres_or_redshift(conn.dialect):
-            result = handle_postgres_special(conn, statement)
-
-        # regular query
-        else:
-            manual_commit = set_autocommit(conn, config)
-            is_dbapi_connection = Connection.is_dbapi_connection(conn)
-
-            # if regular sqlalchemy, pass a text object
-            if not is_dbapi_connection:
-                statement = sqlalchemy.sql.text(statement)
-
-            result = conn.session.execute(statement)
-            _commit(conn=conn, config=config, manual_commit=manual_commit)
-
-            if result and config.feedback:
-                if hasattr(result, "rowcount"):
-                    display_affected_rowcount(result.rowcount)
-
-    resultset = ResultSet(result, config, statement, conn)
-    return select_df_type(resultset, config)
-
-
-def raw_run(conn, sql):
-    return conn.session.execute(sqlalchemy.sql.text(sql))
-
-
-class CustomPrettyTable(prettytable.PrettyTable):
-    def add_rows(self, data):
-        for row in data:
-            formatted_row = []
-            for cell in row:
-                if isinstance(cell, str) and cell.startswith("http"):
-                    formatted_row.append("<a href={}>{}</a>".format(cell, cell))
-                else:
-                    formatted_row.append(cell)
-            self.add_row(formatted_row)
-
-
-def _statement_is_select(statement):
-    statement_ = statement.lower().strip()
-    # duckdb also allows FROM without SELECT
-    return statement_.startswith("select") or statement_.startswith("from")
+def unduplicate_field_names(field_names):
+    """Append a number to duplicate field names to make them unique."""
+    res = []
+    for k in field_names:
+        if k in res:
+            i = 1
+            while k + "_" + str(i) in res:
+                i += 1
+            k += "_" + str(i)
+        res.append(k)
+    return res
 
 
 def _convert_to_data_frame(
@@ -710,10 +472,10 @@ def _convert_to_data_frame(
         # already, .df() will return None. But only if it's a select statement
         # otherwise we might end up re-execute INSERT INTO or CREATE TABLE
         # statements
-        is_select = _statement_is_select(result_set.statement)
+        is_select = _statement_is_select(result_set._statement)
 
         if is_select:
-            result_set.sqlaproxy.execute(result_set.statement)
+            result_set.sqlaproxy.execute(result_set._statement)
 
         return getattr(result_set.sqlaproxy, converter_name)()
     else:
@@ -745,3 +507,20 @@ def _convert_to_data_frame(
             )
 
         return frame
+
+
+def _nonbreaking_spaces(match_obj):
+    """
+    Make spaces visible in HTML by replacing all `` `` with ``&nbsp;``
+
+    Call with a ``re`` match object.  Retain group 1, replace group 2
+    with nonbreaking spaces.
+    """
+    spaces = "&nbsp;" * len(match_obj.group(2))
+    return "%s%s" % (match_obj.group(1), spaces)
+
+
+def _statement_is_select(statement):
+    statement_ = statement.lower().strip()
+    # duckdb also allows FROM without SELECT
+    return statement_.startswith("select") or statement_.startswith("from")

@@ -1,8 +1,9 @@
 # CHANGELOG
 
-## 0.8.1dev
+## 0.9.0dev
 * [Fix] Fix error that was incorrectly converted into a print message
-
+* [API Change] A shorter name is now assigned as an alias by default
+* [Fix] Fix bug that caused the `COMMIT` not to work when the SQLAlchemy driver did not support `set_isolation_level`
 * [Fix] Fixed vertical color breaks in histograms (#702)
 
 ## 0.8.0 (2023-07-18)

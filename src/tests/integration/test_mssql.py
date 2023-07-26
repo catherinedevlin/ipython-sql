@@ -1,4 +1,3 @@
-import pyodbc
 import pytest
 from matplotlib import pyplot as plt
 from IPython.core.error import UsageError
@@ -29,6 +28,8 @@ def test_cte(ip_with_MSSQL, test_table_name_dict):
 
 
 def test_create_table_with_indexed_df(ip_with_MSSQL, test_table_name_dict):
+    import pyodbc
+
     # MSSQL gives error if DB doesn't exist
 
     ip_with_MSSQL.run_cell("%config SqlMagic.displaylimit = 0")

@@ -13,9 +13,9 @@ import polars as pl
 import pytest
 from sqlalchemy import create_engine
 from IPython.core.error import UsageError
-from sql.connection import Connection
+from sql.connection import ConnectionManager
 from sql.magic import SqlMagic
-from sql.run import ResultSet
+from sql.run.resultset import ResultSet
 from sql import magic
 
 from conftest import runsql
@@ -902,25 +902,25 @@ def test_close_connection(ip, tmp_empty):
     ip.run_cell("%sql -x sqlite:///one.db")
     ip.run_cell("%sql --close sqlite:///two.db")
 
-    assert "sqlite:///one.db" not in Connection.connections
-    assert "sqlite:///two.db" not in Connection.connections
+    assert "sqlite:///one.db" not in ConnectionManager.connections
+    assert "sqlite:///two.db" not in ConnectionManager.connections
 
 
 def test_alias(clean_conns, ip_empty, tmp_empty):
     ip_empty.run_cell("%sql sqlite:///one.db --alias one")
-    assert {"one"} == set(Connection.connections)
+    assert {"one"} == set(ConnectionManager.connections)
 
 
 def test_alias_existing_engine(clean_conns, ip_empty, tmp_empty):
     ip_empty.user_global_ns["first"] = create_engine("sqlite:///first.db")
     ip_empty.run_cell("%sql first --alias one")
-    assert {"one"} == set(Connection.connections)
+    assert {"one"} == set(ConnectionManager.connections)
 
 
 def test_alias_dbapi_connection(clean_conns, ip_empty, tmp_empty):
     ip_empty.user_global_ns["first"] = create_engine("sqlite://")
     ip_empty.run_cell("%sql first --alias one")
-    assert {"one"} == set(Connection.connections)
+    assert {"one"} == set(ConnectionManager.connections)
 
 
 def test_close_connection_with_alias(ip, tmp_empty):
@@ -932,10 +932,10 @@ def test_close_connection_with_alias(ip, tmp_empty):
     ip.run_cell("%sql -x one")
     ip.run_cell("%sql --close two")
 
-    assert "sqlite:///one.db" not in Connection.connections
-    assert "sqlite:///two.db" not in Connection.connections
-    assert "one" not in Connection.connections
-    assert "two" not in Connection.connections
+    assert "sqlite:///one.db" not in ConnectionManager.connections
+    assert "sqlite:///two.db" not in ConnectionManager.connections
+    assert "one" not in ConnectionManager.connections
+    assert "two" not in ConnectionManager.connections
 
 
 def test_close_connection_with_existing_engine_and_alias(ip, tmp_empty):
@@ -950,10 +950,10 @@ def test_close_connection_with_existing_engine_and_alias(ip, tmp_empty):
     ip.run_cell("%sql -x one")
     ip.run_cell("%sql --close two")
 
-    assert "sqlite:///first.db" not in Connection.connections
-    assert "sqlite:///second.db" not in Connection.connections
-    assert "first" not in Connection.connections
-    assert "second" not in Connection.connections
+    assert "sqlite:///first.db" not in ConnectionManager.connections
+    assert "sqlite:///second.db" not in ConnectionManager.connections
+    assert "first" not in ConnectionManager.connections
+    assert "second" not in ConnectionManager.connections
 
 
 def test_close_connection_with_dbapi_connection_and_alias(ip, tmp_empty):
@@ -968,10 +968,10 @@ def test_close_connection_with_dbapi_connection_and_alias(ip, tmp_empty):
     ip.run_cell("%sql -x one")
     ip.run_cell("%sql --close two")
 
-    assert "sqlite:///first.db" not in Connection.connections
-    assert "sqlite:///second.db" not in Connection.connections
-    assert "first" not in Connection.connections
-    assert "second" not in Connection.connections
+    assert "sqlite:///first.db" not in ConnectionManager.connections
+    assert "sqlite:///second.db" not in ConnectionManager.connections
+    assert "first" not in ConnectionManager.connections
+    assert "second" not in ConnectionManager.connections
 
 
 def test_creator_no_argument_raises(ip_empty):

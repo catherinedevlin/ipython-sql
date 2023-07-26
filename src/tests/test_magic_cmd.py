@@ -5,7 +5,7 @@ from IPython.core.error import UsageError
 from pathlib import Path
 
 from sqlalchemy import create_engine
-from sql.connection import Connection
+from sql.connection import SQLAlchemyConnection
 from sql.store import store
 from sql.inspect import _is_numeric
 from sql.display import Table, Message
@@ -121,7 +121,7 @@ def test_tables(ip):
 
 
 def test_tables_with_schema(ip, tmp_empty):
-    conn = Connection(engine=create_engine("sqlite:///my.db"))
+    conn = SQLAlchemyConnection(engine=create_engine("sqlite:///my.db"))
     conn.execute("CREATE TABLE numbers (some_number FLOAT)")
 
     ip.run_cell(
@@ -159,7 +159,7 @@ def test_columns(ip, cmd, cols):
 
 
 def test_columns_with_schema(ip, tmp_empty):
-    conn = Connection(engine=create_engine("sqlite:///my.db"))
+    conn = SQLAlchemyConnection(engine=create_engine("sqlite:///my.db"))
     conn.execute("CREATE TABLE numbers (some_number FLOAT)")
 
     ip.run_cell(
@@ -405,6 +405,11 @@ def test_table_profile_store(ip, tmp_empty):
             UsageError,
             "Referenced column 'something' not found!",
         ],
+    ],
+    ids=[
+        "no_comparator",
+        "no_column",
+        "no_column_name",
     ],
 )
 def test_test_error(ip, cell, error_type, error_message):

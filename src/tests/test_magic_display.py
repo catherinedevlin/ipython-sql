@@ -13,7 +13,7 @@ def test_dbapi_connection_display(ip_empty, capsys, tmp_empty):
     ip_empty.run_cell("%sql show tables")
 
     captured = capsys.readouterr()
-    assert "Running query in '<duckdb.DuckDBPyConnection" in captured.out
+    assert "Running query in 'DuckDBPyConnection'" in captured.out
 
 
 def test_connection_string_hidden_when_passing_alias(ip_empty, capsys):
@@ -49,7 +49,7 @@ def test_listing_connections(ip_empty, tmp_empty):
     txt = str(connections_table)
 
     assert connections_table._repr_html_()
-    assert "<duckdb.DuckDBPyConnection" in txt
+    assert "DuckDBPyConnection" in txt
     assert "sqlite:///my.db" in txt
     assert "duckdb:///somedb" in txt
     assert "sqlite://" in txt

@@ -30,3 +30,10 @@ def test_postgres_error(ip_empty, postgreSQL_config_incorrect_pwd):
         "If you need help solving this issue, "
         "send us a message: https://ploomber.io/community" in str(out.error_in_exec)
     )
+
+
+# 'pgspecial<2'
+def test_pgspecial(ip_with_postgreSQL):
+    out = ip_with_postgreSQL.run_cell("%sql \l").result  # noqa: W605
+
+    assert "postgres" in out.dict()["Name"]

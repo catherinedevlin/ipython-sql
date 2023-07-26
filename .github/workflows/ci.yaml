@@ -77,6 +77,7 @@ jobs:
     if: needs.preliminary.outputs.check_doc_modified == 'failure'
     uses: ./.github/workflows/ci-integration-db-live.yaml
     secrets: inherit
+
   integration-test-non-live:
     needs: [preliminary]
     if: needs.preliminary.outputs.check_doc_modified == 'failure'
@@ -94,6 +95,7 @@ jobs:
 
     env:
       PLOOMBER_VERSION_CHECK_DISABLED: true
+      PYTHON_VERSION: ${{ matrix.python-version }}
 
     steps:
 
@@ -108,25 +110,19 @@ jobs:
       - name: Lint
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --upgrade pkgmt codespell
+          python -m pip install --upgrade pkgmt codespell nox
           pkgmt lint
           codespell
 
       - name: Install dependencies
         run: |
 
-          pip install .
-          # check package is importable
-          python -c "import sql"
-          pip install ".[dev]"
-          pip install sqlalchemy -U
+          nox --session test_unit --install-only
 
       - name: Test with pytest
         run: |
-          # ensure we're running sqlalchemy 2
-          python -c "import sqlalchemy; assert int(sqlalchemy.__version__.split('.')[0]) == 2"
-          # run unit tests
-          pytest --durations-min=5 --ignore=src/tests/integration
+
+          nox --session test_unit --no-install --reuse-existing-virtualenvs
 
       - name: Upload failed images artifacts
         uses: actions/upload-artifact@v3
@@ -147,6 +143,7 @@ jobs:
 
     env:
       PLOOMBER_VERSION_CHECK_DISABLED: true
+      PYTHON_VERSION: ${{ matrix.python-version }}
 
     steps:
 
@@ -160,20 +157,17 @@ jobs:
 
       - name: Lint
         run: |
-          python -m pip install --upgrade pip pkgmt
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade pkgmt nox
           pkgmt lint
 
       - name: Install dependencies
         run: |
-          pip install "sqlalchemy<2"
-          pip install ".[dev]"
+          nox --session test_unit_sqlalchemy_one --install-only
 
       - name: Test with pytest
         run: |
-          # ensure we're running sqlalchemy 1
-          python -c "import sqlalchemy; assert int(sqlalchemy.__version__.split('.')[0]) == 1"
-          # run tests
-          pytest --durations-min=5 --ignore=src/tests/integration
+          nox --session test_unit_sqlalchemy_one --no-install --reuse-existing-virtualenvs
 
       - name: Upload failed images artifacts sqlalchemyv1
         uses: actions/upload-artifact@v3

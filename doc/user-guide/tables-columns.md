@@ -86,9 +86,9 @@ If the table isn't in the default schema, pass `--schema/-s`. Let's create a new
 :tags: [hide-output]
 
 from sqlalchemy import create_engine
-from sql.connection import Connection
+from sql.connection import SQLAlchemyConnection
 
-conn = Connection(engine=create_engine("sqlite:///my.db"))
+conn = SQLAlchemyConnection(engine=create_engine("sqlite:///my.db"))
 conn.execute("CREATE TABLE numbers (n FLOAT)")
 ```
 

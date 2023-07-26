@@ -18,6 +18,7 @@ jobs:
 
     env:
       PLOOMBER_VERSION_CHECK_DISABLED: true
+      PYTHON_VERSION: ${{ matrix.python-version }}
 
     steps:
       - name: Checkout
@@ -43,8 +44,11 @@ jobs:
 
       - name: Install dependencies
         if: ${{ steps.secret-check.outputs.available == 'true' }}
-        run:
-          pip install ".[integration]"
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade nox
+          nox --session test_integration_snowflake --install-only
+
       - name: Integration Test
         if: ${{ steps.secret-check.outputs.available == 'true'}}
         env:
@@ -52,9 +56,8 @@ jobs:
           SF_PASSWORD: ${{ secrets.SF_PASSWORD }}
           SF_DATABASE: ${{ secrets.SF_DATABASE }}
         run: |
-          # Run the integration test with live option
-          python -c "import sqlalchemy; print('Sqlalchemy version ', sqlalchemy.__version__)"
-          pytest src/tests/integration --verbose --live
+
+          nox --session test_integration_snowflake --no-install --reuse-existing-virtualenvs
 
       - name: Upload failed images artifacts
         uses: actions/upload-artifact@v3

@@ -198,6 +198,8 @@ def database_ready(
             eng.close()
             print(f"{database} is initialized successfully")
             return True
+        except ModuleNotFoundError:
+            raise
         except Exception as e:
             print(type(e))
             errors.append(str(e))

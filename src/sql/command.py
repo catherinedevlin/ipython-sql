@@ -5,7 +5,7 @@ from sqlalchemy.engine import Engine
 
 from sql import parse
 from sql.store import store
-from sql.connection import Connection
+from sql.connection import ConnectionManager, is_pep249_compliant
 
 
 class SQLPlotCommand:
@@ -28,11 +28,14 @@ class SQLCommand:
         # is split in tokens (delimited by spaces), this checks if we have one arg
         one_arg = len(self.args.line) == 1
 
-        is_dbapi_connection_ = (
-            Connection.is_dbapi_connection(user_ns.get(self.args.line[0], False))
-            if len(self.args.line) > 0
-            else False
-        )
+        # NOTE: this is only used to determine if what the user passed looks like a
+        # connection, we can simplify it
+        if len(self.args.line) > 0 and self.args.line[0] in user_ns:
+            conn = user_ns[self.args.line[0]]
+
+            is_dbapi_connection_ = is_pep249_compliant(conn)
+        else:
+            is_dbapi_connection_ = False
 
         if (
             one_arg
@@ -45,7 +48,7 @@ class SQLCommand:
             line_for_command = self.args.line
             add_conn = False
 
-        if one_arg and self.args.line[0] in Connection.connections:
+        if one_arg and self.args.line[0] in ConnectionManager.connections:
             line_for_command = []
             add_alias = True
         else:

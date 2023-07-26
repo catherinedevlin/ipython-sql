@@ -106,11 +106,11 @@ Currently, these common errors are handled by providing more meaningful error me
 
 ## Managing Connections
 
-In our codebase, we manage connections to databases with a `Connection` object, this is required for the `%%sql magic` to work. Internally, this connection object has a sqlalchemy connection.
+In our codebase, we manage connections to databases with a `SQLAlchemy` and `DBAPIConnection` objects, this is required for the `%%sql magic` to work.
 
 ### Working with connections
 
-`Connection` should be exclusively used to manage database connections on the user's behalf and to obtain the current SQLAlchemy connection. We can access the current SQLAlchemy connection using `current.session`.
+`ConnectionManager` should be exclusively used to manage database connections on the user's behalf and to obtain the current connection. We can access the current connection using `current`.
 
 ```{code-cell} ipython3
 :tags: [remove-output]
@@ -120,13 +120,13 @@ In our codebase, we manage connections to databases with a `Connection` object, 
 ```
 
 ```{code-cell} ipython3
-from sql.connection import Connection
+from sql.connection import ConnectionManager
 
-conn = Connection.current.session
+conn = ConnectionManager.current
 conn
 ```
  
-Functions that expect a `conn` (sometimes named `con`) input variable should only use SQLAlchemy connections.
+Functions that expect a `conn` (sometimes named `con`) input variable should only use connections.
 
 ```python
 def histogram(payload, table, column, bins, with_=None, conn=None):
@@ -139,9 +139,9 @@ When creating data for tests, we should use `sqlalchemy.create_engine` and avoid
 
 ```{code-cell} ipython3
 from sqlalchemy import create_engine
-from sql.connection import Connection
+from sql.connection import SQLAlchemyConnection
 
-conn = Connection(engine=create_engine("sqlite://"))
+conn = SQLAlchemyConnection(engine=create_engine("sqlite://"))
 
 conn.execute("CREATE TABLE some_table (name, age)")
 ```
@@ -375,17 +375,17 @@ We can use [SQLGlot](https://sqlglot.com/sqlglot.html) to build the general sql 
 
 Then transpile to the sql which is supported by current connected dialect.
 
-Our `sql.connection.Connection._transpile_query` will automatically detect the dialect and transpile the SQL clause.
+Our `sql.SQLAlchemyConnection._transpile_query` will automatically detect the dialect and transpile the SQL clause.
 
 #### Example
 
 ```{code-cell} ipython3
 # Prepare connection
 from sqlglot import select, condition
-from sql import connection
+from sql.connection import SQLAlchemyConnection
 from sqlalchemy import create_engine
 
-conn = connection.Connection(engine=create_engine(url="sqlite://"))
+conn = SQLAlchemyConnection(engine=create_engine(url="sqlite://"))
 ```
 
 ```{code-cell} ipython3
@@ -416,11 +416,11 @@ We may provide `sqlglot.parse_one({source_sql_clause}, read={source_database_dia
 ##### Prepare connection
 
 ```{code-cell} ipython3
-from sql import connection
+from sql.connection import SQLAlchemyConnection
 from sqlalchemy import create_engine
 import sqlglot
 
-conn = connection.Connection(engine=create_engine(url="duckdb://"))
+conn = SQLAlchemyConnection(engine=create_engine(url="duckdb://"))
 ```
 
 ##### Prepare SQL clause based on duckdb syntax
@@ -441,10 +441,10 @@ conn._transpile_query(input_sql)
 ##### Prepare connection
 
 ```{code-cell} ipython3
-from sql import connection
+from sql.connection import SQLAlchemyConnection
 from sqlalchemy import create_engine
 
-conn = connection.Connection(engine=create_engine(url="sqlite://"))
+conn = SQLAlchemyConnection(engine=create_engine(url="sqlite://"))
 ```
 
 ##### Prepare SQL clause based on sqlite

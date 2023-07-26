@@ -1,16 +1,16 @@
 from sql import exceptions
 import sql.connection
-from sqlalchemy import text
 from sqlglot import select, condition
 from prettytable import PrettyTable
 from sql.cmd.cmd_utils import CmdParser
 
 
 def return_test_results(args, conn, query):
+    columns = []
+
     try:
-        columns = []
-        column_data = conn.execute(text(query)).cursor.description
-        res = conn.execute(text(query)).fetchall()
+        column_data = conn.execute(query).cursor.description
+        res = conn.execute(query).fetchall()
         for column in column_data:
             columns.append(column[0])
         res = [columns, *res]
@@ -161,7 +161,7 @@ def test(others):
             "or equal to arguments at the same time."
         )
 
-    conn = sql.connection.Connection.current.session
+    conn = sql.connection.ConnectionManager.current
     result_dict = run_each_individually(args, conn)
 
     if any(len(rows) > 1 for rows in list(result_dict.values())):
