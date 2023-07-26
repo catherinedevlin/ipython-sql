@@ -2,7 +2,7 @@
 
 ## 0.9.0dev
 * [Fix] Fix error that was incorrectly converted into a print message
-* [API Change] A shorter name is now assigned as an alias by default
+* [Fix] Modified histogram query to ensure histogram binning is done correctly (#751)
 * [Fix] Fix bug that caused the `COMMIT` not to work when the SQLAlchemy driver did not support `set_isolation_level`
 * [Fix] Fixed vertical color breaks in histograms (#702)
 

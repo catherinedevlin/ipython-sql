@@ -70,9 +70,11 @@ class ggplot:
                 ax_ = self.figure.add_subplot(n_rows, n_cols, i + 1)
                 facet_key_val = {"key": other.facet, "value": value[0]}
                 self.geom.draw(self, ax_, facet_key_val)
+                handles, labels = ax_.get_legend_handles_labels()
                 ax_.set_title(value[0])
                 ax_.tick_params(axis="both", labelsize=7)
-                ax_.legend(prop={"size": 10})
+                # reverses legend order so alphabetically first goes on top
+                ax_.legend(handles[::-1], labels[::-1], prop={"size": 10})
                 if other.legend is False:
                     plt.legend("", frameon=False)
                 self.axs.append(ax_)

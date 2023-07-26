@@ -455,7 +455,9 @@ def histogram(
             bottom += values_
 
         ax.set_title(f"Histogram from {table!r}")
-        ax.legend()
+        # reverses legend order so alphabetically first goes on top
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(handles[::-1], labels[::-1])
     elif isinstance(column, str):
         bin_, height, bin_size = _histogram(
             table, column, bins, with_=with_, conn=conn, facet=facet
@@ -534,12 +536,13 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
                 f"bins are '{bins}'. Please specify a valid number of bins."
             )
 
+        # Use bins - 1 instead of bins and round half down instead of floor
+        # to mimic right-closed histogram intervals in R ggplot
         range_ = max_ - min_
-        bin_size = range_ / bins
-
+        bin_size = range_ / (bins - 1)
         template_ = """
             select
-            floor("{{column}}"/{{bin_size}})*{{bin_size}} as bin,
+            ceiling("{{column}}"/{{bin_size}} - 0.5)*{{bin_size}} as bin,
             count(*) as count
             from "{{table}}"
             {{filter_query}}
@@ -595,9 +598,14 @@ def _histogram_stacked(
         conn = sql.connection.ConnectionManager.current
 
     cases = []
+    tolerance = bin_size / 1000  # Use to avoid floating point error
     for bin in bins:
-        case = f'SUM(CASE WHEN FLOOR({column}/{bin_size})*{bin_size} = {bin} \
-                 THEN 1 ELSE 0 END) AS "{bin}",'
+        # Use round half down instead of floor to mimic
+        # right-closed histogram intervals in R ggplot
+        case = (
+            f"SUM(CASE WHEN ABS(CEILING({column}/{bin_size} - 0.5)*{bin_size} "
+            f"- {bin}) <= {tolerance} THEN 1 ELSE 0 END) AS '{bin}',"
+        )
         cases.append(case)
 
     cases = " ".join(cases)
@@ -614,7 +622,8 @@ def _histogram_stacked(
         {{cases}}
         FROM "{{table}}"
         {{filter_query}}
-        GROUP BY {{category}};
+        GROUP BY {{category}}
+        ORDER BY {{category}} DESC;
         """
     )
     query = template.render(

@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.6
+    jupytext_version: 1.14.7
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -138,6 +138,12 @@ generate histograms without explicitly removing NULL entries.
 ```{code-cell} ipython3
 %sqlplot histogram --table penguins.csv --column body_mass_g 
 ```
+
+When plotting a histogram, it divides a range with the number of bins - 1 to calculate a bin size. Then, it applies round half down relative to the bin size and categorizes continuous values into bins to replicate right closed intervals from the ggplot histogram in R.
+
+![body_mass_g](../static/body_mass_g_R.png)
+
++++
 
 ### Number of bins
 
