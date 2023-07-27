@@ -5,6 +5,7 @@
 * [Fix] Modified histogram query to ensure histogram binning is done correctly (#751)
 * [Fix] Fix bug that caused the `COMMIT` not to work when the SQLAlchemy driver did not support `set_isolation_level`
 * [Fix] Fixed vertical color breaks in histograms (#702)
+* [Fix] Fix error that caused some connections not to be closed when calling `--close/-x`
 
 ## 0.8.0 (2023-07-18)
 

@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest.mock import Mock
 
 from inspect import getsource
@@ -11,17 +12,22 @@ from sql import inspect, connection
 
 
 @pytest.fixture
-def sample_db(ip):
-    ip.run_cell("%sql sqlite://")
-    ip.run_cell("%sql CREATE TABLE one (x INT, y TEXT)")
-    ip.run_cell("%sql CREATE TABLE another (i INT, j TEXT)")
-    ip.run_cell("%sql sqlite:///my.db")
-    ip.run_cell("%sql CREATE TABLE uno (x INT, y TEXT)")
-    ip.run_cell("%sql CREATE TABLE dos (i INT, j TEXT)")
-    ip.run_cell("%sql --close sqlite:///my.db")
-    ip.run_cell("%sql sqlite://")
+def sample_db(ip_empty, tmp_empty):
+    ip_empty.run_cell("%sql sqlite:///first.db --alias first")
+    ip_empty.run_cell("%sql CREATE TABLE one (x INT, y TEXT)")
+    ip_empty.run_cell("%sql CREATE TABLE another (i INT, j TEXT)")
+    ip_empty.run_cell("%sql sqlite:///second.db --alias second")
+    ip_empty.run_cell("%sql CREATE TABLE uno (x INT, y TEXT)")
+    ip_empty.run_cell("%sql CREATE TABLE dos (i INT, j TEXT)")
+    ip_empty.run_cell("%sql --close second")
+    ip_empty.run_cell("%sql first")
+    ip_empty.run_cell("%sql ATTACH DATABASE 'second.db' AS schema")
 
-    ip.run_cell("%sql ATTACH DATABASE 'my.db' AS schema")
+    yield
+
+    ip_empty.run_cell("%sql --close first")
+    Path("first.db").unlink()
+    Path("second.db").unlink()
 
 
 @pytest.mark.parametrize(

@@ -1,3 +1,7 @@
+import pytest
+from IPython.core.error import UsageError
+
+
 def test_meta_cmd_display(ip_with_postgreSQL, test_table_name_dict):
     out = ip_with_postgreSQL.run_cell("%sql \d")  # noqa: W605
     assert len(out.result) > 0
@@ -22,13 +26,14 @@ def test_auto_commit_mode_on(ip_with_postgreSQL, capsys):
 def test_postgres_error(ip_empty, postgreSQL_config_incorrect_pwd):
     alias, url = postgreSQL_config_incorrect_pwd
 
-    # Select database engine
-    out = ip_empty.run_cell("%sql " + url + " --alias " + alias)
-    assert "Review our DB connection via URL strings guide" in str(out.error_in_exec)
-    assert "Original error message from DB driver" in str(out.error_in_exec)
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql " + url + " --alias " + alias)
+
+    assert "Review our DB connection via URL strings guide" in str(excinfo.value)
+    assert "Original error message from DB driver" in str(excinfo.value)
     assert (
         "If you need help solving this issue, "
-        "send us a message: https://ploomber.io/community" in str(out.error_in_exec)
+        "send us a message: https://ploomber.io/community" in str(excinfo.value)
     )
 
 

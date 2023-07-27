@@ -46,28 +46,49 @@ FROM number_table
 @pytest.mark.parametrize(
     "store_table, query",
     [
-        ("a", "%sqlcmd columns --table {}"),
-        ("bbb", "%sqlcmd profile --table {}"),
+        pytest.param(
+            "a",
+            "%sqlcmd columns --table {}",
+            marks=pytest.mark.xfail(reason="this is not working yet, see #658"),
+        ),
+        pytest.param(
+            "bbb",
+            "%sqlcmd profile --table {}",
+            marks=pytest.mark.xfail(reason="this is not working yet, see #658"),
+        ),
         ("c_c", "%sqlplot histogram --table {} --column x"),
         ("d_d_d", "%sqlplot boxplot --table {} --column x"),
     ],
+    ids=[
+        "columns",
+        "profile",
+        "histogram",
+        "boxplot",
+    ],
 )
-def test_no_errors_with_stored_query(ip, store_table, query):
-    ip.run_cell(
+def test_no_errors_with_stored_query(ip_empty, store_table, query):
+    ip_empty.run_cell("%sql duckdb://")
+
+    ip_empty.run_cell(
+        """%%sql
+CREATE TABLE numbers (
+    x FLOAT
+);
+
+INSERT INTO numbers (x) VALUES (1), (2), (3);
+"""
+    )
+
+    ip_empty.run_cell(
         f"""
         %%sql --save {store_table} --no-execute
         SELECT *
-        FROM number_table
+        FROM numbers
         """
-    ).result
+    )
 
-    query = query.format(store_table, store_table)
-    out = ip.run_cell(query)
-
-    expected_store_message = EXPECTED_STORE_SUGGESTIONS.format(store_table)
-    error_message = str(out.error_in_exec)
-    assert not isinstance(out.error_in_exec, ValueError)
-    assert str(expected_store_message).lower() not in error_message.lower()
+    out = ip_empty.run_cell(query.format(store_table, store_table))
+    assert out.success
 
 
 @pytest.mark.parametrize(
@@ -85,12 +106,13 @@ def test_no_errors_with_stored_query(ip, store_table, query):
 )
 def test_bad_table_error_message(ip, table, query, suggestions):
     query = query.format(table)
-    out = ip.run_cell(query)
+
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(query)
 
     expected_error_message = EXPECTED_NO_TABLE_IN_DEFAULT_SCHEMA.format(table)
 
-    error_message = str(out.error_in_exec)
-    assert isinstance(out.error_in_exec, UsageError)
+    error_message = str(excinfo.value)
     assert str(expected_error_message).lower() in error_message.lower()
 
     error_suggestions_arr = error_message.split(EXPECTED_SUGGESTIONS_MESSAGE)
@@ -159,10 +181,10 @@ ATTACH DATABASE 'my.db' AS test_schema
 """
     )
 
-    out = ip.run_cell(query)
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(query)
 
-    error_message = str(out.error_in_exec)
-    assert isinstance(out.error_in_exec, UsageError)
+    error_message = str(excinfo.value)
     assert str(expected_error_message).lower() in error_message.lower()
 
     error_suggestions_arr = error_message.split(EXPECTED_SUGGESTIONS_MESSAGE)

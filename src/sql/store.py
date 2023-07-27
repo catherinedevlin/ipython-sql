@@ -43,8 +43,6 @@ class SQLStore(MutableMapping):
         self._data[key] = value
 
     def __getitem__(self, key) -> str:
-        if not self._data:
-            raise exceptions.UsageError("No saved SQL")
         if key not in self._data:
             matches = difflib.get_close_matches(key, self._data)
             error = f'"{key}" is not a valid snippet identifier.'

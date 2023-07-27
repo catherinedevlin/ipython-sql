@@ -28,18 +28,14 @@ def test_cte(ip_with_MSSQL, test_table_name_dict):
 
 
 def test_create_table_with_indexed_df(ip_with_MSSQL, test_table_name_dict):
-    import pyodbc
-
-    # MSSQL gives error if DB doesn't exist
-
     ip_with_MSSQL.run_cell("%config SqlMagic.displaylimit = 0")
 
     try:
         ip_with_MSSQL.run_cell(
             f"%sql DROP TABLE {test_table_name_dict['new_table_from_df']}"
         )
-    except pyodbc.ProgrammingError as e:
-        print(f"Error: {e}")
+    except UsageError:
+        pass
 
     # Prepare DF
     ip_with_MSSQL.run_cell(
@@ -122,12 +118,14 @@ def test_sqlplot_boxplot(ip_with_MSSQL, cell):
 def test_unsupported_function(ip_with_MSSQL, test_table_name_dict):
     # clean current Axes
     plt.cla()
-    out = ip_with_MSSQL.run_cell(
-        f"%sqlplot boxplot --table " f"{test_table_name_dict['taxi']} --column x"
-    )
-    assert isinstance(out.error_in_exec, UsageError)
-    assert "Ensure that percentile_disc function is available" in str(out.error_in_exec)
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_with_MSSQL.run_cell(
+            f"%sqlplot boxplot --table " f"{test_table_name_dict['taxi']} --column x"
+        )
+
+    assert "Ensure that percentile_disc function is available" in str(excinfo.value)
     assert (
         "If you need help solving this issue, "
-        "send us a message: https://ploomber.io/community" in str(out.error_in_exec)
+        "send us a message: https://ploomber.io/community" in str(excinfo.value)
     )

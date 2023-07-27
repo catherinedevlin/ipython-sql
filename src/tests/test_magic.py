@@ -21,6 +21,7 @@ from sql import magic
 from conftest import runsql
 from sql.connection import PLOOMBER_DOCS_LINK_STR
 from ploomber_core.exceptions import COMMUNITY
+import psutil
 
 COMMUNITY = COMMUNITY.strip()
 
@@ -209,8 +210,12 @@ def test_persist_missing_pandas(ip, monkeypatch):
 
     ip.run_cell("results = %sql SELECT * FROM test;")
     ip.run_cell("results_dframe = results.DataFrame()")
-    result = ip.run_cell("%sql --persist sqlite:// results_dframe")
-    assert "pip install pandas" in str(result.error_in_exec)
+
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell("%sql --persist sqlite:// results_dframe")
+
+    assert excinfo.value.error_type == "MissingPackageError"
+    assert "pip install pandas" in str(excinfo.value)
 
 
 def test_persist(ip):
@@ -236,28 +241,43 @@ def test_persist_no_index(ip):
     [
         ("%%sql --arg\n SELECT * FROM test", "Unrecognized argument(s): --arg"),
         ("%%sql -arg\n SELECT * FROM test", "Unrecognized argument(s): -arg"),
-        ("%%sql \n SELECT * FROM test", None),
-        ("%sql select * FROM test --some", None),
         ("%%sql --persist '--some' \n SELECT * FROM test", "not a valid identifier"),
     ],
 )
 def test_unrecognized_arguments_cell_magic(ip, sql_statement, expected_error):
-    result = ip.run_cell(sql_statement)
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(sql_statement)
 
-    if expected_error:
-        assert expected_error in str(result.error_in_exec)
-    else:
-        assert result.error_in_exec is None
+    assert expected_error in str(excinfo.value)
+
+
+def test_ignore_argument_like_strings_if_they_come_after_the_sql_query(ip):
+    assert ip.run_cell("%sql select * FROM test --some")
 
 
 def test_persist_invalid_identifier(ip):
-    result = ip.run_cell("%sql --persist sqlite:// not an identifier")
-    assert "not a valid identifier" in str(result.error_in_exec)
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell("%sql --persist sqlite:// not an identifier")
+
+    assert "not a valid identifier" in str(excinfo.value)
 
 
 def test_persist_undefined_variable(ip):
-    result = ip.run_cell("%sql --persist sqlite:// not_a_variable")
-    assert "it's undefined" in str(result.error_in_exec)
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell("%sql --persist sqlite:// not_a_variable")
+
+    assert "Expected 'not_a_variable' to be a pd.DataFrame but it's undefined" in str(
+        excinfo.value
+    )
+
+
+def test_persist_non_frame_raises(ip):
+    ip.run_cell("not_a_dataframe = 22")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell("%sql --persist sqlite:// not_a_dataframe")
+
+    assert "is not a Pandas DataFrame or Series" in str(excinfo.value)
 
 
 def test_append(ip):
@@ -271,26 +291,13 @@ def test_append(ip):
     assert appended[0][0] == persisted[0][0] * 2
 
 
-def test_persist_nonexistent_raises(ip):
-    runsql(ip, "")
-    result = ip.run_cell("%sql --persist sqlite:// no_such_dataframe")
-    assert result.error_in_exec
+def test_persist_missing_argument(ip):
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell("%sql --persist sqlite://")
 
-
-def test_persist_non_frame_raises(ip):
-    ip.run_cell("not_a_dataframe = 22")
-    runsql(ip, "")
-    result = ip.run_cell("%sql --persist sqlite:// not_a_dataframe")
-    assert isinstance(result.error_in_exec, UsageError)
-    assert (
-        "is not a Pandas DataFrame or Series".lower()
-        in str(result.error_in_exec).lower()
+    assert "Expected '' to be a pd.DataFrame but it's not a valid identifier" in str(
+        excinfo.value
     )
-
-
-def test_persist_bare(ip):
-    result = ip.run_cell("%sql --persist sqlite://")
-    assert result.error_in_exec
 
 
 def get_table_rows_as_dataframe(ip, table, name=None):
@@ -409,34 +416,42 @@ def test_persist_replace_override_reverted_order(
     table_df = get_table_rows_as_dataframe(
         ip, table=second_test_table, name=saved_df_name
     )
-    persist_out = ip.run_cell(f"%sql --persist sqlite:// {table_df}")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(f"%sql --persist sqlite:// {table_df}")
 
     # To test the second --persist executes not successfully
     assert (
         f"Table '{saved_df_name}' already exists. Consider using \
 --persist-replace to drop the table before persisting the data frame"
-        in str(persist_out.error_in_exec)
+        in str(excinfo.value)
     )
 
-    out = ip.run_cell(f"%sql SELECT * FROM {table_df}")
     # To test the persisted data is from --persist-replace
+    out = ip.run_cell(f"%sql SELECT * FROM {table_df}")
     assert out.result == expected_result
-    assert out.error_in_exec is None
 
 
 @pytest.mark.parametrize(
-    "test_table", [("test"), ("author"), ("website"), ("number_table")]
+    "test_table",
+    [
+        ("test"),
+        ("author"),
+        ("website"),
+        ("number_table"),
+    ],
 )
 def test_persist_and_append_use_together(ip, test_table):
     # Test error message when use --persist and --append together
     saved_df_name = get_table_rows_as_dataframe(ip, table=test_table)
-    out = ip.run_cell(f"%sql --persist-replace --append sqlite:// {saved_df_name}")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(f"%sql --persist-replace --append sqlite:// {saved_df_name}")
 
     assert """You cannot simultaneously persist and append data to a dataframe;
                   please choose to utilize either one or the other.""" in str(
-        out.error_in_exec
+        excinfo.value
     )
-    assert (out.error_in_exec.error_type) == "UsageError"
 
 
 @pytest.mark.parametrize(
@@ -507,8 +522,16 @@ def test_persist_replace_twice(
 
 
 def test_connection_args_enforce_json(ip):
-    result = ip.run_cell('%sql --connection_arguments {"badlyformed":true')
-    assert result.error_in_exec
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell('%sql --connection_arguments {"badlyformed":true')
+
+    expected_message = (
+        "Expecting property name enclosed in double quotes"
+        if platform.system() == "Windows"
+        else "Expecting ',' delimiter"
+    )
+
+    assert expected_message in str(excinfo.value)
 
 
 @pytest.mark.skipif(platform.system() == "Windows", reason="failing on windows")
@@ -523,15 +546,6 @@ def test_connection_args_single_quotes(ip):
     ip.run_cell("%sql --connection_arguments '{\"timeout\": 10}' sqlite:///:memory:")
     result = ip.run_cell("%sql --connections")
     assert "timeout" in result.result["sqlite:///:memory:"].connect_args
-
-
-# TODO: support
-# @with_setup(_setup_author, _teardown_author)
-# def test_persist_with_connection_info():
-#     ip.run_cell("results = %sql SELECT * FROM author;")
-#     ip.run_line_magic('sql', 'sqlite:// PERSIST results.DataFrame()')
-#     persisted = ip.run_line_magic('sql', 'SELECT * FROM results')
-#     assert 'Shakespeare' in str(persisted)
 
 
 def test_displaylimit_no_limit(ip):
@@ -790,11 +804,13 @@ def test_sql_from_file(ip):
 
 
 def test_sql_from_nonexistent_file(ip):
-    ip.run_line_magic("config", "SqlMagic.autopandas = False")
-    with tempfile.TemporaryDirectory() as tempdir:
-        fname = os.path.join(tempdir, "nonexistent.sql")
-        result = ip.run_cell("%sql --file " + fname)
-        assert isinstance(result.error_in_exec, FileNotFoundError)
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell("%sql --file some_file_that_doesnt_exist.sql")
+
+    assert "No such file or directory: 'some_file_that_doesnt_exist.sql" in str(
+        excinfo.value
+    )
+    assert excinfo.value.error_type == "FileNotFoundError"
 
 
 def test_dict(ip):
@@ -894,16 +910,48 @@ def test_closed_connections_are_no_longer_listed(ip):
 
 
 def test_close_connection(ip, tmp_empty):
-    # open two connections
+    process = psutil.Process()
+
     ip.run_cell("%sql sqlite:///one.db")
     ip.run_cell("%sql sqlite:///two.db")
 
-    # close them
+    # check files are open
+    assert {Path(f.path).name for f in process.open_files()} >= {"one.db", "two.db"}
+
+    # close connections
     ip.run_cell("%sql -x sqlite:///one.db")
     ip.run_cell("%sql --close sqlite:///two.db")
 
+    # connections should not longer appear
     assert "sqlite:///one.db" not in ConnectionManager.connections
     assert "sqlite:///two.db" not in ConnectionManager.connections
+
+    # files should be closed
+    assert {Path(f.path).name for f in process.open_files()} & {
+        "one.db",
+        "two.db",
+    } == set()
+
+
+@pytest.mark.parametrize(
+    "close_cell",
+    [
+        "%sql -x first",
+        "%sql --close first",
+    ],
+)
+def test_close_connection_with_alias(ip, tmp_empty, close_cell):
+    process = psutil.Process()
+
+    ip.run_cell("%sql sqlite:///one.db --alias first")
+
+    assert {Path(f.path).name for f in process.open_files()} >= {"one.db"}
+
+    ip.run_cell(close_cell)
+
+    assert "sqlite:///one.db" not in ConnectionManager.connections
+    assert "first" not in ConnectionManager.connections
+    assert "one.db" not in {Path(f.path).name for f in process.open_files()}
 
 
 def test_alias(clean_conns, ip_empty, tmp_empty):
@@ -921,21 +969,6 @@ def test_alias_dbapi_connection(clean_conns, ip_empty, tmp_empty):
     ip_empty.user_global_ns["first"] = create_engine("sqlite://")
     ip_empty.run_cell("%sql first --alias one")
     assert {"one"} == set(ConnectionManager.connections)
-
-
-def test_close_connection_with_alias(ip, tmp_empty):
-    # open two connections
-    ip.run_cell("%sql sqlite:///one.db --alias one")
-    ip.run_cell("%sql sqlite:///two.db --alias two")
-
-    # close them
-    ip.run_cell("%sql -x one")
-    ip.run_cell("%sql --close two")
-
-    assert "sqlite:///one.db" not in ConnectionManager.connections
-    assert "sqlite:///two.db" not in ConnectionManager.connections
-    assert "one" not in ConnectionManager.connections
-    assert "two" not in ConnectionManager.connections
 
 
 def test_close_connection_with_existing_engine_and_alias(ip, tmp_empty):
@@ -1065,10 +1098,10 @@ Set the environment variable $DATABASE_URL
 
 
 def test_error_on_invalid_connection_string(ip_empty, clean_conns):
-    result = ip_empty.run_cell("%sql some invalid connection string")
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql some invalid connection string")
 
-    assert invalid_connection_string.strip() == str(result.error_in_exec)
-    assert isinstance(result.error_in_exec, UsageError)
+    assert invalid_connection_string.strip() == str(excinfo.value)
 
 
 invalid_connection_string_format = f"""\
@@ -1083,18 +1116,19 @@ Ref: https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls
 
 
 def test_error_on_invalid_connection_string_format(ip_empty, clean_conns):
-    result = ip_empty.run_cell("%sql something://")
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql something://")
 
-    assert invalid_connection_string_format.strip() == str(result.error_in_exec)
-    assert isinstance(result.error_in_exec, UsageError)
+    assert invalid_connection_string_format.strip() == str(excinfo.value)
 
 
 def test_error_on_invalid_connection_string_with_existing_conns(ip_empty, clean_conns):
     ip_empty.run_cell("%sql sqlite://")
-    result = ip_empty.run_cell("%sql something://")
 
-    assert invalid_connection_string_format.strip() == str(result.error_in_exec)
-    assert isinstance(result.error_in_exec, UsageError)
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql something://")
+
+    assert invalid_connection_string_format.strip() == str(excinfo.value)
 
 
 invalid_connection_string_with_possible_typo = f"""
@@ -1109,12 +1143,11 @@ Perhaps you meant to use driver the dialect: "sqlite"
 
 def test_error_on_invalid_connection_string_with_possible_typo(ip_empty, clean_conns):
     ip_empty.run_cell("%sql sqlite://")
-    result = ip_empty.run_cell("%sql sqlit://")
 
-    assert invalid_connection_string_with_possible_typo.strip() == str(
-        result.error_in_exec
-    )
-    assert isinstance(result.error_in_exec, UsageError)
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql sqlit://")
+
+    assert invalid_connection_string_with_possible_typo.strip() == str(excinfo.value)
 
 
 invalid_connection_string_duckdb = f"""
@@ -1137,9 +1170,10 @@ Pass a valid connection string:
 
 
 def test_error_on_invalid_connection_string_duckdb(ip_empty, clean_conns):
-    result = ip_empty.run_cell("%sql duckdb://invalid_db")
-    assert invalid_connection_string_duckdb.strip() == str(result.error_in_exec)
-    assert isinstance(result.error_in_exec, UsageError)
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql duckdb://invalid_db")
+
+    assert invalid_connection_string_duckdb.strip() == str(excinfo.value)
 
 
 def test_jupysql_alias():
@@ -1240,27 +1274,25 @@ def test_save_with_number_table(
 
 
 def test_save_with_non_existing_with(ip):
-    out = ip.run_cell(
-        "%sql --with non_existing_sub_query " "SELECT * FROM non_existing_sub_query"
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(
+            "%sql --with non_existing_sub_query SELECT * FROM non_existing_sub_query"
+        )
+
+    assert '"non_existing_sub_query" is not a valid snippet identifier.' in str(
+        excinfo.value
     )
-    assert isinstance(out.error_in_exec, UsageError)
+    assert excinfo.value.error_type == "UsageError"
 
 
 def test_save_with_non_existing_table(ip):
-    out = ip.run_cell("%sql --save my_query SELECT * FROM non_existing_table")
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell("%sql --save my_query SELECT * FROM non_existing_table")
 
-    assert isinstance(out.error_in_exec, UsageError)
-    assert out.error_in_exec.error_type == "RuntimeError"
+    assert excinfo.value.error_type == "RuntimeError"
     assert "(sqlite3.OperationalError) no such table: non_existing_table" in str(
-        out.error_in_exec
+        excinfo.value
     )
-
-
-def test_save_with_bad_query_save(ip, capsys):
-    ip.run_cell("%sql --save my_query SELECT * non_existing_table")
-    ip.run_cell("%sql --with my_query SELECT * FROM my_query")
-    out, err = capsys.readouterr()
-    assert '(sqlite3.OperationalError) near "non_existing_table": syntax error' in err
 
 
 def test_interact_basic_data_types(ip, capsys):
@@ -1301,7 +1333,12 @@ def test_interact_and_missing_ipywidgets_installed(ip):
     with patch.dict(sys.modules):
         sys.modules["ipywidgets"] = None
         ip.user_global_ns["my_variable"] = 5
-        out = ip.run_cell(
-            "%sql --interact my_variable SELECT * FROM author LIMIT {{my_variable}}"
-        )
-        assert isinstance(out.error_in_exec, ModuleNotFoundError)
+
+        with pytest.raises(ModuleNotFoundError) as excinfo:
+            ip.run_cell(
+                "%sql --interact my_variable SELECT * FROM author LIMIT {{my_variable}}"
+            )
+
+    assert "'ipywidgets' is required to use '--interactive argument'" in str(
+        excinfo.value
+    )

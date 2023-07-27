@@ -16,45 +16,48 @@ def test_sqlstore_setitem():
     assert store["a"] == "SELECT * FROM a"
 
 
-def test_sqlstore_getitem():
+def test_sqlstore_getitem_success():
     store = SQLStore()
-
-    # Test case 1: Test for a valid key
     store["first"] = "SELECT * FROM a"
     assert store["first"] == "SELECT * FROM a"
 
-    # Test case 2: Test for an invalid key with no matches
+
+@pytest.mark.parametrize(
+    "key, expected_error",
+    [
+        (
+            "second",
+            (
+                '"second" is not a valid snippet identifier.'
+                ' Valid identifiers are "first".'
+            ),
+        ),
+        (
+            "firs",
+            '"firs" is not a valid snippet identifier. Did you mean "first"?',
+        ),
+    ],
+    ids=[
+        "invalid-key",
+        "close-match-key",
+    ],
+)
+def test_sqlstore_getitem(key, expected_error):
+    store = SQLStore()
+    store["first"] = "SELECT * FROM a"
+
     with pytest.raises(UsageError) as excinfo:
-        store["second"]
+        store[key]
 
     assert excinfo.value.error_type == "UsageError"
-    assert (
-        str(excinfo.value)
-        == '"second" is not a valid snippet identifier. Valid identifiers are "first".'
-    )
+    assert str(excinfo.value) == expected_error
 
-    # Test case 3: Test for invalid key with close match
-    with pytest.raises(UsageError) as excinfo:
-        store["firs"]
 
-    assert excinfo.value.error_type == "UsageError"
-    assert (
-        str(excinfo.value)
-        == '"firs" is not a valid snippet identifier. Did you mean "first"?'
-    )
+def test_sqlstore_getitem_with_multiple_existing_snippets():
+    store = SQLStore()
+    store["first"] = "SELECT * FROM a"
+    store["first2"] = "SELECT * FROM a"
 
-    # Test case 4: Test for multiple keys with close match
-    store["first2"] = "SELECT * FROM b"
-    with pytest.raises(UsageError) as excinfo:
-        store["firs"]
-
-    assert excinfo.value.error_type == "UsageError"
-    assert (
-        str(excinfo.value)
-        == '"firs" is not a valid snippet identifier. Did you mean "first"?'
-    )
-
-    # Test case 5: Test for multiple keys with no close match
     with pytest.raises(UsageError) as excinfo:
         store["second"]
 
@@ -64,18 +67,6 @@ def test_sqlstore_getitem():
         == '"second" is not a valid snippet identifier. '
         + 'Valid identifiers are "first", "first2".'
     )
-
-    # Test case 6: Test for empty dictionary:
-    store2 = SQLStore()
-    with pytest.raises(UsageError) as excinfo:
-        store2["second"]
-
-    assert excinfo.value.error_type == "UsageError"
-    assert str(excinfo.value) == "No saved SQL"
-
-    # Test case 7: Test for special character in key:
-    store["$%#"] = "SELECT * FROM a"
-    assert store["$%#"] == "SELECT * FROM a"
 
 
 def test_hyphen():

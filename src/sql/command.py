@@ -1,9 +1,10 @@
+from pathlib import Path
 from IPython.core.magic_arguments import parse_argstring
 from jinja2 import Template
 
 from sqlalchemy.engine import Engine
 
-from sql import parse
+from sql import parse, exceptions
 from sql.store import store
 from sql.connection import ConnectionManager, is_pep249_compliant
 
@@ -57,8 +58,12 @@ class SQLCommand:
         self.command_text = " ".join(line_for_command) + "\n" + cell
 
         if self.args.file:
-            with open(self.args.file, "r") as infile:
-                self.command_text = infile.read() + "\n" + self.command_text
+            try:
+                file_contents = Path(self.args.file).read_text()
+            except FileNotFoundError as e:
+                raise exceptions.FileNotFoundError(str(e)) from e
+
+            self.command_text = file_contents + "\n" + self.command_text
 
         self.parsed = parse.parse(self.command_text, magic)
 

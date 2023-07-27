@@ -174,7 +174,7 @@ def test(others):
                     _pretty.add_row(row)
                 print(_pretty)
         raise exceptions.UsageError(
-            "The above values do not not match your test requirements."
+            "The above values do not match your test requirements."
         )
     else:
         return True

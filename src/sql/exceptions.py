@@ -1,3 +1,15 @@
+"""
+In most scenarios, users don't care about the full Python traceback because it's
+irrelevant to them (they run SQL, not Python code). Hence, when raising errors,
+we only display the error message. This is possible via IPython.core.error.UsageError:
+IPython/Jupyter automatically detect this error and hide the traceback.
+Unfortunately, IPython.core.error.UsageError isn't the most appropriate error type for
+all scenarios, so we define our own error types here. The main caveat is that due to a
+bug in IPython (https://github.com/ipython/ipython/issues/14024), subclassing
+IPython.core.error.UsageError doesn't work, so `exception_factory` is a workaround
+to create new errors that are IPython.core.error.UsageError but with a different name.
+
+"""
 from IPython.core import error
 
 
@@ -26,7 +38,7 @@ MissingPackageError = exception_factory("MissingPackageError")
 TypeError = exception_factory("TypeError")
 RuntimeError = exception_factory("RuntimeError")
 ValueError = exception_factory("ValueError")
-
+FileNotFoundError = exception_factory("FileNotFoundError")
 
 # The following are internal exceptions that should not be raised directly
 

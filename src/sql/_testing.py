@@ -1,10 +1,11 @@
+import os
 from contextlib import contextmanager
 import sys
 import time
 
 from sqlalchemy.engine import URL
-import os
 import sqlalchemy
+from IPython.core.interactiveshell import InteractiveShell
 
 from ploomber_core.dependencies import requires
 
@@ -23,6 +24,21 @@ except ModuleNotFoundError:
 
 
 TMP_DIR = "tmp"
+
+
+class TestingShell(InteractiveShell):
+    """
+    A custom InteractiveShell that raises exceptions instead of silently suppressing
+    them.
+    """
+
+    def run_cell(self, *args, **kwargs):
+        result = super().run_cell(*args, **kwargs)
+
+        if result.error_in_exec is not None:
+            raise result.error_in_exec
+
+        return result
 
 
 class DatabaseConfigHelper:

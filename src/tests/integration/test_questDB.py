@@ -532,9 +532,11 @@ NOT_SUPPORTED_SUFFIX = (
 )
 def test_sqlcmd_not_supported_error(ip_questdb, query, capsys):
     expected_error_message = f"%sqlcmd {NOT_SUPPORTED_SUFFIX}"
-    out = ip_questdb.run_cell(query)
-    error_message = str(out.error_in_exec)
-    assert isinstance(out.error_in_exec, UsageError)
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_questdb.run_cell(query)
+
+    error_message = str(excinfo.value)
     assert str(expected_error_message).lower() in error_message.lower()
 
 
@@ -582,10 +584,10 @@ def test_ggplot_boxplot_not_supported_error(
 def test_sqlplot_not_supported_error(
     ip_questdb, penguins_data, penguins_no_nulls_questdb, query, expected_error_message
 ):
-    ip_questdb.run_cell(query)
-    out = ip_questdb.run_cell(query)
-    error_message = str(out.error_in_exec)
-    assert isinstance(out.error_in_exec, UsageError)
+    with pytest.raises(UsageError) as excinfo:
+        ip_questdb.run_cell(query)
+
+    error_message = str(excinfo.value)
     assert str(expected_error_message).lower() in error_message.lower()
 
 

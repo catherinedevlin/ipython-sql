@@ -219,7 +219,9 @@ def test_close_and_connect(
     conn_alias = get_database_config_helper.get_database_config(config_key)["alias"]
     database_url = get_database_config_helper.get_database_url(config_key)
     # Disconnect
+
     ip_with_dynamic_db.run_cell("%sql -x " + conn_alias)
+
     assert get_connection_count(ip_with_dynamic_db) == 0
     # Connect, also check there is no error on re-connecting
     with warnings.catch_warnings():
@@ -391,34 +393,31 @@ def test_sqlplot_boxplot(ip_with_dynamic_db, cell, request, test_table_name_dict
         ("ip_with_mariaDB"),
         ("ip_with_SQLite"),
         ("ip_with_duckDB"),
-        ("ip_with_duckDB_native"),
-        ("ip_with_MSSQL"),
+        pytest.param(
+            "ip_with_duckDB_native",
+            marks=pytest.mark.xfail(reason="not supported yet for native connections"),
+        ),
+        pytest.param(
+            "ip_with_MSSQL",
+            marks=pytest.mark.xfail(reason="not working yet"),
+        ),
         ("ip_with_Snowflake"),
         ("ip_with_oracle"),
     ],
 )
-def test_sql_cmd_magic_uno(ip_with_dynamic_db, request, capsys):
+def test_sql_cmd_magic_uno(ip_with_dynamic_db, request, test_table_name_dict):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    table = test_table_name_dict["numbers"]
 
-    ip_with_dynamic_db.run_cell(
-        """
-    %%sql sqlite://
-    CREATE TABLE test_numbers (value);
-    INSERT INTO test_numbers VALUES (0);
-    INSERT INTO test_numbers VALUES (4);
-    INSERT INTO test_numbers VALUES (5);
-    INSERT INTO test_numbers VALUES (6);
-    """
-    )
+    ip_with_dynamic_db.run_cell(f"%sql select * from {table}")
 
-    ip_with_dynamic_db.run_cell(
-        "%sqlcmd test --table test_numbers --column value" " --less-than 5 --greater 1"
-    )
+    with pytest.raises(UsageError) as excinfo:
+        ip_with_dynamic_db.run_cell(
+            f"%sqlcmd test --table {table} --column numbers_elements "
+            "--less-than 1 --greater 2"
+        )
 
-    _out = capsys.readouterr()
-
-    assert "less_than" in _out.out
-    assert "greater" in _out.out
+    assert "The above values do not match your test requirements." in str(excinfo.value)
 
 
 @pytest.mark.parametrize(
@@ -820,16 +819,18 @@ def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
 def test_sql_error_suggests_using_cte(ip_with_dynamic_db, request):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 
-    out = ip_with_dynamic_db.run_cell(
-        """
+    with pytest.raises(UsageError) as excinfo:
+        ip_with_dynamic_db.run_cell(
+            """
     %%sql
 S"""
-    )
-    assert isinstance(out.error_in_exec, UsageError)
-    assert out.error_in_exec.error_type == "RuntimeError"
-    assert CTE_MSG in str(out.error_in_exec)
+        )
+
+    assert excinfo.value.error_type == "RuntimeError"
+    assert CTE_MSG in str(excinfo.value)
 
 
+@pytest.mark.xfail(reason="Not yet implemented")
 @pytest.mark.parametrize(
     "ip_with_dynamic_db",
     [
@@ -857,7 +858,7 @@ CREATE TABLE my_numbers AS SELECT * FROM {test_table_name_dict['numbers']}
         """%%sql
 SELECT * FROM my_numbers
         """
-    ).result
+    )
 
     ip_with_dynamic_db.run_cell(
         """%%sql

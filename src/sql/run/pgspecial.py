@@ -50,3 +50,6 @@ class FakeResultProxy(object):
                 pos += size
 
         self.fetchmany = fetchmany
+
+    def close(self):
+        pass

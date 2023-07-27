@@ -443,8 +443,7 @@ class SqlMagic(Magics, Configurable):
                         raw_args = raw_args[1:-1]
                 args.connection_arguments = json.loads(raw_args)
             except Exception as e:
-                display.message(str(e))
-                raise e
+                raise exceptions.ValueError(str(e)) from e
         else:
             args.connection_arguments = {}
         if args.creator:
