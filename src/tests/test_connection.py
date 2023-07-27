@@ -555,3 +555,24 @@ def test_set_no_descriptor_database_url(monkeypatch):
 
     assert connections == {"sqlite://": conn}
     assert ConnectionManager.current == conn
+
+
+def test_feedback_when_switching_connection_with_alias(ip_empty, capsys):
+    ip_empty.run_cell("%load_ext sql")
+    ip_empty.run_cell("%sql duckdb:// --alias one")
+    ip_empty.run_cell("%sql duckdb:// --alias two")
+    ip_empty.run_cell("%sql one")
+
+    captured = capsys.readouterr()
+    assert "Switching to connection one" == captured.out.replace("\n", "")
+
+
+def test_feedback_when_switching_connection_without_alias(ip_empty, capsys):
+    ip_empty.run_cell("%load_ext sql")
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql duckdb:// --alias one")
+    ip_empty.run_cell("%sql duckdb:// --alias two")
+    ip_empty.run_cell("%sql duckdb://")
+
+    captured = capsys.readouterr()
+    assert "Switching to connection duckdb://" == captured.out.replace("\n", "")

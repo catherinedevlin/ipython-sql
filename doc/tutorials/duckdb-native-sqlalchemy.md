@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.14.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -128,6 +128,7 @@ To suppress it, add this at the top of your notebook/script:
 ```{code-cell} ipython3
 from sql.warnings import JupySQLDataFramePerformanceWarning
 import warnings
+
 warnings.filterwarnings("ignore", category=JupySQLDataFramePerformanceWarning)
 ```
 
