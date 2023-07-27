@@ -1,6 +1,8 @@
 # CHANGELOG
 
 ## 0.9.0dev
+
+* [Feature] Allow loading configuration value from a `pyproject.toml` file upon magic initialization (#689)
 * [Fix] Fix error that was incorrectly converted into a print message
 * [Fix] Modified histogram query to ensure histogram binning is done correctly (#751)
 * [Fix] Fix bug that caused the `COMMIT` not to work when the SQLAlchemy driver did not support `set_isolation_level`

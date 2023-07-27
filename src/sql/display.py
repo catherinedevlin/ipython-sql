@@ -4,7 +4,7 @@ A module to display confirmation messages and contextual information to the user
 import html
 
 from prettytable import PrettyTable
-from IPython.display import display
+from IPython.display import display, HTML
 
 
 class Table:
@@ -90,3 +90,13 @@ def message(message):
 def message_success(message):
     """Display a success message"""
     display(Message(message, style="color: green"))
+
+
+def message_html(message):
+    """Display a message as HTML"""
+    display(HTML(str(Message(message))))
+
+
+def table(headers, rows):
+    """Display a table"""
+    display(Table(headers, rows))

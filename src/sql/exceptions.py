@@ -44,3 +44,6 @@ FileNotFoundError = exception_factory("FileNotFoundError")
 
 # raised internally when the user chooses a table that doesn't exist
 TableNotFoundError = exception_factory("TableNotFoundError")
+
+# raise it when there is an error in parsing pyproject.toml file
+ConfigurationError = exception_factory("ConfigurationError")

@@ -32,7 +32,7 @@ from sql.command import SQLCommand
 from sql.magic_plot import SqlPlotMagic
 from sql.magic_cmd import SqlCmdMagic
 from sql._patch import patch_ipython_usage_error
-from sql import query_util
+from sql import query_util, util
 from sql.util import get_suggestions_message, pretty_print
 from sql.exceptions import RuntimeError
 from sql.error_message import detail
@@ -622,6 +622,39 @@ class SqlMagic(Magics, Configurable):
         display.message_success(f"Success! Persisted {table_name} to the database.")
 
 
+def set_configs(ip, file_path):
+    """Set user defined SqlMagic configuration settings"""
+    sql = ip.find_cell_magic("sql").__self__
+    user_configs = util.get_user_configs(file_path, ["tool", "jupysql", "SqlMagic"])
+    default_configs = util.get_default_configs(sql)
+    table_rows = []
+    for config, value in user_configs.items():
+        if config in default_configs.keys():
+            default_type = type(default_configs[config])
+            if isinstance(value, default_type):
+                setattr(sql, config, value)
+                table_rows.append([config, value])
+            else:
+                display.message(
+                    f"'{value}' is an invalid value for '{config}'. "
+                    f"Please use {default_type.__name__} value instead."
+                )
+        else:
+            util.find_close_match_config(config, default_configs.keys())
+
+    return table_rows
+
+
+def load_SqlMagic_configs(ip):
+    """Loads saved SqlMagic configs in pyproject.toml"""
+    file_path = util.find_path_from_root("pyproject.toml")
+    if file_path:
+        table_rows = set_configs(ip, file_path)
+        if table_rows:
+            display.message("Settings changed:")
+            display.table(["Config", "value"], table_rows)
+
+
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
 
@@ -636,3 +669,5 @@ def load_ipython_extension(ip):
     ip.register_magics(SqlCmdMagic)
 
     patch_ipython_usage_error(ip)
+
+    load_SqlMagic_configs(ip)

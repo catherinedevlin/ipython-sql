@@ -241,3 +241,13 @@ print(res)
 res = %sql SELECT * FROM languages LIMIT 2
 print(res)
 ```
+
+## Loading configuration settings
+
+You can define configurations in a `pyproject.toml` file and automatically load the configurations when you run `%load_ext sql`. If the file is not found in the current or parent directories, default values will be used. A sample `pyproject.toml` could look like this:
+
+```
+[tool.jupysql.SqlMagic]
+feedback = true
+autopandas = true
+```
