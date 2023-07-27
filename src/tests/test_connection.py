@@ -557,7 +557,7 @@ def test_set_no_descriptor_database_url(monkeypatch):
     assert ConnectionManager.current == conn
 
 
-def test_feedback_when_switching_connection_with_alias(ip_empty, capsys):
+def test_feedback_when_switching_connection_with_alias(ip_empty, tmp_empty, capsys):
     ip_empty.run_cell("%load_ext sql")
     ip_empty.run_cell("%sql duckdb:// --alias one")
     ip_empty.run_cell("%sql duckdb:// --alias two")
@@ -567,7 +567,7 @@ def test_feedback_when_switching_connection_with_alias(ip_empty, capsys):
     assert "Switching to connection one" == captured.out.replace("\n", "")
 
 
-def test_feedback_when_switching_connection_without_alias(ip_empty, capsys):
+def test_feedback_when_switching_connection_without_alias(ip_empty, tmp_empty, capsys):
     ip_empty.run_cell("%load_ext sql")
     ip_empty.run_cell("%sql duckdb://")
     ip_empty.run_cell("%sql duckdb:// --alias one")
