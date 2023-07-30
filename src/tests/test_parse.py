@@ -9,6 +9,8 @@ from sql.parse import (
     parse,
     without_sql_comment,
     magic_args,
+    escape_string_literals_with_colon_prefix,
+    find_named_parameters,
 )
 
 try:
@@ -278,3 +280,65 @@ def test_magic_args(ip, line, expected):
     args = magic_args(sql_line, line)
 
     assert args.__dict__ == complete_with_defaults(expected)
+
+
+@pytest.mark.parametrize(
+    "query, expected_escaped, expected_found",
+    [
+        ("SELECT * FROM table where x > :x", "SELECT * FROM table where x > :x", []),
+        (
+            "SELECT * FROM table where x > ':x'",
+            "SELECT * FROM table where x > '\\:x'",
+            ["x"],
+        ),
+        (
+            'SELECT * FROM table where x > ":y"',
+            'SELECT * FROM table where x > "\\:y"',
+            ["y"],
+        ),
+        (
+            "SELECT * FROM table where x > '':something''",
+            "SELECT * FROM table where x > ''\\:something''",
+            ["something"],
+        ),
+        (
+            'SELECT * FROM table where x > "":var""',
+            'SELECT * FROM table where x > ""\\:var""',
+            ["var"],
+        ),
+    ],
+    ids=[
+        "no-escape",
+        "single-quote",
+        "double-quote",
+        "double-single-quote",
+        "double-double-quote",
+    ],
+)
+def test_escape_string_literals_with_colon_prefix(
+    query, expected_escaped, expected_found
+):
+    escaped, found = escape_string_literals_with_colon_prefix(query)
+    assert escaped == expected_escaped
+    assert found == expected_found
+
+
+@pytest.mark.parametrize(
+    "query, expected",
+    [
+        (
+            "SELECT * FROM penguins WHERE species = :species AND mass = ':mass'",
+            ["species"],
+        ),
+        (
+            'SELECT * FROM penguins WHERE species = :species AND mass = ":mass"',
+            ["species"],
+        ),
+        (
+            "SELECT * FROM penguins WHERE species = :species AND mass = :mass",
+            ["species", "mass"],
+        ),
+    ],
+)
+def test_find_named_parameters(query, expected):
+    assert find_named_parameters(query) == expected

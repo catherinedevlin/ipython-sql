@@ -47,3 +47,6 @@ TableNotFoundError = exception_factory("TableNotFoundError")
 
 # raise it when there is an error in parsing pyproject.toml file
 ConfigurationError = exception_factory("ConfigurationError")
+
+
+InvalidQueryParameters = exception_factory("InvalidQueryParameters")

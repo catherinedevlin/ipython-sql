@@ -15,7 +15,12 @@ from IPython.core.magic import (
     no_var_expand,
 )
 from IPython.core.magic_arguments import argument, magic_arguments, parse_argstring
-from sqlalchemy.exc import OperationalError, ProgrammingError, DatabaseError
+from sqlalchemy.exc import (
+    OperationalError,
+    ProgrammingError,
+    DatabaseError,
+    StatementError,
+)
 from traitlets.config.configurable import Configurable
 from traitlets import Bool, Int, TraitError, Unicode, Dict, observe, validate
 
@@ -151,6 +156,15 @@ class SqlMagic(Magics, Configurable):
         "matching section in the DSN file.",
     )
     autocommit = Bool(True, config=True, help="Set autocommit mode")
+
+    named_paramstyle = Bool(
+        False,
+        config=True,
+        help=(
+            "Allow named parameters in queries "
+            "(i.e., 'SELECT * FROM foo WHERE bar = :bar')"
+        ),
+    )
 
     @telemetry.log_call("init")
     def __init__(self, shell):
@@ -360,17 +374,18 @@ class SqlMagic(Magics, Configurable):
     @telemetry.log_call("execute", payload=True)
     @modify_exceptions
     def _execute(self, payload, line, cell, local_ns, is_interactive_mode=False):
-        def interactive_execute_wrapper(**kwargs):
-            for key, value in kwargs.items():
-                local_ns[key] = value
-            return self._execute(line, cell, local_ns, is_interactive_mode=True)
-
         """
         This function implements the cell logic; we create this private
         method so we can control how the function is called. Otherwise,
         decorating ``SqlMagic.execute`` will break when adding the ``@log_call``
         decorator with ``payload=True``
         """
+
+        def interactive_execute_wrapper(**kwargs):
+            for key, value in kwargs.items():
+                local_ns[key] = value
+            return self._execute(line, cell, local_ns, is_interactive_mode=True)
+
         # line is the text after the magic, cell is the cell's body
 
         # Examples
@@ -513,7 +528,12 @@ class SqlMagic(Magics, Configurable):
             return
 
         try:
-            result = run_statements(conn, command.sql, self)
+            result = run_statements(
+                conn,
+                command.sql,
+                self,
+                parameters=user_ns if self.named_paramstyle else None,
+            )
 
             if (
                 result is not None
@@ -548,7 +568,13 @@ class SqlMagic(Magics, Configurable):
                 return result
 
         # JA: added DatabaseError for MySQL
-        except (ProgrammingError, OperationalError, DatabaseError) as e:
+        except (
+            ProgrammingError,
+            OperationalError,
+            DatabaseError,
+            # raised when they query has :parameters but no parameters are given
+            StatementError,
+        ) as e:
             # Sqlite apparently return all errors as OperationalError :/
             self._error_handling(e, command.sql)
         except Exception as e:

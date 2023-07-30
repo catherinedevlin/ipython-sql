@@ -17,7 +17,7 @@ _COMMIT_BLACKLIST_DIALECTS = (
 )
 
 
-def run_statements(conn, sql, config):
+def run_statements(conn, sql, config, parameters=None):
     """
     Run a SQL query (supports running multiple SQL statements) with the given
     connection. This is the function that's called when executing SQL magic.
@@ -63,7 +63,7 @@ def run_statements(conn, sql, config):
             if is_select and conn.dialect == "duckdb":
                 manual_commit_call_required = False
 
-            result = conn.raw_execute(statement)
+            result = conn.raw_execute(statement, parameters=parameters)
 
             if manual_commit_call_required:
                 _commit_if_needed(conn=conn, config=config)

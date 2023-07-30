@@ -34,10 +34,7 @@ class TestingShell(InteractiveShell):
 
     def run_cell(self, *args, **kwargs):
         result = super().run_cell(*args, **kwargs)
-
-        if result.error_in_exec is not None:
-            raise result.error_in_exec
-
+        result.raise_error()
         return result
 
 
