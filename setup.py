@@ -65,6 +65,8 @@ INTEGRATION = [
     "pyodbc",
     "snowflake-sqlalchemy",
     "oracledb",
+    "sqlalchemy-pytds",
+    "python-tds",
 ]
 
 setup(

@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.6
+    jupytext_version: 1.14.7
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -19,14 +19,9 @@ myst:
 
 # DuckDB (native vs SQLAlchemy)
 
-```{admonition} TL;DR
-If using DuckDB, use a native connection. Only use SQLAlchemy for legacy projects
-```
+Beginning in 0.9, JupySQL supports DuckDB via a native connection and SQLAlchemy, both with comparable performance.
 
-
-Historically, `ipython-sql` has only supported databases via SQLAlchemy. Using SQLAlchemy introduces a big overhead, when converting results to data frames. We attempted to fix this by allowing users to open a connection with SQLAlchemy while still leveraging DuckDB's highly performant capabilities to convert results into data frames; however, we encountered many edge cases, and ultimately decided to deprecate this behavior.
-
-In consequence, DuckDB connections made via SQLAlchemy suffer from the performance problem, but native connections do not. So we're now recommending users to connect to DuckDB via a native connection, this is possible since JupySQL introduced support for generic [DBAPI 2.0](https://peps.python.org/pep-0249/) drivers in version 0.7.2.
+At the moment, the only difference is that some features are only available when using SQLAlchemy.
 
 +++
 
@@ -112,27 +107,4 @@ slideshow:
 tags: [raises-exception]
 ---
 %sqlplot boxplot --table df --column x
-```
-
-## Suppress warnings
-
-When converting large datasets using SQLALchemy, you'll see a warning:
-
-```{code-cell} ipython3
-%sql duckdb-sqlalchemy
-_ = %sql SELECT * FROM df
-```
-
-To suppress it, add this at the top of your notebook/script:
-
-```{code-cell} ipython3
-from sql.warnings import JupySQLDataFramePerformanceWarning
-import warnings
-
-warnings.filterwarnings("ignore", category=JupySQLDataFramePerformanceWarning)
-```
-
-```{code-cell} ipython3
-%sql duckdb-sqlalchemy
-_ = %sql SELECT * FROM df
 ```

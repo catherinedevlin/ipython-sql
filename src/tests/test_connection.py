@@ -16,6 +16,7 @@ from sqlalchemy.exc import ResourceClosedError
 import sql.connection
 from sql.connection import (
     SQLAlchemyConnection,
+    DBAPIConnection,
     ConnectionManager,
     is_pep249_compliant,
     default_alias_for_engine,
@@ -327,7 +328,7 @@ def test_properties(mock_postgres):
     assert conn.name == "user@db"
     assert conn.dialect
     assert conn.connection_sqlalchemy
-    assert conn.connection
+    assert conn.connection_sqlalchemy is conn._connection
 
 
 @pytest.mark.parametrize(
@@ -576,3 +577,216 @@ def test_feedback_when_switching_connection_without_alias(ip_empty, tmp_empty, c
 
     captured = capsys.readouterr()
     assert "Switching to connection duckdb://" == captured.out.replace("\n", "")
+
+
+@pytest.fixture
+def conn_sqlalchemy_duckdb():
+    conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
+    yield conn
+    conn.close()
+
+
+@pytest.fixture
+def conn_dbapi_duckdb():
+    conn = DBAPIConnection(duckdb.connect())
+    yield conn
+    conn.close()
+
+
+@pytest.fixture
+def mock_sqlalchemy_raw_execute(conn_sqlalchemy_duckdb, monkeypatch):
+    mock = Mock()
+    monkeypatch.setattr(conn_sqlalchemy_duckdb, "_connection_sqlalchemy", mock)
+    # mock the dialect to pretend we're using tsql
+    monkeypatch.setattr(conn_sqlalchemy_duckdb, "_get_sqlglot_dialect", lambda: "tsql")
+
+    yield mock.execute, conn_sqlalchemy_duckdb
+
+
+@pytest.fixture
+def mock_dbapi_raw_execute(monkeypatch, conn_dbapi_duckdb):
+    mock = Mock()
+    monkeypatch.setattr(conn_dbapi_duckdb, "_connection", mock)
+    # mock the dialect to pretend we're using tsql
+    monkeypatch.setattr(conn_dbapi_duckdb, "_get_sqlglot_dialect", lambda: "tsql")
+
+    yield mock.cursor().execute, conn_dbapi_duckdb
+
+
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "mock_sqlalchemy_raw_execute",
+        "mock_dbapi_raw_execute",
+    ],
+)
+def test_raw_execute_doesnt_transpile_sql_query(fixture_name, request):
+    mock_execute, conn = request.getfixturevalue(fixture_name)
+
+    conn.raw_execute("CREATE TABLE foo (bar INT)")
+    conn.raw_execute("INSERT INTO foo VALUES (42), (43)")
+    conn.raw_execute("SELECT * FROM foo LIMIT 1")
+
+    calls = [
+        str(call[0][0])
+        for call in mock_execute.call_args_list
+        # if running on sqlalchemy 1.x, the commit call is done via .execute,
+        # ignore them
+        if str(call[0][0]) != "commit"
+    ]
+
+    expected_number_of_calls = 3
+    expected_calls = [
+        "CREATE TABLE foo (bar INT)",
+        "INSERT INTO foo VALUES (42), (43)",
+        "SELECT * FROM foo LIMIT 1",
+    ]
+
+    assert len(calls) == expected_number_of_calls
+    assert calls == expected_calls
+
+
+@pytest.fixture
+def mock_sqlalchemy_execute(monkeypatch):
+    conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
+
+    mock = Mock()
+    monkeypatch.setattr(conn._connection, "execute", mock)
+    # mock the dialect to pretend we're using tsql
+    monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "tsql")
+
+    yield mock, conn
+
+
+@pytest.fixture
+def mock_dbapi_execute(monkeypatch):
+    conn = DBAPIConnection(duckdb.connect())
+
+    mock = Mock()
+    monkeypatch.setattr(conn, "_connection", mock)
+    # mock the dialect to pretend we're using tsql
+    monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "tsql")
+
+    yield mock.cursor().execute, conn
+
+
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "mock_sqlalchemy_execute",
+        "mock_dbapi_execute",
+    ],
+    ids=[
+        "sqlalchemy",
+        "dbapi",
+    ],
+)
+def test_execute_transpiles_sql_query(fixture_name, request):
+    mock_execute, conn = request.getfixturevalue(fixture_name)
+
+    conn.execute("CREATE TABLE foo (bar INT)")
+    conn.execute("INSERT INTO foo VALUES (42), (43)")
+    conn.execute("SELECT * FROM foo LIMIT 1")
+
+    calls = [
+        str(call[0][0])
+        for call in mock_execute.call_args_list
+        # if running on sqlalchemy 1.x, the commit call is done via .execute,
+        # ignore them
+        if str(call[0][0]) != "commit"
+    ]
+
+    expected_number_of_calls = 3
+    expected_calls = [
+        "CREATE TABLE foo (bar INTEGER)",
+        "INSERT INTO foo VALUES (42), (43)",
+        # since we're transpiling, we should see TSQL code
+        "SELECT TOP 1 * FROM foo",
+    ]
+
+    assert len(calls) == expected_number_of_calls
+    assert calls == expected_calls
+
+
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "conn_sqlalchemy_duckdb",
+        "conn_dbapi_duckdb",
+    ],
+)
+@pytest.mark.parametrize("execute_method", ["execute", "raw_execute"])
+def test_error_if_trying_to_execute_multiple_statements(
+    monkeypatch, execute_method, fixture_name, request
+):
+    conn = request.getfixturevalue(fixture_name)
+
+    with pytest.raises(NotImplementedError) as excinfo:
+        method = getattr(conn, execute_method)
+        method(
+            """
+CREATE TABLE foo (bar INT);
+INSERT INTO foo VALUES (42), (43);
+SELECT * FROM foo LIMIT 1;
+"""
+        )
+
+    assert str(excinfo.value) == "Only one statement is supported."
+
+
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "conn_sqlalchemy_duckdb",
+        "conn_dbapi_duckdb",
+    ],
+)
+@pytest.mark.parametrize(
+    "query_input,query_output",
+    [
+        (
+            """
+SELECT * FROM foo LIMIT 1;
+""",
+            "SELECT TOP 1 * FROM foo",
+        ),
+        (
+            """
+CREATE TABLE foo (bar INT);
+INSERT INTO foo VALUES (42), (43);
+SELECT * FROM foo LIMIT 1;
+""",
+            (
+                "CREATE TABLE foo (bar INTEGER);\n"
+                "INSERT INTO foo VALUES (42), (43);\n"
+                "SELECT TOP 1 * FROM foo"
+            ),
+        ),
+    ],
+    ids=[
+        "one_statement",
+        "multiple_statements",
+    ],
+)
+def test_transpile_query(monkeypatch, fixture_name, request, query_input, query_output):
+    conn = request.getfixturevalue(fixture_name)
+    monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "tsql")
+
+    transpiled = conn._transpile_query(query_input)
+
+    assert transpiled == query_output
+
+
+def test_transpile_query_doesnt_transpile_if_it_doesnt_need_to(monkeypatch):
+    conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
+
+    query_input = """
+    SELECT
+    percentile_disc([0.25, 0.50, 0.75]) WITHIN GROUP  (ORDER BY "column")
+AS percentiles
+    FROM "table"
+"""
+
+    transpiled = conn._transpile_query(query_input)
+
+    assert transpiled == query_input

@@ -105,8 +105,8 @@ def test_autocommit_off_with_sqlalchemy_connection(tmp_empty):
     engine_one = create_engine(url)
     engine_two = create_engine(url)
 
-    conn_one = SQLAlchemyConnection(engine_one)
-    conn_two = SQLAlchemyConnection(engine_two)
+    conn_one = SQLAlchemyConnection(engine_one, config=ConfigNoAutocommit)
+    conn_two = SQLAlchemyConnection(engine_two, config=ConfigNoAutocommit)
 
     name = gen_name()
 
@@ -153,8 +153,8 @@ def test_autocommit_off_with_dbapi_connection(setup_postgreSQL, psycopg2_factory
 
     conn_raw_one = psycopg2_factory()
     conn_raw_two = psycopg2_factory()
-    conn_one = DBAPIConnection(conn_raw_one)
-    conn_two = DBAPIConnection(conn_raw_two)
+    conn_one = DBAPIConnection(conn_raw_one, config=ConfigNoAutocommit)
+    conn_two = DBAPIConnection(conn_raw_two, config=ConfigNoAutocommit)
 
     name = gen_name()
 
@@ -168,8 +168,8 @@ def test_autocommit_with_dbapi_connection(setup_postgreSQL, psycopg2_factory):
     conn_raw_one = psycopg2_factory()
     conn_raw_two = psycopg2_factory()
 
-    conn_one = DBAPIConnection(conn_raw_one)
-    conn_two = DBAPIConnection(conn_raw_two)
+    conn_one = DBAPIConnection(conn_raw_one, config=ConfigAutocommit)
+    conn_two = DBAPIConnection(conn_raw_two, config=ConfigAutocommit)
 
     name = gen_name()
 

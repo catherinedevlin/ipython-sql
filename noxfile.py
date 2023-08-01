@@ -1,3 +1,4 @@
+from pathlib import Path
 from os import environ
 
 import nox
@@ -6,8 +7,18 @@ import nox
 # list non-setup sessions here
 nox.options.sessions = ["test_postgres"]
 
-
+# GitHub actions does not have conda installed
+VENV_BACKEND = "conda" if "CI" not in environ else None
 DEV_ENV_NAME = "jupysql-env"
+
+
+if VENV_BACKEND == "conda":
+    CONDA_PREFIX = environ.get("CONDA_PREFIX")
+
+    if CONDA_PREFIX:
+        nox.options.envdir = str(Path(CONDA_PREFIX).parent)
+    else:
+        print("CONDA_PREFIX not found, creating envs in default location...")
 
 
 INTEGRATION_CONDA_DEPENDENCIES = [
@@ -22,6 +33,8 @@ INTEGRATION_PIP_DEPENDENCIES = [
     "dockerctx",
     "pgspecial==2.0.1",
     "pyodbc==4.0.34",
+    "sqlalchemy-pytds",
+    "python-tds",
 ]
 
 
@@ -66,6 +79,7 @@ def _run_unit(session, skip_image_tests):
 
 
 @nox.session(
+    venv_backend=VENV_BACKEND,
     name=DEV_ENV_NAME,
     python=environ.get("PYTHON_VERSION", "3.11"),
 )
@@ -75,6 +89,7 @@ def setup(session):
 
 
 @nox.session(
+    venv_backend=VENV_BACKEND,
     python=environ.get("PYTHON_VERSION", "3.11"),
 )
 def test_unit(session):
@@ -88,6 +103,7 @@ def test_unit(session):
 
 
 @nox.session(
+    venv_backend=VENV_BACKEND,
     python=environ.get("PYTHON_VERSION", "3.11"),
 )
 def test_unit_sqlalchemy_one(session):
@@ -101,6 +117,7 @@ def test_unit_sqlalchemy_one(session):
 
 
 @nox.session(
+    venv_backend=VENV_BACKEND,
     python=environ.get("PYTHON_VERSION", "3.11"),
 )
 def test_integration_snowflake(session):
@@ -113,10 +130,11 @@ def test_integration_snowflake(session):
     # tests
     _install(session, integration=True)
     session.install("snowflake-sqlalchemy")
-    session.run("pytest", "src/tests/integration", "-k", "snowflake")
+    session.run("pytest", "src/tests/integration", "-k", "snowflake", "-v")
 
 
 @nox.session(
+    venv_backend=VENV_BACKEND,
     python=environ.get("PYTHON_VERSION", "3.11"),
 )
 def test_integration(session):
@@ -127,4 +145,5 @@ def test_integration(session):
         "src/tests/integration",
         "-k",
         "not snowflake",
+        "-v",
     )

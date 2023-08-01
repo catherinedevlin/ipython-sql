@@ -39,7 +39,7 @@ parts:
       - file: integrations/questdb
       - file: integrations/oracle
       - file: integrations/trinodb
-      - file: integrations/duckdb-sqlalchemy
+      - file: integrations/duckdb-native
 
   - caption: API Reference
     chapters:

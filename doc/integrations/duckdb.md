@@ -19,12 +19,8 @@ myst:
 
 # DuckDB
 
-```{important}
-Beginning in version `0.8.0`, we're now recommending to use DuckDB native
-connections. We'll still support
-[SQLALchemy connections](../integrations/duckdb-sqlalchemy.md) but new features will
-primarily ship to native connections.
-[Read more here.](../tutorials/duckdb-native-sqlalchemy.md)
+```{note}
+JupySQL also supports DuckDB with a native connection (no SQLAlchemy needed), to learn more, see [the tutorial](../integrations/duckdb-native.md). To learn the differences, [click here.](../tutorials/duckdb-native-sqlalchemy.md)
 ```
 
 JupySQL integrates with DuckDB so you can run SQL queries in a Jupyter notebook. Jump into any section to learn more!
@@ -34,15 +30,9 @@ JupySQL integrates with DuckDB so you can run SQL queries in a Jupyter notebook.
 ## Pre-requisites for `.csv` file
 
 ```{code-cell} ipython3
-%pip install jupysql duckdb --quiet
-```
-
-```{code-cell} ipython3
-import duckdb
-
+%pip install jupysql duckdb duckdb-engine --quiet
 %load_ext sql
-conn = duckdb.connect()
-%sql conn --alias duckdb
+%sql duckdb://
 ```
 
 ### Load sample data
@@ -69,6 +59,18 @@ The data from the `.csv` file must first be registered as a table in order for t
 ```{code-cell} ipython3
 %%sql
 CREATE TABLE penguins AS SELECT * FROM penguins.csv
+```
+
+The cell above allows the data to now be listed as a table from the following code:
+
+```{code-cell} ipython3
+%sqlcmd tables
+```
+
+List columns in the penguins table:
+
+```{code-cell} ipython3
+%sqlcmd columns -t penguins
 ```
 
 ```{code-cell} ipython3
@@ -105,10 +107,9 @@ _ = ax.set_title("Num of penguins by species")
 ## Pre-requisites for `.parquet` file
 
 ```{code-cell} ipython3
-%pip install jupysql duckdb pyarrow --quiet
+%pip install jupysql duckdb duckdb-engine pyarrow --quiet
 %load_ext sql
-conn = duckdb.connect()
-%sql conn --alias duckdb
+%sql duckdb://
 ```
 
 ### Load sample data
@@ -135,6 +136,18 @@ Identically, to list the data from a `.parquet` file as a table, the data must f
 ```{code-cell} ipython3
 %%sql
 CREATE TABLE tripdata AS SELECT * FROM "yellow_tripdata_2021-01.parquet"
+```
+
+The data is now able to be listed as a table from the following code:
+
+```{code-cell} ipython3
+%sqlcmd tables
+```
+
+List columns in the tripdata table:
+
+```{code-cell} ipython3
+%sqlcmd columns -t tripdata
 ```
 
 ```{code-cell} ipython3
@@ -170,45 +183,6 @@ ax = avg_trip_distance.plot()
 _ = ax.set_title("Avg trip distance by num of passengers")
 ```
 
-## Load sample data from a SQLite database
-
-If you have a large SQlite database, you can use DuckDB to perform analytical queries it with much better performance.
-
-```{code-cell} ipython3
-%load_ext sql
-```
-
-```{code-cell} ipython3
-import urllib.request
-from pathlib import Path
-
-# download sample database
-if not Path("my.db").is_file():
-    url = "https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite"  # noqa
-    urllib.request.urlretrieve(url, "my.db")
-```
-
-We'll use `sqlite_scanner` extension to load a sample SQLite database into DuckDB:
-
-```{code-cell} ipython3
-import duckdb
-
-conn = duckdb.connect()
-%sql conn
-```
-
-```{code-cell} ipython3
-%%sql
-INSTALL 'sqlite_scanner';
-LOAD 'sqlite_scanner';
-CALL sqlite_attach('my.db');
-```
-
-```{code-cell} ipython3
-%%sql
-SELECT * FROM track LIMIT 5
-```
-
 ## Plotting large datasets
 
 ```{versionadded} 0.5.2
@@ -219,12 +193,15 @@ This section demonstrates how we can efficiently plot large datasets with DuckDB
 Let's install the required package:
 
 ```{code-cell} ipython3
-%pip install jupysql duckdb pyarrow --quiet
+%pip install jupysql duckdb duckdb-engine pyarrow --quiet
 ```
 
 Now, we download a sample data: NYC Taxi data split in 3 parquet files:
 
 ```{code-cell} ipython3
+from pathlib import Path
+from urllib.request import urlretrieve
+
 N_MONTHS = 3
 
 # https://www1.nyc.gov/site/tlc/about/tlc-trip-record-data.page
@@ -233,7 +210,7 @@ for i in range(1, N_MONTHS + 1):
     if not Path(filename).is_file():
         print(f"Downloading: {filename}")
         url = f"https://d37ci6vzurychx.cloudfront.net/trip-data/{filename}"
-        urllib.request.urlretrieve(url, filename)
+        urlretrieve(url, filename)
 ```
 
 In total, this contains more then 4.6M observations:
@@ -270,23 +247,44 @@ WHERE trip_distance < 18.93
 %sqlplot histogram --table no_outliers --column trip_distance --bins 50
 ```
 
+```{code-cell} ipython3
+%sqlplot boxplot --table no_outliers --column trip_distance
+```
+
 ## Querying existing dataframes
 
 ```{code-cell} ipython3
 import pandas as pd
-import duckdb
+from sqlalchemy import create_engine
 
-conn = duckdb.connect()
-df = pd.DataFrame({"x": range(10)})
+engine = create_engine("duckdb:///:memory:")
+df = pd.DataFrame({"x": range(100)})
 ```
 
 ```{code-cell} ipython3
-%sql conn
+%sql engine
 ```
 
 ```{code-cell} ipython3
 %%sql
 SELECT *
 FROM df
-WHERE x > 4
+WHERE x > 95
+```
+
+## Passing parameters to connection
+
+```{code-cell} ipython3
+from sqlalchemy import create_engine
+
+some_engine = create_engine(
+    "duckdb:///:memory:",
+    connect_args={
+        "preload_extensions": [],
+    },
+)
+```
+
+```{code-cell} ipython3
+%sql some_engine
 ```

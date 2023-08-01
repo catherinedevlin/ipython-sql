@@ -52,6 +52,28 @@ class DatabaseConfigHelper:
         return TMP_DIR
 
 
+mssql_base = {
+    "username": "sa",
+    "password": "Ploomber_App@Root_Password",
+    "database": "master",
+    "host": "localhost",
+    "port": "1433",
+    "query": {
+        "driver": "ODBC Driver 18 for SQL Server",
+        "Encrypt": "yes",
+        "TrustServerCertificate": "yes",
+    },
+    "docker_ct": {
+        "name": "MSSQL",
+        "image": "mcr.microsoft.com/azure-sql-edge",
+        "ports": {1433: 1433},
+    },
+    "alias": "MSSQLTest",
+}
+
+mssql_pyobdc = {**mssql_base, "drivername": "mssql+pyodbc"}
+mssql_pytds = {**mssql_base, "drivername": "mssql+pytds"}
+
 databaseConfig = {
     "postgreSQL": {
         "drivername": "postgresql",
@@ -120,25 +142,8 @@ databaseConfig = {
         "alias": "duckDBTest",
         "query": {},
     },
-    "MSSQL": {
-        "drivername": "mssql+pyodbc",
-        "username": "sa",
-        "password": "Ploomber_App@Root_Password",
-        "database": "master",
-        "host": "localhost",
-        "port": "1433",
-        "query": {
-            "driver": "ODBC Driver 18 for SQL Server",
-            "Encrypt": "yes",
-            "TrustServerCertificate": "yes",
-        },
-        "docker_ct": {
-            "name": "MSSQL",
-            "image": "mcr.microsoft.com/azure-sql-edge",
-            "ports": {1433: 1433},
-        },
-        "alias": "MSSQLTest",
-    },
+    "MSSQL": mssql_pyobdc,
+    "mssql_pytds": mssql_pytds,
     "Snowflake": {
         "drivername": "snowflake",
         "username": os.getenv("SF_USERNAME"),

@@ -12,6 +12,7 @@ import sqlalchemy
 
 from sql.connection import DBAPIConnection, SQLAlchemyConnection
 from sql.run.resultset import ResultSet, ResultSetsManager
+from sql.connection.connection import IS_SQLALCHEMY_ONE
 
 
 @pytest.fixture
@@ -162,7 +163,7 @@ def mock_config():
 @pytest.mark.parametrize(
     "session, expected_value",
     [
-        ("duckdb_sqlalchemy", {}),
+        ("duckdb_sqlalchemy", {"Count": {}} if IS_SQLALCHEMY_ONE else {"Success": {}}),
         ("duckdb_dbapi", {"Count": {}}),
         ("sqlite_sqlalchemy", {}),
     ],
@@ -184,9 +185,20 @@ def test_convert_to_dataframe_create_table(
 @pytest.mark.parametrize(
     "session, expected_value",
     [
-        ("duckdb_sqlalchemy", {"Count": {0: 5}}),
+        pytest.param(
+            "duckdb_sqlalchemy",
+            {"Count": {0: 5}},
+            marks=pytest.mark.xfail(
+                reason="inconsistent behavior between sqlalchemy 1.x and 2.x"
+            ),
+        ),
         ("duckdb_dbapi", {"Count": {0: 5}}),
         ("sqlite_sqlalchemy", {}),
+    ],
+    ids=[
+        "duckdb_sqlalchemy",
+        "duckdb_dbapi",
+        "sqlite_sqlalchemy",
     ],
 )
 def test_convert_to_dataframe_insert_into(
