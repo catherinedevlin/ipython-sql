@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.9.1dev
+
 ## 0.9.0 (2023-08-01)
 
 * [Feature] Allow loading configuration value from a `pyproject.toml` file upon magic initialization ([#689](https://github.com/ploomber/jupysql/issues/689))
