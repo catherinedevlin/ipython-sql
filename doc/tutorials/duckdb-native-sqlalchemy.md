@@ -87,7 +87,7 @@ _ = %sql SELECT * FROM df
 
 ## Limitations of using native connections
 
-As of version 0.8.0, the only caveat is that `%sqlcmd` and `%sqlplot boxplot` won't work with a native connection.
+As of version 0.9.0, the only caveat is that `%sqlcmd` won't work with a native connection.
 
 ```{code-cell} ipython3
 ---
@@ -97,14 +97,4 @@ slideshow:
 tags: [raises-exception]
 ---
 %sqlcmd
-```
-
-```{code-cell} ipython3
----
-editable: true
-slideshow:
-  slide_type: ''
-tags: [raises-exception]
----
-%sqlplot boxplot --table df --column x
 ```

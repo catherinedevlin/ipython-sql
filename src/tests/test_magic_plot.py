@@ -4,6 +4,7 @@ import pytest
 from IPython.core.error import UsageError
 import matplotlib.pyplot as plt
 from sql import util
+import duckdb
 
 from matplotlib.testing.decorators import image_comparison, _cleanup_cm
 
@@ -359,6 +360,17 @@ def test_pie_two_col(load_data_two_col, ip):
 @_cleanup_cm()
 @image_comparison(baseline_images=["boxplot"], extensions=["png"], remove_text=True)
 def test_boxplot(load_penguin, ip):
+    ip.run_cell("%sqlplot boxplot --table penguins.csv --column body_mass_g")
+
+
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["boxplot_duckdb"], extensions=["png"], remove_text=True
+)
+def test_boxplot_duckdb(load_penguin, ip):
+    conn = duckdb.connect(database=":memory:", read_only=False)
+    ip.push({"conn": conn})
+    ip.run_cell("%sql conn")
     ip.run_cell("%sqlplot boxplot --table penguins.csv --column body_mass_g")
 
 
