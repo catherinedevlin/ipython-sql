@@ -224,7 +224,7 @@ There is a second method to parametrize variables via `:variable`. This method h
 To enable it:
 
 ```{code-cell} ipython3
-%config SqlMagic.named_paramstyle = True
+%config SqlMagic.named_parameters = True
 ```
 
 ```{code-cell} ipython3

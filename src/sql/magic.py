@@ -157,7 +157,7 @@ class SqlMagic(Magics, Configurable):
     )
     autocommit = Bool(True, config=True, help="Set autocommit mode")
 
-    named_paramstyle = Bool(
+    named_parameters = Bool(
         False,
         config=True,
         help=(
@@ -533,7 +533,7 @@ class SqlMagic(Magics, Configurable):
                 conn,
                 command.sql,
                 self,
-                parameters=user_ns if self.named_paramstyle else None,
+                parameters=user_ns if self.named_parameters else None,
             )
 
             if (

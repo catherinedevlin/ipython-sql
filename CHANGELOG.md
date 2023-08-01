@@ -14,7 +14,7 @@
 * [Fix] Fixes error when creating tables and querying them in the same cell when using DuckDB + SQLAlchemy (#674)
 * [Fix] Using native methods to convert to data frames from DuckDB when using native connections and SQLAlchemy
 * [Fix] Fix error that caused literals like `':something'` to be interpreted as query parameters
-* [Feature] allows parametrizing queries with `:variable` with `%config SqlMagic.named_paramstyle = True`
+* [Feature] allows parametrizing queries with `:variable` with `%config SqlMagic.named_parameters = True`
 
 ## 0.8.0 (2023-07-18)
 

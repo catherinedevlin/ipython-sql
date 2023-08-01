@@ -242,14 +242,14 @@ res = %sql SELECT * FROM languages LIMIT 2
 print(res)
 ```
 
-## `named_paramstyle`
+## `named_parameters`
 
 Default: `False`
 
 If True, it enables named parameters `:variable`. Learn more in the [tutorial.](../user-guide/template.md)
 
 ```{code-cell} ipython3
-%config SqlMagic.named_paramstyle=True
+%config SqlMagic.named_parameters=True
 ```
 
 ```{code-cell} ipython3

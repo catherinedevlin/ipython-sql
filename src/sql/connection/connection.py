@@ -696,7 +696,7 @@ class SQLAlchemyConnection(AbstractConnection):
                         e.add_detail(
                             f"Your query contains named parameters ({named_params_}) "
                             "but the named parameters feature is disabled. Enable it "
-                            "with: %config SqlMagic.named_paramstyle=True"
+                            "with: %config SqlMagic.named_parameters=True"
                         )
                 raise
 
