@@ -47,7 +47,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install --upgrade nox
-          nox --session test_integration_snowflake --install-only
+          nox --session test_integration_cloud --install-only
 
       - name: Integration Test
         if: ${{ steps.secret-check.outputs.available == 'true'}}
@@ -55,9 +55,13 @@ jobs:
           SF_USERNAME: ${{ secrets.SF_USERNAME }}
           SF_PASSWORD: ${{ secrets.SF_PASSWORD }}
           SF_DATABASE: ${{ secrets.SF_DATABASE }}
+          REDSHIFT_HOST: ${{ secrets.REDSHIFT_HOST }}
+          REDSHIFT_USERNAME: ${{ secrets.REDSHIFT_USERNAME }}
+          REDSHIFT_PASSWORD: ${{ secrets.REDSHIFT_PASSWORD }}
+
         run: |
 
-          nox --session test_integration_snowflake --no-install --reuse-existing-virtualenvs
+          nox --session test_integration_cloud --no-install --reuse-existing-virtualenvs
 
       - name: Upload failed images artifacts
         uses: actions/upload-artifact@v3

@@ -67,6 +67,9 @@ INTEGRATION = [
     "oracledb",
     "sqlalchemy-pytds",
     "python-tds",
+    # redshift
+    "redshift-connector",
+    "sqlalchemy-redshift",
 ]
 
 setup(

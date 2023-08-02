@@ -120,17 +120,18 @@ def test_unit_sqlalchemy_one(session):
     venv_backend=VENV_BACKEND,
     python=environ.get("PYTHON_VERSION", "3.11"),
 )
-def test_integration_snowflake(session):
+def test_integration_cloud(session):
     """
-    Run snowflake tests (NOTE: the sqlalchemy-snowflake driver only works with
+    Run integration tests on cloud databases (currently snowflake and redshift)
+    (NOTE: the sqlalchemy-snowflake and sqlalchemy-redshift driver only work with
     SQLAlchemy 1.x)
     """
 
     # TODO: do not require integrationt test dependencies if only running snowflake
     # tests
     _install(session, integration=True)
-    session.install("snowflake-sqlalchemy")
-    session.run("pytest", "src/tests/integration", "-k", "snowflake", "-v")
+    session.install("snowflake-sqlalchemy", "redshift-connector", "sqlalchemy-redshift")
+    session.run("pytest", "src/tests/integration", "-k", "snowflake or redshift", "-v")
 
 
 @nox.session(
@@ -144,6 +145,6 @@ def test_integration(session):
         "pytest",
         "src/tests/integration",
         "-k",
-        "not snowflake",
+        "not (snowflake or redshift)",
         "-v",
     )

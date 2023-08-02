@@ -178,6 +178,18 @@ databaseConfig = {
             "service_name": "XEPDB1",
         },
     },
+    "redshift": {
+        "drivername": "redshift+redshift_connector",
+        "username": os.getenv("REDSHIFT_USERNAME"),
+        "password": os.getenv("REDSHIFT_PASSWORD"),
+        # database/schema
+        "database": "dev",
+        "host": os.getenv("REDSHIFT_HOST"),
+        "port": 5439,
+        "alias": "redshift",
+        "docker_ct": None,
+        "query": {},
+    },
 }
 
 
