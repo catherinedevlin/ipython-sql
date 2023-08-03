@@ -260,8 +260,7 @@ class ResultSet(ColumnGuesserMixin):
         payload["connection_info"] = self._conn._get_database_information()
         import pandas as pd
 
-        kwargs = {"columns": (self and self.keys) or []}
-        return _convert_to_data_frame(self, "df", pd.DataFrame, kwargs)
+        return _convert_to_data_frame(self, "df", pd.DataFrame)
 
     @telemetry.log_call("polars-data-frame")
     def PolarsDataFrame(self, **polars_dataframe_kwargs):
@@ -488,6 +487,9 @@ def _convert_to_data_frame(
 
         return getattr(native_connection, converter_name)()
     else:
+        if converter_name == "df":
+            constructor_kwargs["columns"] = result_set.keys
+
         frame = constructor(
             (tuple(row) for row in result_set),
             **constructor_kwargs,

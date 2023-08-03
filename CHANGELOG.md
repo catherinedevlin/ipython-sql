@@ -4,6 +4,7 @@
 * [Fix] Fix boxplot for duckdb native ([#728](https://github.com/ploomber/jupysql/issues/728))
 * [Doc] Add Redshift tutorial
 * [Feature] Adds Redshift support for `%sqlplot boxplot`
+* [Fix] Improves performance when converting DuckDB results to `pandas.DataFrame`
 
 ## 0.9.0 (2023-08-01)
 

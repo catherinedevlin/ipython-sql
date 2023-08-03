@@ -1,3 +1,6 @@
+# profiling data
+*.lprof
+
 .virtual_documents
 .DS_Store
 *.jsonl

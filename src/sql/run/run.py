@@ -43,7 +43,8 @@ def run_statements(conn, sql, config, parameters=None):
             if config.feedback and hasattr(result, "rowcount") and result.rowcount > 0:
                 display.message_success(f"{result.rowcount} rows affected.")
 
-    return select_df_type(ResultSet(result, config, statement, conn), config)
+    result_set = ResultSet(result, config, statement, conn)
+    return select_df_type(result_set, config)
 
 
 def is_postgres_or_redshift(dialect):

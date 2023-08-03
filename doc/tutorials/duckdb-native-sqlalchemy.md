@@ -19,7 +19,7 @@ myst:
 
 # DuckDB (native vs SQLAlchemy)
 
-Beginning in 0.9, JupySQL supports DuckDB via a native connection and SQLAlchemy, both with comparable performance.
+Beginning in 0.9, JupySQL supports DuckDB via a native connection and SQLAlchemy, both with comparable performance. JupySQL adds a small overhead; however, this overhead is constant.
 
 At the moment, the only difference is that some features are only available when using SQLAlchemy.
 
@@ -27,36 +27,50 @@ At the moment, the only difference is that some features are only available when
 
 ## Performance comparison (pandas)
 
-### DuckDB + SQLALchemy
-
 ```{code-cell} ipython3
 import pandas as pd
+import numpy as np
 
-df = pd.DataFrame({"x": range(1_000_000)})
+num_rows = 1_000_000
+num_cols = 100
+
+df = pd.DataFrame(np.random.randn(num_rows, num_cols))
 ```
+
+## Raw DuckDB
+
+```{code-cell} ipython3
+import duckdb
+conn = duckdb.connect()
+```
+
+```{code-cell} ipython3
+%%timeit
+conn.execute("SELECT * FROM df").df()
+```
+
+### DuckDB + SQLALchemy
 
 ```{code-cell} ipython3
 %load_ext sql
 %config SqlMagic.autopandas = True
+%config SqlMagic.displaycon = False
 %sql duckdb:// --alias duckdb-sqlalchemy
 ```
 
 ```{code-cell} ipython3
-%%time
+%%timeit
 _ = %sql SELECT * FROM df
 ```
 
 ## DuckDB + native
 
 ```{code-cell} ipython3
-import duckdb
-
-conn = duckdb.connect()
 %sql conn --alias duckdb-native
 ```
 
 ```{code-cell} ipython3
-%%time
+%%timeit
 _ = %sql SELECT * FROM df
 ```
 
@@ -67,10 +81,17 @@ _ = %sql SELECT * FROM df
 %sql duckdb-sqlalchemy
 ```
 
+## Raw DuckDB
+
+```{code-cell} ipython3
+%%timeit
+conn.execute("SELECT * FROM df").pl()
+```
+
 ### DuckDB + SQLAlchemy
 
 ```{code-cell} ipython3
-%%time
+%%timeit
 _ = %sql SELECT * FROM df
 ```
 
@@ -81,7 +102,7 @@ _ = %sql SELECT * FROM df
 ```
 
 ```{code-cell} ipython3
-%%time
+%%timeit
 _ = %sql SELECT * FROM df
 ```
 
