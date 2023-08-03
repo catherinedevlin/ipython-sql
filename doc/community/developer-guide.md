@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.14.5
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -54,7 +54,7 @@ JupySQL is a Python library that allows users to run SQL queries (among other th
 However, there is also a Python API. For example, users can create plots using the `ggplot` module:
 
 ```{code-cell} ipython3
-from sql.ggplot import ggplot # noqa
+from sql.ggplot import ggplot  # noqa
 ```
 
 So depending on which API is called, the behavior differs. Most notably, when using `%sql`/`%%sql` and other magics, Python tracebacks are hidden, since they're not relevant to the user. For example, if a user tries to query a non-existent table, we won't show the Python traceback:
@@ -279,8 +279,6 @@ Dialect in `DBAPIConnection` is only implemented for DuckDB, for all others, it 
 conn_dbapi.dialect is None
 ```
 
-+++
-
 ## Testing
 
 ### Running unit tests
@@ -466,7 +464,6 @@ We run integration tests against cloud databases like Snowflake, which requires 
 Please note that if you submit a pull request from a forked repository, the integration testing phase will be skipped because the pre-registered accounts won't be accessible.
 
 +++
-
 
 ## SQL transpilation
 

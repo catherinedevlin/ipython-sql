@@ -28,13 +28,14 @@ parts:
       - file: integrations/duckdb
       - file: integrations/pandas
       - file: integrations/polars
+      - file: integrations/snowflake
+      - file: integrations/redshift
+      - file: integrations/postgres-connect
       - file: integrations/mysql
       - file: integrations/mssql
       - file: integrations/mariadb
-      - file: integrations/snowflake
       - file: integrations/clickhouse
       - file: integrations/mindsdb
-      - file: integrations/postgres-connect
       - file: integrations/compatibility
       - file: integrations/questdb
       - file: integrations/oracle
