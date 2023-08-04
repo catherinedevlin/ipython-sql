@@ -11,7 +11,7 @@ import polars as pl
 import sqlalchemy
 
 from sql.connection import DBAPIConnection, SQLAlchemyConnection
-from sql.run.resultset import ResultSet, ResultSetsManager
+from sql.run.resultset import ResultSet
 from sql.connection.connection import IS_SQLALCHEMY_ONE
 
 
@@ -28,15 +28,17 @@ def result():
     df = pd.DataFrame({"x": range(3)})  # noqa
     engine = sqlalchemy.create_engine("duckdb://")
 
-    conn = engine.connect()
-    result = conn.execute(sqlalchemy.text("select * from df"))
-    yield result
+    conn = SQLAlchemyConnection(engine)
+    result = conn.raw_execute("select * from df")
+
+    yield result, conn
     conn.close()
 
 
 @pytest.fixture
 def result_set(result, config):
-    return ResultSet(result, config, statement=None, conn=Mock())
+    result_set, conn = result
+    return ResultSet(result_set, config, statement="select * from df", conn=conn)
 
 
 def test_resultset_getitem(result_set):
@@ -56,11 +58,17 @@ def test_resultset_dicts(result_set):
     assert list(result_set.dicts()) == [{"x": 0}, {"x": 1}, {"x": 2}]
 
 
-def test_resultset_dataframe(result_set, monkeypatch):
+def test_resultset_dataframe(result_set, config):
+    # since this will use the native method, the issue will be re-executed
+    # so we need to create the df here so duckdb can find it
+    df = pd.DataFrame({"x": range(3)})  # noqa
     assert result_set.DataFrame().equals(pd.DataFrame({"x": range(3)}))
 
 
-def test_resultset_polars_dataframe(result_set, monkeypatch):
+def test_resultset_polars_dataframe(result_set):
+    # since this will use the native method, the issue will be re-executed
+    # so we need to create the df here so duckdb can find it
+    df = pd.DataFrame({"x": range(3)})  # noqa
     assert result_set.PolarsDataFrame().frame_equal(pl.DataFrame({"x": range(3)}))
 
 
@@ -108,7 +116,8 @@ def test_invalid_operation_error(result_set, fname, parameters):
 
 def test_resultset_config_autolimit_dict(result, config):
     config.autolimit = 1
-    resultset = ResultSet(result, config, statement=None, conn=Mock())
+    resultset = ResultSet(result[0], config, statement=None, conn=result[1])
+
     assert resultset.dict() == {"x": (0,)}
 
 
@@ -589,38 +598,3 @@ def test_doesnt_refresh_sqlaproxy_if_different_connection():
     list(first_set)
 
     assert id(first_set._sqlaproxy) == original_id
-
-
-def test_manager_append():
-    m = ResultSetsManager()
-    first = object()
-    second = object()
-
-    m.append_to_key("first", first)
-    assert m._results == {"first": [first]}
-
-    m.append_to_key("second", second)
-    assert m._results == {"first": [first], "second": [second]}
-
-    final = object()
-    m.append_to_key("first", final)
-    assert m._results == {"first": [first, final], "second": [second]}
-
-    # if it already exists, appending should move it to the end
-    m.append_to_key("first", first)
-    assert m._results == {"first": [final, first], "second": [second]}
-
-
-def test_manager_is_last_for_key():
-    m = ResultSetsManager()
-    first = object()
-    second = object()
-
-    m.append_to_key("first", first)
-
-    assert m.is_last_for_key("unknown-key", object()) is True
-    assert m.is_last_for_key("first", first) is True
-
-    m.append_to_key("first", second)
-    assert m.is_last_for_key("first", first) is False
-    assert m.is_last_for_key("first", second) is True

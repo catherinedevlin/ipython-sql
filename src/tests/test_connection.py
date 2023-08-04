@@ -20,6 +20,7 @@ from sql.connection import (
     ConnectionManager,
     is_pep249_compliant,
     default_alias_for_engine,
+    ResultSetCollection,
 )
 
 
@@ -790,3 +791,40 @@ AS percentiles
     transpiled = conn._transpile_query(query_input)
 
     assert transpiled == query_input
+
+
+def test_result_set_collection_append():
+    collection = ResultSetCollection()
+    collection.append(1)
+    collection.append(2)
+
+    assert collection._result_sets == [1, 2]
+
+
+def test_result_set_collection_iterate():
+    collection = ResultSetCollection()
+    collection.append(1)
+    collection.append(2)
+
+    assert list(collection) == [1, 2]
+
+
+def test_result_set_collection_is_last():
+    collection = ResultSetCollection()
+    first, second = object(), object()
+    collection.append(first)
+
+    assert len(collection) == 1
+    assert collection.is_last(first)
+
+    collection.append(second)
+
+    assert len(collection) == 2
+    assert not collection.is_last(first)
+    assert collection.is_last(second)
+
+    collection.append(first)
+
+    assert len(collection) == 2
+    assert collection.is_last(first)
+    assert not collection.is_last(second)
