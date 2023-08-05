@@ -59,6 +59,13 @@ class SqlPlotMagic(Magics, Configurable):
         action="store_true",
         help="Show number of observations",
     )
+    @argument(
+        "-B",
+        "--breaks",
+        type=float,
+        nargs="+",
+        help="Histogram breaks",
+    )
     @modify_exceptions
     def execute(self, line="", cell="", local_ns=None):
         """
@@ -103,12 +110,21 @@ class SqlPlotMagic(Magics, Configurable):
                 conn=None,
             )
         elif cmd.args.line[0] in {"hist", "histogram"}:
+            # to avoid passing bins default value when breaks are given by a user
+            bin_specified = " --bins " in line or " -b " in line
+            breaks_specified = " --breaks " in line or " -B " in line
+            if breaks_specified and not bin_specified:
+                bins = None
+            else:
+                bins = cmd.args.bins
+
             return plot.histogram(
                 table=table,
                 column=column,
-                bins=cmd.args.bins,
+                bins=bins,
                 with_=with_,
                 conn=None,
+                breaks=cmd.args.breaks,
             )
         elif cmd.args.line[0] in {"bar"}:
             return plot.bar(

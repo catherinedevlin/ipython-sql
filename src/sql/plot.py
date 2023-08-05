@@ -271,6 +271,7 @@ def _are_numeric_values(*values):
 def _get_bar_width(ax, bins, bin_size):
     """
     Return a single bar width based on number of bins
+    or a list of bar widths if `breaks` is given.
     If bins values are str, calculate value based on figure size.
 
     Parameters
@@ -281,16 +282,16 @@ def _get_bar_width(ax, bins, bin_size):
     bins : tuple
         Contains bins' midpoints as float
 
-    bin_size : int or None
+    bin_size : int or list or None
         Calculated bin_size from the _histogram function
+        or from consecutive differences in `breaks`
 
     Returns
     -------
     width : float
         A single bar width
     """
-
-    if _are_numeric_values(bin_size):
+    if _are_numeric_values(bin_size) or isinstance(bin_size, list):
         width = bin_size
     else:
         fig = plt.gcf()
@@ -316,6 +317,7 @@ def histogram(
     edgecolor=None,
     ax=None,
     facet=None,
+    breaks=None,
 ):
     """Plot histogram
 
@@ -358,6 +360,21 @@ def histogram(
     """
     if not conn:
         conn = sql.connection.ConnectionManager.current
+    if isinstance(breaks, list):
+        if len(breaks) < 2:
+            raise exceptions.ValueError(
+                f"Breaks given : {breaks}. When using breaks, please ensure "
+                "to specify at least two points."
+            )
+        if not all([b2 > b1 for b1, b2 in zip(breaks[:-1], breaks[1:])]):
+            raise exceptions.ValueError(
+                f"Breaks given : {breaks}. When using breaks, please ensure that "
+                "breaks are strictly increasing."
+            )
+        if bins:
+            raise exceptions.ValueError(
+                "Both bins and breaks are specified. Must specify only one of them."
+            )
 
     ax = ax or plt.gca()
     payload["connection_info"] = conn._get_database_information()
@@ -375,10 +392,20 @@ def histogram(
         if column is None or len(column) == 0:
             raise ValueError("Column name has not been specified")
 
-        bin_, height, bin_size = _histogram(table, column, bins, with_=with_, conn=conn)
+        bin_, height, bin_size = _histogram(
+            table, column, bins, with_=with_, conn=conn, breaks=breaks
+        )
         width = _get_bar_width(ax, bin_, bin_size)
         data = _histogram_stacked(
-            table, column, category, bin_, bin_size, with_=with_, conn=conn, facet=facet
+            table,
+            column,
+            category,
+            bin_,
+            bin_size,
+            with_=with_,
+            conn=conn,
+            facet=facet,
+            breaks=breaks,
         )
         cmap = plt.get_cmap(cmap or "viridis")
         norm = Normalize(vmin=0, vmax=len(data))
@@ -422,7 +449,7 @@ def histogram(
         ax.legend(handles[::-1], labels[::-1])
     elif isinstance(column, str):
         bin_, height, bin_size = _histogram(
-            table, column, bins, with_=with_, conn=conn, facet=facet
+            table, column, bins, with_=with_, conn=conn, facet=facet, breaks=breaks
         )
         width = _get_bar_width(ax, bin_, bin_size)
 
@@ -439,9 +466,13 @@ def histogram(
         ax.set_xlabel(column)
 
     else:
+        if breaks and len(column) > 1:
+            raise exceptions.UsageError(
+                "Multiple columns don't support breaks. Please use bins instead."
+            )
         for i, col in enumerate(column):
             bin_, height, bin_size = _histogram(
-                table, col, bins, with_=with_, conn=conn, facet=facet
+                table, col, bins, with_=with_, conn=conn, facet=facet, breaks=breaks
             )
             width = _get_bar_width(ax, bin_, bin_size)
 
@@ -474,7 +505,7 @@ def histogram(
 
 
 @modify_exceptions
-def _histogram(table, column, bins, with_=None, conn=None, facet=None):
+def _histogram(table, column, bins, with_=None, conn=None, facet=None, breaks=None):
     """Compute bins and heights"""
     if not conn:
         conn = sql.connection.ConnectionManager.current
@@ -493,33 +524,85 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
     bin_size = None
 
     if _are_numeric_values(min_, max_):
-        if not isinstance(bins, int):
+        if breaks:
+            if min_ > breaks[-1]:
+                raise exceptions.UsageError(
+                    f"All break points are lower than the min data point of {min_}."
+                )
+            elif max_ < breaks[0]:
+                raise exceptions.UsageError(
+                    f"All break points are higher than the max data point of {max_}."
+                )
+
+            cases, bin_size = [], []
+            for b_start, b_end in zip(breaks[:-1], breaks[1:]):
+                case = f"WHEN {{{{column}}}} > {b_start} AND {{{{column}}}} <= {b_end} \
+                        THEN {(b_start+b_end)/2}"
+                cases.append(case)
+                bin_size.append(b_end - b_start)
+            cases[0] = cases[0].replace(">", ">=", 1)
+            bin_midpoints = [
+                (b_start + b_end) / 2 for b_start, b_end in zip(breaks[:-1], breaks[1:])
+            ]
+            all_bins = " union ".join([f"select {mid} as bin" for mid in bin_midpoints])
+
+            # Group data based on the intervals in breaks
+            # Left join is used to ensure count=0
+            template_ = (
+                "select all_bins.bin, coalesce(count_table.count, 0) as count "
+                f"from ({all_bins}) as all_bins "
+                "left join ("
+                f"select case {' '.join(cases)} end as bin, "
+                "count(*) as count "
+                'from "{{table}}" '
+                "{{filter_query}} "
+                "group by bin) "
+                "as count_table on all_bins.bin = count_table.bin "
+                "order by all_bins.bin;"
+            )
+
+            breaks_filter_query = (
+                f'"{column}" >= {breaks[0]} and "{column}" <= {breaks[-1]}'
+            )
+            filter_query = _filter_aggregate(
+                filter_query_1, filter_query_2, breaks_filter_query
+            )
+
+            if use_backticks:
+                template_ = template_.replace('"', "`")
+
+            template = Template(template_)
+
+            query = template.render(
+                table=table, column=column, filter_query=filter_query
+            )
+        elif not isinstance(bins, int):
             raise ValueError(
                 f"bins are '{bins}'. Please specify a valid number of bins."
             )
+        else:
+            # Use bins - 1 instead of bins and round half down instead of floor
+            # to mimic right-closed histogram intervals in R ggplot
+            range_ = max_ - min_
+            bin_size = range_ / (bins - 1)
+            template_ = """
+                select
+                ceiling("{{column}}"/{{bin_size}} - 0.5)*{{bin_size}} as bin,
+                count(*) as count
+                from "{{table}}"
+                {{filter_query}}
+                group by bin
+                order by bin;
+                """
 
-        # Use bins - 1 instead of bins and round half down instead of floor
-        # to mimic right-closed histogram intervals in R ggplot
-        range_ = max_ - min_
-        bin_size = range_ / (bins - 1)
-        template_ = """
-            select
-            ceiling("{{column}}"/{{bin_size}} - 0.5)*{{bin_size}} as bin,
-            count(*) as count
-            from "{{table}}"
-            {{filter_query}}
-            group by bin
-            order by bin;
-            """
+            if use_backticks:
+                template_ = template_.replace('"', "`")
 
-        if use_backticks:
-            template_ = template_.replace('"', "`")
+            template = Template(template_)
 
-        template = Template(template_)
-
-        query = template.render(
-            table=table, column=column, bin_size=bin_size, filter_query=filter_query
-        )
+            query = template.render(
+                table=table, column=column, bin_size=bin_size, filter_query=filter_query
+            )
     else:
         template_ = """
         select
@@ -554,21 +637,32 @@ def _histogram_stacked(
     with_=None,
     conn=None,
     facet=None,
+    breaks=None,
 ):
     """Compute the corresponding heights of each bin based on the category"""
     if not conn:
         conn = sql.connection.ConnectionManager.current
 
     cases = []
-    tolerance = bin_size / 1000  # Use to avoid floating point error
-    for bin in bins:
-        # Use round half down instead of floor to mimic
-        # right-closed histogram intervals in R ggplot
-        case = (
-            f"SUM(CASE WHEN ABS(CEILING({column}/{bin_size} - 0.5)*{bin_size} "
-            f"- {bin}) <= {tolerance} THEN 1 ELSE 0 END) AS '{bin}',"
+    if breaks:
+        breaks_filter_query = (
+            f'"{column}" >= {breaks[0]} and "{column}" <= {breaks[-1]}'
         )
-        cases.append(case)
+        for b_start, b_end in zip(breaks[:-1], breaks[1:]):
+            case = f'SUM(CASE WHEN {column} > {b_start} AND {column} <= {b_end} \
+                    THEN 1 ELSE 0 END) AS "{(b_start+b_end)/2}",'
+            cases.append(case)
+        cases[0] = cases[0].replace(">", ">=", 1)
+    else:
+        tolerance = bin_size / 1000  # Use to avoid floating point error
+        for bin in bins:
+            # Use round half down instead of floor to mimic
+            # right-closed histogram intervals in R ggplot
+            case = (
+                f"SUM(CASE WHEN ABS(CEILING({column}/{bin_size} - 0.5)*{bin_size} "
+                f"- {bin}) <= {tolerance} THEN 1 ELSE 0 END) AS '{bin}',"
+            )
+            cases.append(case)
 
     cases = " ".join(cases)
 
@@ -576,7 +670,12 @@ def _histogram_stacked(
 
     filter_query_2 = f"{facet['key']} == '{facet['value']}'" if facet else None
 
-    filter_query = _filter_aggregate(filter_query_1, filter_query_2)
+    if breaks:
+        filter_query = _filter_aggregate(
+            filter_query_1, filter_query_2, breaks_filter_query
+        )
+    else:
+        filter_query = _filter_aggregate(filter_query_1, filter_query_2)
 
     template = Template(
         """

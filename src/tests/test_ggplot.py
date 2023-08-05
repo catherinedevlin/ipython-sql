@@ -3,6 +3,7 @@ from matplotlib.testing.decorators import image_comparison, _cleanup_cm
 import pytest
 from pathlib import Path
 from urllib.request import urlretrieve
+from IPython.core.error import UsageError
 
 
 @pytest.fixture
@@ -456,6 +457,45 @@ def test_facet_wrap_default_with_dummy(nulls_data):
     )
 
 
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_with_breaks"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_with_breaks(penguins_data):
+    (
+        ggplot(table=penguins_data, mapping=aes(x="body_mass_g"))
+        + geom_histogram(breaks=[3000, 3100, 3300, 3700, 4000, 4600])
+    )
+
+
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_stacked_with_breaks"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_stacked_with_breaks(penguins_data):
+    (
+        ggplot(table=penguins_data, mapping=aes(x="body_mass_g"))
+        + geom_histogram(breaks=[3000, 3100, 3300, 3700, 4000, 4600], fill="species")
+    )
+
+
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_stacked_with_extreme_breaks"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_with_extreme_breaks(penguins_data):
+    (
+        ggplot(table=penguins_data, mapping=aes(x="body_mass_g"))
+        + geom_histogram(breaks=[1000, 2000, 2500, 2700, 3000], fill="species")
+    )
+
+
 @pytest.mark.parametrize(
     "x, expected_error, expected_error_message",
     [
@@ -491,3 +531,40 @@ def test_histogram_no_bins_error(diamonds_data):
         (ggplot(diamonds_data, aes(x=["price"])) + geom_histogram())
 
     assert "Please specify a valid number of bins." in str(error.value)
+
+
+@pytest.mark.parametrize(
+    "bins, breaks, error_message",
+    [
+        (
+            None,
+            [3000.0],
+            (
+                "Breaks given : [3000.0]. When using breaks, "
+                "please ensure to specify at least two points."
+            ),
+        ),
+        (
+            None,
+            [3000.0, 4000.0, 3999.0],
+            (
+                "Breaks given : [3000.0, 4000.0, 3999.0]. When using breaks, "
+                "please ensure that breaks are strictly increasing."
+            ),
+        ),
+        (
+            40,
+            [3000.0, 4000.0, 5000.0],
+            "Both bins and breaks are specified. Must specify only one of them.",
+        ),
+    ],
+)
+def test_hist_breaks_error(penguins_data, bins, breaks, error_message):
+    with pytest.raises(UsageError) as error:
+        (
+            ggplot(penguins_data, aes(x="body_mass_g"))
+            + geom_histogram(bins=bins, breaks=breaks)
+        )
+
+    assert error.value.error_type == "ValueError"
+    assert error_message in str(error.value)

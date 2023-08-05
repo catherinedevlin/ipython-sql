@@ -445,6 +445,45 @@ def test_facet_wrap_stacked_histogram_cmap(ip_questdb, diamonds_data):
 
 
 @_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_breaks"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_breaks(ip_questdb, diamonds_data):
+    (
+        ggplot(diamonds_data, aes(x="price"))
+        + geom_histogram(breaks=[0, 3000, 5000, 6000, 10000])
+    )
+
+
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_stacked_breaks"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_stacked_breaks(ip_questdb, diamonds_data):
+    (
+        ggplot(diamonds_data, aes(x="price"))
+        + geom_histogram(breaks=[0, 3000, 5000, 6000, 10000], fill="color")
+    )
+
+
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_breaks_over_max"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_breaks_over_max(ip_questdb, diamonds_data):
+    (
+        ggplot(diamonds_data, aes(x="price"))
+        + geom_histogram(breaks=[15000, 17000, 20000, 21000])
+    )
+
+
+@_cleanup_cm()
 @pytest.mark.parametrize(
     "x, expected_error, expected_error_message",
     [

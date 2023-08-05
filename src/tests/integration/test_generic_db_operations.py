@@ -288,11 +288,16 @@ def test_telemetry_execute_command_has_connection_info(
             "%sqlplot histogram --with plot_something_subset --table\
               plot_something_subset --column x --bins 10"
         ),
+        (
+            "%sqlplot histogram --with plot_something_subset --table\
+              plot_something_subset --column x --breaks 0 2 3 4 5"
+        ),
     ],
     ids=[
         "histogram",
         "hist",
         "histogram-bins",
+        "histogram-breaks",
     ],
 )
 @pytest.mark.parametrize(

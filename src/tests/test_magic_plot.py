@@ -82,6 +82,53 @@ def test_validate_arguments(tmp_empty, ip, cell, error_message):
     assert str(error_message).lower() in str(excinfo.value).lower()
 
 
+@pytest.mark.parametrize(
+    "cell, error_message",
+    [
+        [
+            (
+                "%sqlplot histogram --table penguins.csv --column body_mass_g "
+                "--breaks 1000 2000 2699"
+            ),
+            "All break points are lower than the min data point of 2700.",
+        ],
+        [
+            (
+                "%sqlplot histogram --table penguins.csv --column body_mass_g "
+                "--breaks 7000 7100 7200"
+            ),
+            "All break points are higher than the max data point of 6300.",
+        ],
+        [
+            (
+                "%sqlplot histogram --table penguins.csv --column body_mass_g "
+                "--breaks 3000 4000 5000 --bins 50"
+            ),
+            "Both bins and breaks are specified. Must specify only one of them.",
+        ],
+        [
+            (
+                "%sqlplot histogram --table penguins.csv --bins 50 --column body_mass_g"
+                " --breaks 3000 4000 5000"
+            ),
+            "Both bins and breaks are specified. Must specify only one of them.",
+        ],
+        [
+            (
+                "%sqlplot histogram --table penguins.csv --column bill_length_mm "
+                "bill_depth_mm --breaks 30 40 50"
+            ),
+            "Multiple columns don't support breaks. Please use bins instead.",
+        ],
+    ],
+)
+def test_validate_breaks_arguments(load_penguin, ip, cell, error_message):
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(cell)
+
+    assert error_message in str(excinfo.value)
+
+
 @_cleanup_cm()
 @pytest.mark.parametrize(
     "cell",
@@ -433,6 +480,15 @@ def test_hist_cust(load_penguin, ip):
     ).result
     ax.set_title("Custom Title")
     _ = ax.grid(True)
+
+
+@_cleanup_cm()
+@image_comparison(baseline_images=["hist_breaks"], extensions=["png"], remove_text=True)
+def test_hist_breaks(load_penguin, ip):
+    ip.run_cell(
+        "%sqlplot histogram --table penguins.csv --column body_mass_g "
+        "--breaks 3000 3100 3300 3700 4000 4600"
+    )
 
 
 @pytest.mark.parametrize(
