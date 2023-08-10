@@ -1,0 +1,59 @@
+name: Bug report
+description: Something not working? Create a bug report.
+body:
+  - type: textarea
+    attributes:
+      label: What happens?
+      description: A short, clear and concise description of what the bug is.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: To Reproduce
+      description: Steps to reproduce the behavior. Providing a minimal, reproducible example (you can attach a notebook) is the best way to get your issue resolved quickly.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: "# Environment (please complete the following information):"
+
+  - type: input
+    attributes:
+      label: "OS:"
+      placeholder: Linux
+      description: Operating system (e.g. Linux, Windows, macOS)
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: "JupySQL Version (`import sql; print(sql.__version__)`):"
+      placeholder: e.g. 0.9.0
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: "# Identity Disclosure:"
+
+  - type: input
+    attributes:
+      label: "Full Name:"
+      placeholder: e.g. John Doe
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: "Affiliation:"
+      placeholder: e.g. Big Corp
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        If the above is not given and is not obvious from your GitHub profile page, we might close your issue without further review. Please refer to the [reasoning behind this rule](https://berthub.eu/articles/posts/anonymous-help/) if you have questions.
+
