@@ -17,7 +17,7 @@ body:
 
   - type: markdown
     attributes:
-      value: "# Environment (please complete the following information):"
+      value: "## Environment"
 
   - type: input
     attributes:
@@ -29,14 +29,18 @@ body:
 
   - type: input
     attributes:
-      label: "JupySQL Version (`import sql; print(sql.__version__)`):"
+      label: "JupySQL Version:"
       placeholder: e.g. 0.9.0
     validations:
       required: true
 
   - type: markdown
     attributes:
-      value: "# Identity Disclosure:"
+      value: "To get the version. run: `import sql; print(sql.__version__)`"
+
+  - type: markdown
+    attributes:
+      value: "## Identity Disclosure"
 
   - type: input
     attributes:
