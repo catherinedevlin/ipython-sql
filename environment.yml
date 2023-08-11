@@ -20,7 +20,5 @@ dependencies:
     - pyarrow
     # package
     - -e .
-    # to add sql syntax highlighting + formatting
-    - jupysql-plugin
     # required to open .md files as nbs
     - jupytext
