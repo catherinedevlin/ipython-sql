@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.9.2dev
+
 ## 0.9.1 (2023-08-10)
 
 * [Feature] Added `--breaks/-B` to ggplot histogram for specifying breaks ([#719](https://github.com/ploomber/jupysql/issues/719))
