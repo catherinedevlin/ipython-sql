@@ -232,12 +232,18 @@ def test_convert_to_dataframe_insert_into(
         "sqlite_sqlalchemy",
     ],
 )
-def test_convert_to_dataframe_select(session, request, mock_config):
+@pytest.mark.parametrize(
+    "statement",
+    [
+        "SELECT * FROM a",
+        "with something as (SELECT * FROM a) select * from something",
+    ],
+)
+def test_convert_to_dataframe_select(session, request, mock_config, statement):
     session = request.getfixturevalue(session)
 
     session.execute("CREATE TABLE a (x INT);")
     session.execute("INSERT INTO a(x) VALUES (1),(2),(3),(4),(5);")
-    statement = "SELECT * FROM a"
     results = session.execute(statement)
 
     rs = ResultSet(results, mock_config, statement=statement, conn=session)

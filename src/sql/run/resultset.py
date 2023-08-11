@@ -490,4 +490,8 @@ def _nonbreaking_spaces(match_obj):
 def _statement_is_select(statement):
     statement_ = statement.lower().strip()
     # duckdb also allows FROM without SELECT
-    return statement_.startswith("select") or statement_.startswith("from")
+    return (
+        statement_.startswith("select")
+        or statement_.startswith("from")
+        or statement_.startswith("with")
+    )
