@@ -9,9 +9,6 @@ dependencies:
   - matplotlib
   - pandas
   - pip
-  # by default binder runs an old version of jupyterlab
-  # that doesn't work with jupysql-plugin
-  - jupyterlab<4
   - pip:
     - jupyter-book
     - jupyterlab_myst # display admonitions in jupyterlab
