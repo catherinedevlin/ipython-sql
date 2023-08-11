@@ -1,4 +1,4 @@
-# binder environment
+# binder environment file
 name: jupysql-binder
 
 channels:
