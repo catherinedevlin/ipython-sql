@@ -10,7 +10,6 @@ dependencies:
   - pandas
   - pip
   - pip:
-    - jupyterlab_myst # display admonitions in jupyterlab
     # duckdb example
     - duckdb
     - duckdb-engine
