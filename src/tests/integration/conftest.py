@@ -9,6 +9,7 @@ import duckdb
 
 from sql import _testing
 from sql import connection
+from sql import store
 
 
 def _requires_env_variables(database, variables):
@@ -20,14 +21,18 @@ def _requires_env_variables(database, variables):
 
 
 @pytest.fixture(scope="function", autouse=True)
-def isolate_connections(monkeypatch):
+def isolate_tests(monkeypatch):
     """
     Fixture to ensure connections are isolated between tests, preventing tests
     from accidentally closing connections created by other tests.
+
+    Also clear up any stored snippets.
     """
     connections = {}
     monkeypatch.setattr(connection.ConnectionManager, "connections", connections)
     monkeypatch.setattr(connection.ConnectionManager, "current", None)
+    store.store = store.SQLStore()
+
     yield
 
     # FIXME: cannot close connections because some of them are shared across tests

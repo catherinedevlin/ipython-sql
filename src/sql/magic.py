@@ -410,17 +410,28 @@ class SqlMagic(Magics, Configurable):
 
         args = command.args
 
-        if args.with_:
-            with_ = args.with_
-        else:
-            with_ = self._store.infer_dependencies(command.sql_original, args.save)
-            if with_:
-                command.set_sql_with(with_)
-                display.message(
-                    f"Generating CTE with stored snippets: {pretty_print(with_)}"
-                )
+        is_cte = command.sql_original.strip().lower().startswith("with ")
+
+        # only expand CTE if this is not a CTE itself
+        if not is_cte:
+            if args.with_:
+                with_ = args.with_
             else:
-                with_ = None
+                with_ = self._store.infer_dependencies(command.sql_original, args.save)
+                if with_:
+                    command.set_sql_with(with_)
+                    display.message(
+                        f"Generating CTE with stored snippets: {pretty_print(with_)}"
+                    )
+                else:
+                    with_ = None
+        else:
+            if args.with_:
+                raise exceptions.UsageError(
+                    "Cannot use --with with CTEs, remove --with and re-run the cell"
+                )
+
+            with_ = None
 
         # Create the interactive slider
         if args.interact and not is_interactive_mode:

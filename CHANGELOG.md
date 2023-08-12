@@ -2,6 +2,8 @@
 
 ## 0.9.2dev
 
+* [Fix] Fix a bug that caused a cell with a CTE to fail if it referenced a table/view with the same name as an existing snippet (#753)
+
 ## 0.9.1 (2023-08-10)
 
 * [Feature] Added `--breaks/-B` to ggplot histogram for specifying breaks ([#719](https://github.com/ploomber/jupysql/issues/719))

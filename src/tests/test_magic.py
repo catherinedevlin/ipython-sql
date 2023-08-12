@@ -1,3 +1,4 @@
+import uuid
 import logging
 import platform
 import sqlite3
@@ -1664,3 +1665,71 @@ def test_warning_if_variable_defined_but_named_param_is_quoted(
         match=expected_warning,
     ):
         ip.run_cell(cell)
+
+
+def test_can_run_cte_that_references_a_table_whose_name_is_the_same_as_a_snippet(ip):
+    # randomize the name to avoid collisions
+    identifier = "shakespeare_" + str(uuid.uuid4())[:8]
+
+    # create table
+    ip.run_cell(
+        f"""%%sql
+create table {identifier} as select * from author where last_name = 'Shakespeare'
+"""
+    )
+
+    # store a snippet with the same name
+    ip.run_cell(
+        f"""%%sql --save {identifier}
+select * from author where last_name = 'some other last name'
+"""
+    )
+
+    # this should query the table, not the snippet
+    results = ip.run_cell(
+        f"""%%sql
+with author_subset as (
+    select * from {identifier}
+)
+select * from author_subset
+"""
+    ).result
+
+    assert results.dict() == {
+        "first_name": ("William",),
+        "last_name": ("Shakespeare",),
+        "year_of_death": (1616,),
+    }
+
+
+def test_error_when_running_a_cte_and_passing_with_argument(ip):
+    # randomize the name to avoid collisions
+    identifier = "shakespeare_" + str(uuid.uuid4())[:8]
+
+    # create table
+    ip.run_cell(
+        f"""%%sql
+create table {identifier} as select * from author where last_name = 'Shakespeare'
+"""
+    )
+
+    # store a snippet with the same name
+    ip.run_cell(
+        f"""%%sql --save {identifier}
+select * from author where last_name = 'some other last name'
+"""
+    )
+
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(
+            f"""%%sql --with {identifier}
+with author_subset as (
+    select * from {identifier}
+)
+select * from author_subset
+"""
+        )
+
+    assert "Cannot use --with with CTEs, remove --with and re-run the cell" in str(
+        excinfo.value
+    )

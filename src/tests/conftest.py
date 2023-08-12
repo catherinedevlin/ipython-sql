@@ -12,6 +12,7 @@ from sql.magic_cmd import SqlCmdMagic
 from sql.connection import ConnectionManager
 from sql._testing import TestingShell
 from sql import connection
+from sql import store
 
 PATH_TO_TESTS = Path(__file__).absolute().parent
 PATH_TO_TMP_ASSETS = PATH_TO_TESTS / "tmp"
@@ -19,14 +20,19 @@ PATH_TO_TMP_ASSETS.mkdir(exist_ok=True)
 
 
 @pytest.fixture(scope="function", autouse=True)
-def isolate_connections(monkeypatch):
+def isolate_tests(monkeypatch):
     """
     Fixture to ensure connections are isolated between tests, preventing tests
     from accidentally closing connections created by other tests.
+
+    Also clear up any stored snippets.
     """
     connections = {}
     monkeypatch.setattr(connection.ConnectionManager, "connections", connections)
     monkeypatch.setattr(connection.ConnectionManager, "current", None)
+
+    store.store = store.SQLStore()
+
     yield
     connection.ConnectionManager.close_all()
 
