@@ -1,3 +1,4 @@
+import string
 from unittest.mock import Mock, call
 
 import duckdb
@@ -82,16 +83,27 @@ def test_resultset_str(result_set):
     assert str(result_set) == "+---+\n| x |\n+---+\n| 0 |\n| 1 |\n| 2 |\n+---+"
 
 
-def test_resultset_repr_html(result_set):
+def test_resultset_repr_html_when_feedback_is_2(result_set, ip_empty):
+    ip_empty.run_cell("%config SqlMagic.feedback = 2")
+
     html_ = result_set._repr_html_()
     assert (
         "<span style='font-style:italic;font-size:11px'>"
-        "<code>ResultSet</code> : to convert to pandas, call <a href="
+        "<code>ResultSet</code>: to convert to pandas, call <a href="
         "'https://jupysql.ploomber.io/en/latest/integrations/pandas.html'>"
         "<code>.DataFrame()</code></a> or to polars, call <a href="
         "'https://jupysql.ploomber.io/en/latest/integrations/polars.html'>"
         "<code>.PolarsDataFrame()</code></a></span><br>"
     ) in html_
+
+
+@pytest.mark.parametrize("feedback", [0, 1])
+def test_resultset_repr_html_with_reduced_feedback(result_set, ip_empty, feedback):
+    ip_empty.run_cell(f"%config SqlMagic.feedback = {feedback}")
+
+    html = result_set._repr_html_()
+    assert "pandas" not in html
+    assert "polars" not in html
 
 
 @pytest.mark.parametrize(
@@ -496,11 +508,18 @@ def test_display_limit_respected_even_when_feched_all(results):
 @pytest.mark.parametrize(
     "displaylimit, message",
     [
-        (1, "Truncated to displaylimit of 1"),
-        (2, "Truncated to displaylimit of 2"),
+        (1, "Truncated to $HTML_LINK of 1."),
+        (2, "Truncated to $HTML_LINK of 2."),
     ],
 )
 def test_displaylimit_message(displaylimit, message, results):
+    HTML_LINK = (
+        '<a href="https://jupysql.ploomber.io/en/'
+        'latest/api/configuration.html#displaylimit">displaylimit</a>'
+    )
+
+    message = string.Template(message).substitute(HTML_LINK=HTML_LINK)
+
     mock = Mock()
     mock.displaylimit = displaylimit
     mock.autolimit = 0

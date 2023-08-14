@@ -1,4 +1,10 @@
-def test_connection_string_displayed(ip_empty, capsys):
+import pytest
+
+
+@pytest.mark.parametrize("feedback", [1, 2])
+def test_connection_string_displayed(ip_empty, capsys, feedback):
+    ip_empty.run_cell(f"%config SqlMagic.feedback  = {feedback}")
+
     ip_empty.run_cell("%sql duckdb://")
     ip_empty.run_cell("%sql show tables")
 
@@ -6,7 +12,10 @@ def test_connection_string_displayed(ip_empty, capsys):
     assert "Running query in 'duckdb://'" in captured.out
 
 
-def test_dbapi_connection_display(ip_empty, capsys, tmp_empty):
+@pytest.mark.parametrize("feedback", [1, 2])
+def test_dbapi_connection_display(ip_empty, capsys, tmp_empty, feedback):
+    ip_empty.run_cell(f"%config SqlMagic.feedback  = {feedback}")
+
     ip_empty.run_cell("import duckdb")
     ip_empty.run_cell("custom = duckdb.connect('anotherdb')")
     ip_empty.run_cell("%sql custom")
@@ -16,13 +25,26 @@ def test_dbapi_connection_display(ip_empty, capsys, tmp_empty):
     assert "Running query in 'DuckDBPyConnection'" in captured.out
 
 
-def test_connection_string_hidden_when_passing_alias(ip_empty, capsys):
+@pytest.mark.parametrize("feedback", [1, 2])
+def test_connection_string_hidden_when_passing_alias(ip_empty, capsys, feedback):
+    ip_empty.run_cell(f"%config SqlMagic.feedback  = {feedback}")
+
     ip_empty.run_cell("%sql duckdb:// --alias myduckdbconn")
     ip_empty.run_cell("%sql show tables")
 
     captured = capsys.readouterr()
     assert "duckdb://" not in captured.out
     assert "Running query in 'myduckdbconn'" in captured.out
+
+
+def test_no_display_connection_if_feedback_disabled(ip_empty, capsys):
+    ip_empty.run_cell("%config SqlMagic.feedback  = 0")
+
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql show tables")
+
+    captured = capsys.readouterr()
+    assert "Running query in" not in captured.out
 
 
 def test_display_message_when_persisting_data_frames(ip_empty, capsys):

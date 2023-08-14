@@ -13,6 +13,7 @@ from sql.connection import ConnectionManager
 from sql._testing import TestingShell
 from sql import connection
 from sql import store
+from sql import _current
 
 PATH_TO_TESTS = Path(__file__).absolute().parent
 PATH_TO_TMP_ASSETS = PATH_TO_TESTS / "tmp"
@@ -27,13 +28,17 @@ def isolate_tests(monkeypatch):
 
     Also clear up any stored snippets.
     """
+    # reset connections
     connections = {}
     monkeypatch.setattr(connection.ConnectionManager, "connections", connections)
     monkeypatch.setattr(connection.ConnectionManager, "current", None)
 
+    # reset store
     store.store = store.SQLStore()
 
     yield
+
+    # close connections
     connection.ConnectionManager.close_all()
 
 
@@ -81,7 +86,10 @@ def ip_empty():
     c.HistoryAccessor.enabled = False
     ip_session = TestingShell(config=c)
 
-    ip_session.register_magics(SqlMagic)
+    sql_magic = SqlMagic(ip_session)
+    _current._set_sql_magic(sql_magic)
+
+    ip_session.register_magics(sql_magic)
     ip_session.register_magics(RenderMagic)
     ip_session.register_magics(SqlPlotMagic)
     ip_session.register_magics(SqlCmdMagic)

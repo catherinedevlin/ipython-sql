@@ -66,7 +66,7 @@ If you have autopandas set to true, the displaylimit option will not apply. You 
 ## Changing configuration
 
 ```{code-cell} ipython3
-%config SqlMagic.feedback = False
+%config SqlMagic.feedback = 0
 ```
 
 ## `displaycon`
@@ -198,31 +198,22 @@ To unset:
 
 ## `feedback`
 
-Default: `True`
-
-Print number of rows affected by DML.
-
-```{code-cell} ipython3
-%config SqlMagic.feedback = True
+```{versionchanged} 0.10
+`feedback` takes values `0`, `1`, and `2` instead of `True`/`False`
 ```
 
-```{code-cell} ipython3
-%%sql
-CREATE TABLE my_points (x, y);
-INSERT INTO my_points VALUES (0, 0);
-INSERT INTO my_points VALUES (1, 1);
-```
+Default: `1`
 
-```{code-cell} ipython3
-%config SqlMagic.feedback = False
-```
+Control the quantity of messages displayed when performing certain operations. Each
+value enables the ones from previous values plus new ones:
 
-```{code-cell} ipython3
-%%sql
-CREATE TABLE more_points (x, y);
-INSERT INTO more_points VALUES (0, 0);
-INSERT INTO more_points VALUES (1, 1);
-```
+- `0`: Minimal feedback
+- `1`: Normal feedback (default)
+  - Connection name when switching
+  - Connection name when running a query
+  - Number of rows afffected by DML (e.g., `INSERT`, `UPDATE`, `DELETE`)
+- `2`: All feedback
+  - Footer to distinguish pandas/polars data frames from JupySQL's result sets
 
 ## `style`
 
@@ -244,6 +235,9 @@ print(res)
 
 ## `named_parameters`
 
+```{versionadded} 0.9
+```
+
 Default: `False`
 
 If True, it enables named parameters `:variable`. Learn more in the [tutorial.](../user-guide/template.md)
@@ -263,7 +257,7 @@ FROM languages
 WHERE rating > :rating
 ```
 
-## Loading configuration from a `pyproject.toml` file
+## Loading from `pyproject.toml`
 
 ```{versionadded} 0.9
 ```

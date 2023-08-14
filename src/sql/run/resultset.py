@@ -12,6 +12,7 @@ from sql.column_guesser import ColumnGuesserMixin
 from sql.run.csv import CSVWriter, CSVResultDescriptor
 from sql.telemetry import telemetry
 from sql.run.table import CustomPrettyTable
+from sql._current import _config_feedback_all
 
 
 class ResultSet(ColumnGuesserMixin):
@@ -146,15 +147,16 @@ class ResultSet(ColumnGuesserMixin):
 
         result = self._pretty_table.get_html_string()
 
-        HTML = (
-            "%s\n<span style='font-style:italic;font-size:11px'>"
-            "<code>ResultSet</code> : to convert to pandas, call <a href="
-            "'https://jupysql.ploomber.io/en/latest/integrations/pandas.html'>"
-            "<code>.DataFrame()</code></a> or to polars, call <a href="
-            "'https://jupysql.ploomber.io/en/latest/integrations/polars.html'>"
-            "<code>.PolarsDataFrame()</code></a></span><br>"
-        )
-        result = HTML % (result)
+        if _config_feedback_all():
+            HTML = (
+                "%s\n<span style='font-style:italic;font-size:11px'>"
+                "<code>ResultSet</code>: to convert to pandas, call <a href="
+                "'https://jupysql.ploomber.io/en/latest/integrations/pandas.html'>"
+                "<code>.DataFrame()</code></a> or to polars, call <a href="
+                "'https://jupysql.ploomber.io/en/latest/integrations/polars.html'>"
+                "<code>.PolarsDataFrame()</code></a></span><br>"
+            )
+            result = HTML % (result)
 
         # to create clickable links
         result = html.unescape(result)
@@ -163,13 +165,11 @@ class ResultSet(ColumnGuesserMixin):
         if self._config.displaylimit != 0 and not self._done_fetching():
             HTML = (
                 '%s\n<span style="font-style:italic;text-align:center;">'
-                "Truncated to displaylimit of %d</span>"
-                "<br>"
-                '<span style="font-style:italic;text-align:center;">'
-                "If you want to see more, please visit "
-                '<a href="https://jupysql.ploomber.io/en/latest/api/configuration.html#displaylimit">displaylimit</a>'  # noqa: E501
-                " configuration</span>"
+                'Truncated to <a href="https://jupysql.ploomber.io/en/'
+                'latest/api/configuration.html#displaylimit">'
+                "displaylimit</a> of %d.</span>"
             )
+
             result = HTML % (result, self._config.displaylimit)
         return result
 

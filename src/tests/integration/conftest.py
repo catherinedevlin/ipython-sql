@@ -28,9 +28,12 @@ def isolate_tests(monkeypatch):
 
     Also clear up any stored snippets.
     """
+    # reset connections
     connections = {}
     monkeypatch.setattr(connection.ConnectionManager, "connections", connections)
     monkeypatch.setattr(connection.ConnectionManager, "current", None)
+
+    # reset store
     store.store = store.SQLStore()
 
     yield

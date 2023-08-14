@@ -1,12 +1,7 @@
-from sql.magic import RenderMagic, SqlMagic, load_ipython_extension
-from sql.connection import PLOOMBER_DOCS_LINK_STR
-
-__version__ = "0.9.2dev"
+from sql.magic import load_ipython_extension
 
 
-__all__ = [
-    "RenderMagic",
-    "SqlMagic",
-    "load_ipython_extension",
-    "PLOOMBER_DOCS_LINK_STR",
-]
+__version__ = "0.10.0dev"
+
+
+__all__ = ["load_ipython_extension"]

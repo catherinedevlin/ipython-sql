@@ -40,7 +40,11 @@ def run_statements(conn, sql, config, parameters=None):
         else:
             result = conn.raw_execute(statement, parameters=parameters)
 
-            if config.feedback and hasattr(result, "rowcount") and result.rowcount > 0:
+            if (
+                config.feedback >= 1
+                and hasattr(result, "rowcount")
+                and result.rowcount > 0
+            ):
                 display.message_success(f"{result.rowcount} rows affected.")
 
     result_set = ResultSet(result, config, statement, conn)

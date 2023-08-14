@@ -8,7 +8,7 @@ import re
 import sys
 import tempfile
 from textwrap import dedent
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 import polars as pl
 import pandas as pd
@@ -27,6 +27,11 @@ from ploomber_core.exceptions import COMMUNITY
 import psutil
 
 COMMUNITY = COMMUNITY.strip()
+
+DISPLAYLIMIT_LINK = (
+    '<a href="https://jupysql.ploomber.io/en/'
+    'latest/api/configuration.html#displaylimit">displaylimit</a>'
+)
 
 
 def test_memory_db(ip):
@@ -576,7 +581,7 @@ def test_displaylimit_default(ip):
 
     out = ip.run_cell("%sql SELECT * FROM number_table;").result
 
-    assert "Truncated to displaylimit of 10" in out._repr_html_()
+    assert f"Truncated to {DISPLAYLIMIT_LINK} of 10" in out._repr_html_()
 
 
 def test_displaylimit(ip):
@@ -599,7 +604,7 @@ def test_displaylimit_enabled_truncated_length(ip, config_value, expected_length
 
     ip.run_cell(f"%config SqlMagic.displaylimit = {config_value}")
     out = runsql(ip, "SELECT * FROM number_table;")
-    assert f"Truncated to displaylimit of {expected_length}" in out._repr_html_()
+    assert f"Truncated to {DISPLAYLIMIT_LINK} of {expected_length}" in out._repr_html_()
 
 
 @pytest.mark.parametrize("config_value", [(None), (0)])
@@ -667,7 +672,7 @@ def test_displaylimit_with_conditional_clause(
         out = runsql(ip, query_clause)
 
     if expected_truncated_length:
-        assert "Truncated to displaylimit of 10" in out._repr_html_()
+        assert f"Truncated to {DISPLAYLIMIT_LINK} of 10" in out._repr_html_()
 
 
 def test_column_local_vars(ip):
@@ -1733,3 +1738,35 @@ select * from author_subset
     assert "Cannot use --with with CTEs, remove --with and re-run the cell" in str(
         excinfo.value
     )
+
+
+def test_error_if_using_persist_with_dbapi_connection(ip_dbapi):
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    ip_dbapi.push({"df": df})
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_dbapi.run_cell("%sql --persist df")
+
+    message = (
+        "--persist/--persist-replace is not available for "
+        "DBAPI connections (only available for SQLAlchemy connections)"
+    )
+    assert message in str(excinfo.value)
+
+
+@pytest.mark.parametrize("cell", ["%sql --persist df", "%sql --persist-replace df"])
+def test_persist_uses_error_handling_method(ip, monkeypatch, cell):
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    ip.push({"df": df})
+
+    conn = ConnectionManager.current
+    execute_with_error_handling_mock = Mock(wraps=conn._execute_with_error_handling)
+    monkeypatch.setattr(
+        conn, "_execute_with_error_handling", execute_with_error_handling_mock
+    )
+
+    ip.run_cell(cell)
+
+    # ensure this got called because this function handles several sqlalchemy edge
+    # cases
+    execute_with_error_handling_mock.assert_called_once()

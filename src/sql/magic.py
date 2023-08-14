@@ -41,6 +41,7 @@ from sql import query_util, util
 from sql.util import get_suggestions_message, pretty_print
 from sql.exceptions import RuntimeError
 from sql.error_message import detail
+from sql._current import _set_sql_magic
 
 
 from ploomber_core.dependencies import check_installed
@@ -95,15 +96,17 @@ class SqlMagic(Magics, Configurable):
 
     Provides the %%sql magic."""
 
-    displaycon = Bool(True, config=True, help="Show connection string after execution")
+    displaycon = Bool(
+        default_value=True, config=True, help="Show connection string after execution"
+    )
     autolimit = Int(
-        0,
+        default_value=0,
         config=True,
         allow_none=True,
         help="Automatically limit the size of the returned result sets",
     )
     style = Unicode(
-        "DEFAULT",
+        default_value="DEFAULT",
         config=True,
         help=(
             "Set the table printing style to any of prettytable's "
@@ -112,12 +115,12 @@ class SqlMagic(Magics, Configurable):
         ),
     )
     short_errors = Bool(
-        True,
+        default_value=True,
         config=True,
         help="Don't display the full traceback on SQL Programming Error",
     )
     displaylimit = Int(
-        10,
+        default_value=10,
         config=True,
         allow_none=True,
         help=(
@@ -126,17 +129,17 @@ class SqlMagic(Magics, Configurable):
         ),
     )
     autopandas = Bool(
-        False,
+        default_value=False,
         config=True,
         help="Return Pandas DataFrames instead of regular result sets",
     )
     autopolars = Bool(
-        False,
+        default_value=False,
         config=True,
         help="Return Polars DataFrames instead of regular result sets",
     )
     polars_dataframe_kwargs = Dict(
-        {},
+        default_value={},
         config=True,
         help=(
             "Polars DataFrame constructor keyword arguments"
@@ -144,21 +147,30 @@ class SqlMagic(Magics, Configurable):
         ),
     )
     column_local_vars = Bool(
-        False, config=True, help="Return data into local variables from column names"
+        default_value=False,
+        config=True,
+        help="Return data into local variables from column names",
     )
-    feedback = Bool(True, config=True, help="Print number of rows affected by DML")
+
+    feedback = Int(
+        default_value=1,
+        config=True,
+        help="Verbosity level. 0=minimal, 1=normal, 2=all",
+    )
+
     dsn_filename = Unicode(
-        "odbc.ini",
+        default_value="odbc.ini",
         config=True,
         help="Path to DSN file. "
         "When the first argument is of the form [section], "
         "a sqlalchemy connection string is formed from the "
         "matching section in the DSN file.",
     )
-    autocommit = Bool(True, config=True, help="Set autocommit mode")
+
+    autocommit = Bool(default_value=True, config=True, help="Set autocommit mode")
 
     named_parameters = Bool(
-        False,
+        default_value=False,
         config=True,
         help=(
             "Allow named parameters in queries "
@@ -647,17 +659,9 @@ class SqlMagic(Magics, Configurable):
         else:
             if_exists = "fail"
 
-        try:
-            frame.to_sql(
-                table_name, conn.connection_sqlalchemy, if_exists=if_exists, index=index
-            )
-        except ValueError:
-            raise exceptions.ValueError(
-                f"""Table {table_name!r} already exists. Consider using \
---persist-replace to drop the table before persisting the data frame"""
-            )
-
-        display.message_success(f"Success! Persisted {table_name} to the database.")
+        conn.to_table(
+            table_name=table_name, data_frame=frame, if_exists=if_exists, index=index
+        )
 
 
 def set_configs(ip, file_path):
@@ -694,14 +698,11 @@ def load_SqlMagic_configs(ip):
 
 
 def load_ipython_extension(ip):
-    """Load the extension in IPython."""
+    """Load the magics, this function is executed when the user runs: %load_ext sql"""
+    sql_magic = SqlMagic(ip)
+    _set_sql_magic(sql_magic)
 
-    # this fails in both Firefox and Chrome for OS X.
-    # I get the error: TypeError: IPython.CodeCell.config_defaults is undefined
-
-    # js = "IPython.CodeCell.config_defaults.highlight_modes['magic_sql'] = {'reg':[/^%%sql/]};" # noqa
-    # display_javascript(js, raw=True)
-    ip.register_magics(SqlMagic)
+    ip.register_magics(sql_magic)
     ip.register_magics(RenderMagic)
     ip.register_magics(SqlPlotMagic)
     ip.register_magics(SqlCmdMagic)
