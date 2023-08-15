@@ -96,6 +96,13 @@ def test_resultset_repr_html_when_feedback_is_2(result_set, ip_empty):
         "<code>.PolarsDataFrame()</code></a></span><br>"
     ) in html_
 
+    plain = (
+        "ResultSet: to convert to pandas, call .DataFrame() "
+        "or to polars, call .PolarsDataFrame()"
+    )
+    assert plain in str(result_set)
+    assert plain in repr(result_set)
+
 
 @pytest.mark.parametrize("feedback", [0, 1])
 def test_resultset_repr_html_with_reduced_feedback(result_set, ip_empty, feedback):
@@ -508,17 +515,15 @@ def test_display_limit_respected_even_when_feched_all(results):
 @pytest.mark.parametrize(
     "displaylimit, message",
     [
-        (1, "Truncated to $HTML_LINK of 1."),
-        (2, "Truncated to $HTML_LINK of 2."),
+        (1, "Truncated to $DISPLAYLIMIT of 1."),
+        (2, "Truncated to $DISPLAYLIMIT of 2."),
     ],
 )
-def test_displaylimit_message(displaylimit, message, results):
+def test_displaylimit_truncated_footer(displaylimit, message, results):
     HTML_LINK = (
         '<a href="https://jupysql.ploomber.io/en/'
         'latest/api/configuration.html#displaylimit">displaylimit</a>'
     )
-
-    message = string.Template(message).substitute(HTML_LINK=HTML_LINK)
 
     mock = Mock()
     mock.displaylimit = displaylimit
@@ -526,7 +531,12 @@ def test_displaylimit_message(displaylimit, message, results):
 
     rs = ResultSet(results, mock, statement=None, conn=Mock())
 
-    assert message in rs._repr_html_()
+    message_html = string.Template(message).substitute(DISPLAYLIMIT=HTML_LINK)
+    assert message_html in rs._repr_html_()
+
+    message_plain = string.Template(message).substitute(DISPLAYLIMIT="displaylimit")
+    assert message_plain in repr(rs)
+    assert message_plain in str(rs)
 
 
 @pytest.mark.parametrize("displaylimit", [0, 1000])
@@ -538,6 +548,8 @@ def test_no_displaylimit_message(results, displaylimit):
     rs = ResultSet(results, mock, statement=None, conn=Mock())
 
     assert "Truncated to displaylimit" not in rs._repr_html_()
+    assert "Truncated to displaylimit" not in repr(rs)
+    assert "Truncated to displaylimit" not in str(rs)
 
 
 def test_refreshes_sqlaproxy_for_sqlalchemy_duckdb():

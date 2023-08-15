@@ -2,7 +2,7 @@ import re
 import operator
 from functools import reduce
 from io import StringIO
-import html
+from html import unescape
 from collections.abc import Iterable
 
 
@@ -142,35 +142,48 @@ class ResultSet(ColumnGuesserMixin):
 
     def _repr_html_(self):
         self.fetch_for_repr_if_needed()
-
-        _cell_with_spaces_pattern = re.compile(r"(<td>)( {2,})")
-
         result = self._pretty_table.get_html_string()
+        return self._add_footer(result, html=True)
 
+    def _add_footer(self, result, *, html):
         if _config_feedback_all():
-            HTML = (
-                "%s\n<span style='font-style:italic;font-size:11px'>"
-                "<code>ResultSet</code>: to convert to pandas, call <a href="
-                "'https://jupysql.ploomber.io/en/latest/integrations/pandas.html'>"
-                "<code>.DataFrame()</code></a> or to polars, call <a href="
-                "'https://jupysql.ploomber.io/en/latest/integrations/polars.html'>"
-                "<code>.PolarsDataFrame()</code></a></span><br>"
+            data_frame_footer = (
+                (
+                    "\n<span style='font-style:italic;font-size:11px'>"
+                    "<code>ResultSet</code>: to convert to pandas, call <a href="
+                    "'https://jupysql.ploomber.io/en/latest/integrations/pandas.html'>"
+                    "<code>.DataFrame()</code></a> or to polars, call <a href="
+                    "'https://jupysql.ploomber.io/en/latest/integrations/polars.html'>"
+                    "<code>.PolarsDataFrame()</code></a></span><br>"
+                )
+                if html
+                else (
+                    "\nResultSet: to convert to pandas, call .DataFrame() "
+                    "or to polars, call .PolarsDataFrame()"
+                )
             )
-            result = HTML % (result)
+
+            result = f"{result}{data_frame_footer}"
 
         # to create clickable links
-        result = html.unescape(result)
+        result = unescape(result)
+        _cell_with_spaces_pattern = re.compile(r"(<td>)( {2,})")
         result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
 
         if self._config.displaylimit != 0 and not self._done_fetching():
-            HTML = (
-                '%s\n<span style="font-style:italic;text-align:center;">'
-                'Truncated to <a href="https://jupysql.ploomber.io/en/'
-                'latest/api/configuration.html#displaylimit">'
-                "displaylimit</a> of %d.</span>"
+            displaylimit_footer = (
+                (
+                    '\n<span style="font-style:italic;text-align:center;">'
+                    'Truncated to <a href="https://jupysql.ploomber.io/en/'
+                    'latest/api/configuration.html#displaylimit">'
+                    f"displaylimit</a> of {self._config.displaylimit}.</span>"
+                )
+                if html
+                else f"\nTruncated to displaylimit of {self._config.displaylimit}."
             )
 
-            result = HTML % (result, self._config.displaylimit)
+            result = f"{result}{displaylimit_footer}"
+
         return result
 
     def __len__(self):
@@ -186,7 +199,8 @@ class ResultSet(ColumnGuesserMixin):
 
     def __str__(self):
         self.fetch_for_repr_if_needed()
-        return str(self._pretty_table)
+        result = str(self._pretty_table)
+        return self._add_footer(result, html=False)
 
     def __repr__(self) -> str:
         return str(self)
