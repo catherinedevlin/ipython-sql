@@ -2,6 +2,7 @@
 
 ## 0.10.0dev
 
+* [Feature] Add `%sqlcmd profile` support for DBAPI connections (#743)
 * [Fix] Perform `ROLLBACK` when SQLAlchemy raises `PendingRollbackError`
 * [Fix] Perform `ROLLBACK` when `psycopg2` raises `current transaction is aborted, commands ignored until end of transaction block`
 * [Fix] Perform `ROLLBACK` when `psycopg2` raises `server closed the connection unexpectedly` (#677)

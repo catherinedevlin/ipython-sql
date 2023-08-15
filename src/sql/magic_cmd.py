@@ -42,7 +42,6 @@ class SqlCmdMagic(Magics, Configurable):
         """
 
         # We rely on SQLAlchemy when inspecting tables
-        util.support_only_sql_alchemy_connection("%sqlcmd")
 
         AVAILABLE_SQLCMD_COMMANDS = [
             "tables",
@@ -65,6 +64,8 @@ class SqlCmdMagic(Magics, Configurable):
             command, others = split[0].strip(), split[1:]
 
             if command in AVAILABLE_SQLCMD_COMMANDS:
+                if command not in ["profile"]:
+                    util.support_only_sql_alchemy_connection("%sqlcmd")
                 return self.execute(command, others)
             else:
                 raise exceptions.UsageError(

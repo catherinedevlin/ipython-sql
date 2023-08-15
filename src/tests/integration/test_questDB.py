@@ -561,7 +561,6 @@ NOT_SUPPORTED_SUFFIX = (
 @pytest.mark.parametrize(
     "query",
     [
-        ("%sqlcmd profile --table penguins.csv"),
         ("%sqlcmd tables"),
         ("%sqlcmd tables --schema some_schema"),
         ("%sqlcmd columns --table penguins.csv"),

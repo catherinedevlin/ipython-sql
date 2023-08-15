@@ -9,6 +9,8 @@ from sql.connection import SQLAlchemyConnection
 from sql.store import store
 from sql.inspect import _is_numeric
 from sql.display import Table, Message
+import duckdb
+import sqlite3
 
 
 VALID_COMMANDS_MESSAGE = (
@@ -61,6 +63,21 @@ WHERE symbol == 'b'
 """
     )
     yield ip
+
+
+@pytest.fixture
+def ip_with_connections(ip_empty):
+    for key in list(store):
+        del store[key]
+    ip_empty.run_cell("%sql duckdb:// --alias duckdb_sqlalchemy")
+    ip_empty.run_cell("%sql sqlite:// --alias sqlite_sqlalchemy")
+    duckdb_dbapi = duckdb.connect("")
+    sqlite_dbapi = sqlite3.connect("")
+
+    ip_empty.push({"duckdb_dbapi": duckdb_dbapi})
+    ip_empty.push({"sqlite_dbapi": sqlite_dbapi})
+
+    yield ip_empty
 
 
 @pytest.fixture
@@ -170,10 +187,18 @@ ATTACH DATABASE 'my.db' AS some_schema
     assert "some_number" in out
 
 
-def test_table_profile(ip, tmp_empty):
-    ip.run_cell(
+@pytest.mark.parametrize(
+    "conn",
+    [
+        ("sqlite_sqlalchemy"),
+        ("sqlite_dbapi"),
+    ],
+)
+def test_table_profile(ip_with_connections, tmp_empty, conn):
+    ip_with_connections.run_cell(f"%sql {conn}")
+    ip_with_connections.run_cell(
         """
-    %%sql sqlite://
+    %%sql
     CREATE TABLE numbers (rating float, price float, number int, word varchar(50));
     INSERT INTO numbers VALUES (14.44, 2.48, 82, 'a');
     INSERT INTO numbers VALUES (13.13, 1.50, 93, 'b');
@@ -196,7 +221,7 @@ def test_table_profile(ip, tmp_empty):
         "top": [math.nan, math.nan, math.nan, "a"],
     }
 
-    out = ip.run_cell("%sqlcmd profile -t numbers").result
+    out = ip_with_connections.run_cell("%sqlcmd profile -t numbers").result
 
     stats_table = out._table
 
@@ -219,10 +244,18 @@ def test_table_profile(ip, tmp_empty):
     assert "position: sticky;" in out._table_html
 
 
-def test_table_profile_with_stdev(ip, tmp_empty):
-    ip.run_cell(
+@pytest.mark.parametrize(
+    "conn",
+    [
+        ("duckdb_sqlalchemy"),
+        ("duckdb_dbapi"),
+    ],
+)
+def test_table_profile_with_stdev(ip_with_connections, tmp_empty, conn):
+    ip_with_connections.run_cell(f"%sql {conn}")
+    ip_with_connections.run_cell(
         """
-    %%sql duckdb://
+    %%sql
     CREATE TABLE numbers (rating float, price float, number int, word varchar(50));
     INSERT INTO numbers VALUES (14.44, 2.48, 82, 'a');
     INSERT INTO numbers VALUES (13.13, 1.50, 93, 'b');
@@ -249,7 +282,7 @@ def test_table_profile_with_stdev(ip, tmp_empty):
         "75%": ["12.9000", "0.4100", "90.0000", math.nan],
     }
 
-    out = ip.run_cell("%sqlcmd profile -t numbers").result
+    out = ip_with_connections.run_cell("%sqlcmd profile -t numbers").result
 
     stats_table = out._table
 
@@ -319,16 +352,69 @@ def test_table_schema_profile(ip, tmp_empty):
             assert cell == str(expected[profile_metric][0])
 
 
-def test_table_profile_warnings_styles(ip, tmp_empty):
-    ip.run_cell(
+def test_sqlcmd_profile_with_schema_argument_and_dbapi(ip_empty, tmp_empty):
+    sqlite_dbapi_testdb_conn = sqlite3.connect("test.db")
+    ip_empty.push({"sqlite_dbapi_testdb_conn": sqlite_dbapi_testdb_conn})
+
+    ip_empty.run_cell(
+        """%%sql sqlite_dbapi_testdb_conn
+CREATE TABLE sample_table (n FLOAT);
+INSERT INTO sample_table VALUES (11);
+INSERT INTO sample_table VALUES (22);
+INSERT INTO sample_table VALUES (33);
+"""
+    )
+
+    ip_empty.run_cell(
         """
-    %%sql sqlite://
+    %%sql sqlite_dbapi_testdb_conn
+    ATTACH DATABASE 'test.db' AS test_schema;
+    """
+    )
+
+    expected = {
+        "count": ["3"],
+        "mean": ["22.0000"],
+        "min": ["11.0"],
+        "max": ["33.0"],
+        "std": ["11.0000"],
+        "unique": ["3"],
+        "freq": [math.nan],
+        "top": [math.nan],
+    }
+
+    out = ip_empty.run_cell(
+        "%sqlcmd profile --table sample_table --schema test_schema"
+    ).result
+
+    stats_table = out._table
+
+    for row in stats_table:
+        profile_metric = _get_row_string(row, " ")
+
+        cell = row.get_string(fields=["n"], border=False, header=False).strip()
+
+        if profile_metric in expected:
+            assert cell == str(expected[profile_metric][0])
+
+
+@pytest.mark.parametrize(
+    "conn",
+    [
+        ("sqlite_sqlalchemy"),
+        ("sqlite_dbapi"),
+    ],
+)
+def test_table_profile_warnings_styles(ip_with_connections, tmp_empty, conn):
+    ip_with_connections.run_cell(
+        f"""
+    %%sql {conn}
     CREATE TABLE numbers (rating float,price varchar(50),number int,word varchar(50));
     INSERT INTO numbers VALUES (14.44, '2.48', 82, 'a');
     INSERT INTO numbers VALUES (13.13, '1.50', 93, 'b');
     """
     )
-    out = ip.run_cell("%sqlcmd profile -t numbers").result
+    out = ip_with_connections.run_cell("%sqlcmd profile -t numbers").result
     stats_table_html = out._table_html
     assert "Columns <code>price</code> have a datatype mismatch" in stats_table_html
     assert "td:nth-child(3)" in stats_table_html
@@ -346,17 +432,24 @@ def test_profile_is_numeric():
     assert _is_numeric(math.nan) is True
 
 
-def test_table_profile_is_numeric(ip, tmp_empty):
-    ip.run_cell(
-        """
-        %%sql sqlite://
+@pytest.mark.parametrize(
+    "conn",
+    [
+        ("sqlite_sqlalchemy"),
+        ("sqlite_dbapi"),
+    ],
+)
+def test_table_profile_is_numeric(ip_with_connections, tmp_empty, conn):
+    ip_with_connections.run_cell(
+        f"""
+        %%sql {conn}
         CREATE TABLE people (name varchar(50),age varchar(50),number int,
             country varchar(50),gender_1 varchar(50), gender_2 varchar(50));
         INSERT INTO people VALUES ('joe', '48', 82, 'usa', '0', 'male');
         INSERT INTO people VALUES ('paula', '50', 93, 'uk', '1', 'female');
         """
     )
-    out = ip.run_cell("%sqlcmd profile -t people").result
+    out = ip_with_connections.run_cell("%sqlcmd profile -t people").result
     stats_table_html = out._table_html
     assert "td:nth-child(3)" in stats_table_html
     assert "td:nth-child(6)" in stats_table_html
@@ -368,10 +461,17 @@ def test_table_profile_is_numeric(ip, tmp_empty):
     )
 
 
-def test_table_profile_store(ip, tmp_empty):
-    ip.run_cell(
-        """
-    %%sql sqlite://
+@pytest.mark.parametrize(
+    "conn, report_fname",
+    [
+        ("sqlite_sqlalchemy", "test_report.html"),
+        ("sqlite_dbapi", "test_report_dbapi.html"),
+    ],
+)
+def test_table_profile_store(ip_with_connections, tmp_empty, conn, report_fname):
+    ip_with_connections.run_cell(
+        f"""
+    %%sql {conn}
     CREATE TABLE test_store (rating, price, number, symbol);
     INSERT INTO test_store VALUES (14.44, 2.48, 82, 'a');
     INSERT INTO test_store VALUES (13.13, 1.50, 93, 'b');
@@ -380,9 +480,11 @@ def test_table_profile_store(ip, tmp_empty):
     """
     )
 
-    ip.run_cell("%sqlcmd profile -t test_store --output test_report.html")
+    ip_with_connections.run_cell(
+        f"%sqlcmd profile -t test_store --output {report_fname}"
+    )
 
-    report = Path("test_report.html")
+    report = Path(report_fname)
     assert report.is_file()
 
 
