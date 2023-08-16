@@ -13,6 +13,7 @@
 * [Fix] Current connection and switching connections message only displayed when `feedback>=1`
 * [Fix] `--persist/--persist-replace` perform `ROLLBACK` automatically when needed
 * [Fix] `ResultSet` footer (when `displaylimit` truncates results and when showing how to convert to a data frame) now appears in the `ResultSet` plain text representation (#682)
+* [Doc] Fixes documentation inaccuracy that said `:variable` was deprecated (we brought it back in `0.9.0`)
 
 ## 0.9.1 (2023-08-10)
 

@@ -24,7 +24,7 @@ JupySQL uses Jinja templates for enabling SQL query parametrization. Queries are
 ```
 
 ```{note}
-The legacy formats of parametrization, namely `{variable}`, `:variable`, and `$variable` of `ipython-sql` have been deprecated in the current and future versions, to prevent SQL parsing issues.
+The legacy formats of parametrization, namely `{variable}`, and `$variable` from `ipython-sql` have been deprecated. `:variable` is turned off by default but can be enabled with [`%config SqlMagic.named_parameters`](named-parameters) (requires `jupysql>=0.9`).
 ```
 
 
@@ -210,6 +210,7 @@ Let's verify data in one of the tables:
 %sql SELECT * FROM Torgersen;
 ```
 
+(named-parameters)=
 ## Parametrization via `:variable`
 
 ```{versionadded} 0.9
