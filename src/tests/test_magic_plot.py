@@ -104,14 +104,14 @@ def test_validate_arguments(tmp_empty, ip, cell, error_message):
                 "%sqlplot histogram --table penguins.csv --column body_mass_g "
                 "--breaks 3000 4000 5000 --bins 50"
             ),
-            "Both bins and breaks are specified. Must specify only one of them.",
+            "'bins', and 'breaks' are specified. You can only specify one of them.",
         ],
         [
             (
                 "%sqlplot histogram --table penguins.csv --bins 50 --column body_mass_g"
                 " --breaks 3000 4000 5000"
             ),
-            "Both bins and breaks are specified. Must specify only one of them.",
+            "'bins', and 'breaks' are specified. You can only specify one of them.",
         ],
         [
             (
@@ -129,6 +129,74 @@ def test_validate_breaks_arguments(load_penguin, ip, cell, error_message):
     assert error_message in str(excinfo.value)
 
 
+@pytest.mark.parametrize(
+    "cell, error_message",
+    [
+        [
+            (
+                "%sqlplot histogram --table penguins.csv --column body_mass_g "
+                "--bins 50 --binwidth 1000"
+            ),
+            "'bins', and 'binwidth' are specified. You can only specify one of them.",
+        ],
+        [
+            (
+                "%sqlplot histogram --table penguins.csv --column body_mass_g "
+                "-W 50 --breaks 3000 4000 5000"
+            ),
+            "'binwidth', and 'breaks' are specified. You can only specify one of them.",
+        ],
+        [
+            (
+                "%sqlplot histogram --table penguins.csv --column body_mass_g "
+                "--binwidth 0"
+            ),
+            (
+                "Binwidth given : 0.0. When using binwidth, "
+                "please ensure to pass a positive value."
+            ),
+        ],
+        [
+            (
+                "%sqlplot histogram --table penguins.csv --column body_mass_g "
+                "--binwidth -10"
+            ),
+            (
+                "Binwidth given : -10.0. When using binwidth, "
+                "please ensure to pass a positive value."
+            ),
+        ],
+    ],
+)
+def test_validate_binwidth_arguments(load_penguin, ip, cell, error_message):
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(cell)
+
+    assert error_message in str(excinfo.value)
+    assert excinfo.value.error_type == "ValueError"
+
+
+def test_validate_binwidth_text_argument(tmp_empty, ip):
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(
+            "%sqlplot histogram --table penguins.csv "
+            "--column body_mass_g --binwidth test"
+        )
+
+    assert "argument -W/--binwidth: invalid float value: 'test'" == str(excinfo.value)
+
+
+def test_binwidth_larger_than_range(load_penguin, ip, capsys):
+    ip.run_cell(
+        "%sqlplot histogram --table penguins.csv --column body_mass_g --binwidth 3601"
+    )
+    out, _ = capsys.readouterr()
+    assert (
+        "Specified binwidth 3601.0 is larger than the range 3600. "
+        "Please choose a smaller binwidth."
+    ) in out
+
+
 @_cleanup_cm()
 @pytest.mark.parametrize(
     "cell",
@@ -136,6 +204,7 @@ def test_validate_breaks_arguments(load_penguin, ip, cell, error_message):
         "%sqlplot histogram --table data.csv --column x",
         "%sqlplot hist --table data.csv --column x",
         "%sqlplot histogram --table data.csv --column x --bins 10",
+        "%sqlplot histogram --table data.csv --column x --binwidth 1",
         pytest.param(
             "%sqlplot histogram --table nas.csv --column x",
             marks=pytest.mark.xfail(reason="Not implemented yet"),
@@ -195,6 +264,7 @@ def test_validate_breaks_arguments(load_penguin, ip, cell, error_message):
         "histogram",
         "hist",
         "histogram-bins",
+        "histogram-binwidth",
         "histogram-nas",
         "boxplot",
         "boxplot-with",
@@ -488,6 +558,23 @@ def test_hist_breaks(load_penguin, ip):
     ip.run_cell(
         "%sqlplot histogram --table penguins.csv --column body_mass_g "
         "--breaks 3000 3100 3300 3700 4000 4600"
+    )
+
+
+@pytest.mark.parametrize(
+    "binwidth",
+    [
+        "--binwidth",
+        "-W",
+    ],
+)
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["hist_binwidth"], extensions=["png"], remove_text=True
+)
+def test_hist_binwidth(load_penguin, ip, binwidth):
+    ip.run_cell(
+        f"%sqlplot histogram --table penguins.csv --column body_mass_g {binwidth} 150"
     )
 
 

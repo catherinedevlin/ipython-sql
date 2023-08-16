@@ -496,6 +496,72 @@ def test_histogram_with_extreme_breaks(penguins_data):
     )
 
 
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_with_binwidth"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_with_binwidth(penguins_data):
+    (
+        ggplot(table=penguins_data, mapping=aes(x="body_mass_g"))
+        + geom_histogram(binwidth=150)
+    )
+
+
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_stacked_with_binwidth"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_stacked_with_binwidth(penguins_data):
+    (
+        ggplot(table=penguins_data, mapping=aes(x="body_mass_g"))
+        + geom_histogram(binwidth=150, fill="species")
+    )
+
+
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_binwidth_with_multiple_cols"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_binwidth_with_multiple_cols(penguins_data):
+    (
+        ggplot(table=penguins_data, mapping=aes(x=["bill_length_mm", "bill_depth_mm"]))
+        + geom_histogram(binwidth=1.5)
+    )
+
+
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_binwidth_facet_wrap"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_binwidth_facet_wrap(penguins_data):
+    (
+        ggplot(table=penguins_data, mapping=aes(x=["body_mass_g"]))
+        + geom_histogram(binwidth=150)
+        + facet_wrap("species")
+    )
+
+
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_with_narrow_binwidth"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_with_narrow_binwidth(penguins_data):
+    (
+        ggplot(table=penguins_data, mapping=aes(x="body_mass_g"))
+        + geom_histogram(binwidth=10)
+    )
+
+
 @pytest.mark.parametrize(
     "x, expected_error, expected_error_message",
     [
@@ -555,7 +621,7 @@ def test_histogram_no_bins_error(diamonds_data):
         (
             40,
             [3000.0, 4000.0, 5000.0],
-            "Both bins and breaks are specified. Must specify only one of them.",
+            "'bins', and 'breaks' are specified. You can only specify one of them.",
         ),
     ],
 )
@@ -564,6 +630,58 @@ def test_hist_breaks_error(penguins_data, bins, breaks, error_message):
         (
             ggplot(penguins_data, aes(x="body_mass_g"))
             + geom_histogram(bins=bins, breaks=breaks)
+        )
+
+    assert error.value.error_type == "ValueError"
+    assert error_message in str(error.value)
+
+
+@pytest.mark.parametrize(
+    "bins, breaks, binwidth, error_message",
+    [
+        (
+            None,
+            [1000, 2000, 3000],
+            150,
+            (
+                "'binwidth', and 'breaks' are specified. "
+                "You can only specify one of them."
+            ),
+        ),
+        (
+            50,
+            [1000, 2000, 3000],
+            150,
+            (
+                "'bins', 'binwidth', and 'breaks' are specified. "
+                "You can only specify one of them."
+            ),
+        ),
+        (
+            None,
+            None,
+            "invalid",
+            (
+                "Binwidth given : invalid. When using binwidth, "
+                "please ensure to pass a numeric value."
+            ),
+        ),
+        (
+            None,
+            None,
+            0,
+            (
+                "Binwidth given : 0. When using binwidth, "
+                "please ensure to pass a positive value."
+            ),
+        ),
+    ],
+)
+def test_hist_binwidth_error(penguins_data, bins, breaks, binwidth, error_message):
+    with pytest.raises(UsageError) as error:
+        (
+            ggplot(penguins_data, aes(x="body_mass_g"))
+            + geom_histogram(bins=bins, breaks=breaks, binwidth=binwidth)
         )
 
     assert error.value.error_type == "ValueError"

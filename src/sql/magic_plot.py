@@ -66,6 +66,12 @@ class SqlPlotMagic(Magics, Configurable):
         nargs="+",
         help="Histogram breaks",
     )
+    @argument(
+        "-W",
+        "--binwidth",
+        type=float,
+        help="Histogram binwidth",
+    )
     @modify_exceptions
     def execute(self, line="", cell="", local_ns=None):
         """
@@ -110,13 +116,13 @@ class SqlPlotMagic(Magics, Configurable):
                 conn=None,
             )
         elif cmd.args.line[0] in {"hist", "histogram"}:
-            # to avoid passing bins default value when breaks are given by a user
+            # to avoid passing bins default value when breaks or binwidth is specified
             bin_specified = " --bins " in line or " -b " in line
             breaks_specified = " --breaks " in line or " -B " in line
-            if breaks_specified and not bin_specified:
+            binwidth_specified = " --binwidth " in line or " -W " in line
+            bins = cmd.args.bins
+            if not bin_specified and any([breaks_specified, binwidth_specified]):
                 bins = None
-            else:
-                bins = cmd.args.bins
 
             return plot.histogram(
                 table=table,
@@ -125,6 +131,7 @@ class SqlPlotMagic(Magics, Configurable):
                 with_=with_,
                 conn=None,
                 breaks=cmd.args.breaks,
+                binwidth=cmd.args.binwidth,
             )
         elif cmd.args.line[0] in {"bar"}:
             return plot.bar(

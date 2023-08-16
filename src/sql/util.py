@@ -494,3 +494,27 @@ def get_default_configs(sql):
     del default_configs["parent"]
     del default_configs["config"]
     return default_configs
+
+
+def _are_numeric_values(*values):
+    return all([isinstance(value, (int, float)) for value in values])
+
+
+def validate_mutually_exclusive_args(arg_names, args):
+    """
+    Raises ValueError if a list of values from arg_names filtered by
+    args' boolean representations is longer than one.
+
+    Parameters
+    ----------
+    arg_names : list
+        args' names in string
+    args : list
+        args values
+    """
+    specified_args = [arg_name for arg_name, arg in zip(arg_names, args) if arg]
+    if len(specified_args) > 1:
+        raise exceptions.ValueError(
+            f"{pretty_print(specified_args)} are specified. "
+            "You can only specify one of them."
+        )

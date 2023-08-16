@@ -484,6 +484,62 @@ def test_histogram_breaks_over_max(ip_questdb, diamonds_data):
 
 
 @_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_with_binwidth"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_with_binwidth(ip_questdb, penguins_no_nulls_questdb):
+    (
+        ggplot(table="no_nulls", with_="no_nulls", mapping=aes(x="body_mass_g"))
+        + geom_histogram(binwidth=150)
+    )
+
+
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_stacked_with_binwidth"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_stacked_with_binwidth(ip_questdb, penguins_no_nulls_questdb):
+    (
+        ggplot(table="no_nulls", with_="no_nulls", mapping=aes(x="body_mass_g"))
+        + geom_histogram(binwidth=150, fill="species")
+    )
+
+
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_binwidth_with_multiple_cols"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_binwidth_with_multiple_cols(ip_questdb, penguins_no_nulls_questdb):
+    (
+        ggplot(
+            table="no_nulls",
+            with_="no_nulls",
+            mapping=aes(x=["bill_length_mm", "bill_depth_mm"]),
+        )
+        + geom_histogram(binwidth=1.5)
+    )
+
+
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_with_narrow_binwidth"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_with_narrow_binwidth(ip_questdb, penguins_no_nulls_questdb):
+    (
+        ggplot(table="no_nulls", with_="no_nulls", mapping=aes(x="body_mass_g"))
+        + geom_histogram(binwidth=10)
+    )
+
+
+@_cleanup_cm()
 @pytest.mark.parametrize(
     "x, expected_error, expected_error_message",
     [

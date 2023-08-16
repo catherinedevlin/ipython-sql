@@ -21,13 +21,19 @@ class geom_histogram(geom):
 
     breaks : list
         Divide bins with custom intervals
+
+    binwidth : int or float
+        Width of each bin
     """
 
-    def __init__(self, bins=None, fill=None, cmap=None, breaks=None, **kwargs):
+    def __init__(
+        self, bins=None, fill=None, cmap=None, breaks=None, binwidth=None, **kwargs
+    ):
         self.bins = bins
         self.fill = fill
         self.cmap = cmap
         self.breaks = breaks
+        self.binwidth = binwidth
         super().__init__(**kwargs)
 
     @telemetry.log_call("ggplot-histogram")
@@ -45,5 +51,6 @@ class geom_histogram(geom):
             facet=facet,
             ax=ax or gg.axs[0],
             breaks=self.breaks,
+            binwidth=self.binwidth,
         )
         return gg
