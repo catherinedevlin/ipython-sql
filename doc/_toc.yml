@@ -13,6 +13,7 @@ parts:
     - file: user-guide/tables-columns
     - file: user-guide/ggplot
     - file: user-guide/template
+    - file: user-guide/connection-file
     - file: user-guide/table_explorer
     - file: user-guide/data-profiling
 

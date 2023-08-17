@@ -161,6 +161,15 @@ def rough_dict_get(dct, sought, default=None):
     return default
 
 
+def _error_invalid_connection_info(e, connect_str):
+    err = UsageError(
+        "An error happened while creating the connection: "
+        f"{e}.{_suggest_fix(env_var=False, connect_str=connect_str)}"
+    )
+    err.modify_exception = True
+    return err
+
+
 class ConnectionManager:
     """A class to manage and create database connections"""
 
@@ -371,7 +380,7 @@ class ConnectionManager:
                 )
             ) from e
         except Exception as e:
-            raise cls._error_invalid_connection_info(e, connect_str) from e
+            raise _error_invalid_connection_info(e, connect_str) from e
 
         connection = SQLAlchemyConnection(engine, alias=alias, config=config)
         connection.connect_args = connect_args
@@ -864,16 +873,7 @@ class SQLAlchemyConnection(AbstractConnection):
             else:
                 print(e)
         except Exception as e:
-            raise cls._error_invalid_connection_info(e, connect_str) from e
-
-    @classmethod
-    def _error_invalid_connection_info(cls, e, connect_str):
-        err = UsageError(
-            "An error happened while creating the connection: "
-            f"{e}.{_suggest_fix(env_var=False, connect_str=connect_str)}"
-        )
-        err.modify_exception = True
-        return err
+            raise _error_invalid_connection_info(e, connect_str) from e
 
     def to_table(self, table_name, data_frame, if_exists, index):
         """Create a table from a pandas DataFrame"""

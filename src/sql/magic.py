@@ -422,6 +422,12 @@ class SqlMagic(Magics, Configurable):
 
         args = command.args
 
+        if args.section and args.alias:
+            raise exceptions.UsageError(
+                "Cannot use --section with --alias since the section name "
+                "is automatically set as the connection alias"
+            )
+
         is_cte = command.sql_original.strip().lower().startswith("with ")
 
         # only expand CTE if this is not a CTE itself
@@ -467,7 +473,7 @@ class SqlMagic(Magics, Configurable):
         connect_arg = command.connection
 
         if args.section:
-            connect_arg = sql.parse.connection_from_dsn_section(args.section, self)
+            connect_arg = sql.parse.connection_str_from_dsn_section(args.section, self)
 
         if args.connection_arguments:
             try:
@@ -494,7 +500,7 @@ class SqlMagic(Magics, Configurable):
             displaycon=self.displaycon,
             connect_args=args.connection_arguments,
             creator=args.creator,
-            alias=args.alias,
+            alias=args.section if args.section else args.alias,
             config=self,
         )
         payload["connection_info"] = conn._get_database_information()

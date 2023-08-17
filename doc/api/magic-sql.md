@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.6
+    jupytext_version: 1.15.0
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -33,7 +33,7 @@ You can view the documentation and command line arguments by running `%sql?`
     Specify creator function for new connection ([example](#specify-creator-function))
 
 ``-s`` / ``--section <section-name>``
-    Section of dsn_file to be used for generating a connection string
+    Section of dsn_file to be used for generating a connection string ([example](#start-a-connection-from-ini-file))
 
 ``-p`` / ``--persist``
     Create a table name in the database from the named DataFrame ([example](#create-table))
@@ -161,6 +161,31 @@ def creator():
 
 ```{code-cell} ipython3
 %sql --creator creator
+```
+
+## Start a connection from `.ini file`
+
+Use `--section` to start a connection from the `dsn_filename`. To learn more, see: [](../user-guide/connection-file.md)
+
+```{code-cell} ipython3
+%config SqlMagic.dsn_filename
+```
+
+```{code-cell} ipython3
+from pathlib import Path
+
+Path("odbc.ini").write_text("""
+[duck]
+drivername = duckdb
+""")
+```
+
+```{code-cell} ipython3
+%sql --section duck
+```
+
+```{code-cell} ipython3
+%sql --connections
 ```
 
 ## Create table

@@ -8,6 +8,8 @@ If you're migrating from `ipython-sql` to JupySQL, these are the differences (in
 
 - Since `0.6` JupySQL no longer supports old versions of IPython
 - Variable expansion is replaced from `{variable}`, `${variable}` to `{{variable}}`
+- Variable expansion via `:variable` has been disable by default, but can be enabled with [`%config SqlMagic.named_parameters = True`](../api/configuration)
+- Since `0.10.0`, loading connections from a `.ini` file using `%sql [section_name]` has been deprecated. Use `%sql --section section_name` instead.
 
 ## New features
 

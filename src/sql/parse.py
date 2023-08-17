@@ -2,29 +2,108 @@ import re
 import itertools
 import shlex
 from os.path import expandvars
+from pathlib import Path
+import configparser
+import warnings
 
-from six.moves import configparser as CP
 from sqlalchemy.engine.url import URL
 from IPython.core.magic_arguments import parse_argstring
 
+from sql import exceptions
 
-def connection_from_dsn_section(section, config):
-    parser = CP.ConfigParser()
-    parser.read(config.dsn_filename)
-    cfg_dict = dict(parser.items(section))
-    return str(URL.create(**cfg_dict).render_as_string(hide_password=False))
+
+def connection_str_from_dsn_section(section, config):
+    """Return a SQLAlchemy connection string from a section in a DSN file
+
+    Parameters
+    ----------
+    section : str
+        The section name in the DSN file
+
+    config : Config
+        The config object, must have a dsn_filename attribute
+    """
+    parser = configparser.ConfigParser()
+    dsn_file = Path(config.dsn_filename)
+
+    try:
+        cfg_content = dsn_file.read_text()
+    except FileNotFoundError as e:
+        raise exceptions.FileNotFoundError(
+            f"%config SqlMagic.dsn_filename ({config.dsn_filename!r}) not found."
+            " Ensure the file exists or change the configuration: "
+            "%config SqlMagic.dsn_filename = 'path/to/file.ini'"
+        ) from e
+
+    try:
+        parser.read_string(cfg_content)
+    except configparser.Error as e:
+        raise exceptions.RuntimeError(
+            "An error happened when loading "
+            "your %config SqlMagic.dsn_filename "
+            f"({config.dsn_filename!r})\n{type(e).__name__}: {e}"
+        ) from e
+
+    try:
+        cfg = parser.items(section)
+    except configparser.NoSectionError as e:
+        raise exceptions.KeyError(
+            f"The section {section!r} does not exist in the "
+            f"connections file {config.dsn_filename!r}"
+        ) from e
+
+    cfg_dict = dict(cfg)
+
+    try:
+        url = URL.create(**cfg_dict)
+    except TypeError as e:
+        if "unexpected keyword argument" in str(e):
+            raise exceptions.TypeError(
+                f"%config SqlMagic.dsn_filename ({config.dsn_filename!r}) is invalid. "
+                "It must only contain the following keys: drivername, username, "
+                "password, host, port, database, query"
+            ) from e
+        else:
+            raise
+
+    return str(url.render_as_string(hide_password=False))
 
 
 def _connection_string(s, config):
-    s = expandvars(s)  # for environment variables
+    """
+    Given a string, return a SQLAlchemy connection string if possible.
+
+    Scenarios:
+
+    - If the string is a valid URL, return it
+    - If the string is a valid section in the DSN file return the connection string
+    - Otherwise return an empty string
+    """
+    # for environment variables
+    s = expandvars(s)
+
+    # if it's a URL, return it
     if "@" in s or "://" in s:
         return s
+
+    # if it's a section in the DSN file, return the connection string
     if s.startswith("[") and s.endswith("]"):
         section = s.lstrip("[").rstrip("]")
-        parser = CP.ConfigParser()
+        parser = configparser.ConfigParser()
         parser.read(config.dsn_filename)
         cfg_dict = dict(parser.items(section))
-        return str(URL.create(**cfg_dict))
+        url = URL.create(**cfg_dict)
+        url_ = str(url.render_as_string(hide_password=False))
+
+        warnings.warn(
+            "Starting connections with: %sql [section_name] is deprecated "
+            "and will be removed in a future release. "
+            "Please use: %sql --section section_name instead.",
+            category=FutureWarning,
+        )
+
+        return url_
+
     return ""
 
 
@@ -48,7 +127,9 @@ def parse(cell, config):
     pieces = cell.split(None, 1)
     if not pieces:
         return result
+
     result["connection"] = _connection_string(pieces[0], config)
+
     if result["connection"]:
         if len(pieces) == 1:
             return result

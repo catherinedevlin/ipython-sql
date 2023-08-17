@@ -5,12 +5,13 @@ from pathlib import Path
 import pytest
 
 from sql.parse import (
-    connection_from_dsn_section,
+    connection_str_from_dsn_section,
     parse,
     without_sql_comment,
     magic_args,
     escape_string_literals_with_colon_prefix,
     find_named_parameters,
+    _connection_string,
 )
 
 try:
@@ -20,6 +21,10 @@ except ImportError:
 
 empty_config = Configurable()
 default_connect_args = {"options": "-csearch_path=test"}
+
+
+class DummyConfig:
+    dsn_filename = Path("src/tests/test_dsn_config.ini")
 
 
 def test_parse_no_sql():
@@ -154,15 +159,51 @@ def test_parse_connect_shovel_over_newlines():
     }
 
 
-class DummyConfig:
-    dsn_filename = Path("src/tests/test_dsn_config.ini")
+@pytest.mark.parametrize(
+    "section, expected",
+    [
+        (
+            "DB_CONFIG_1",
+            "postgres://goesto11:seentheelephant@my.remote.host:5432/pgmain",
+        ),
+        (
+            "DB_CONFIG_2",
+            "mysql://thefin:fishputsfishonthetable@127.0.0.1/dolfin",
+        ),
+    ],
+)
+def test_connection_from_dsn_section(section, expected):
+    result = connection_str_from_dsn_section(section=section, config=DummyConfig)
+    assert result == expected
 
 
-def test_connection_from_dsn_section():
-    result = connection_from_dsn_section(section="DB_CONFIG_1", config=DummyConfig())
-    assert result == "postgres://goesto11:seentheelephant@my.remote.host:5432/pgmain"
-    result = connection_from_dsn_section(section="DB_CONFIG_2", config=DummyConfig())
-    assert result == "mysql://thefin:fishputsfishonthetable@127.0.0.1/dolfin"
+@pytest.mark.parametrize(
+    "input_, expected",
+    [
+        ("", ""),
+        (
+            "drivername://user:pass@host:port/db",
+            "drivername://user:pass@host:port/db",
+        ),
+        ("drivername://", "drivername://"),
+        (
+            "[DB_CONFIG_1]",
+            "postgres://goesto11:seentheelephant@my.remote.host:5432/pgmain",
+        ),
+        ("DB_CONFIG_1", ""),
+        ("not-a-url", ""),
+    ],
+    ids=[
+        "empty",
+        "full",
+        "drivername",
+        "section",
+        "not-a-section",
+        "not-a-url",
+    ],
+)
+def test_connection_string(input_, expected):
+    assert _connection_string(input_, DummyConfig) == expected
 
 
 class Bunch:
