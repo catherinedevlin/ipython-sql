@@ -20,6 +20,7 @@
 * [API Change] Starting connections from a `.ini` file via `%sql [section_name]` has been deprecated
 * [Doc] Fixes documentation inaccuracy that said `:variable` was deprecated (we brought it back in `0.9.0`)
 * [Fix] Fix Twice message printing when switching to the current connection (#772)
+* [Fix] Error when using %sqlplot in snowflake (#697)
 
 ## 0.9.1 (2023-08-10)
 

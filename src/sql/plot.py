@@ -5,10 +5,13 @@ from ploomber_core.dependencies import requires
 from ploomber_core.exceptions import modify_exceptions
 from jinja2 import Template
 
-
 from sql import exceptions, display
 from sql.stats import _summary_stats
-from sql.util import _are_numeric_values, validate_mutually_exclusive_args
+from sql.util import (
+    _are_numeric_values,
+    validate_mutually_exclusive_args,
+    to_upper_if_snowflake_conn,
+)
 from sql.display import message
 
 try:
@@ -551,6 +554,9 @@ def _histogram(
         conn = sql.connection.ConnectionManager.current
     use_backticks = conn.is_use_backtick_template()
 
+    # Snowflake will use UPPERCASE in the table and column name
+    column = to_upper_if_snowflake_conn(conn, column)
+    table = to_upper_if_snowflake_conn(conn, table)
     # FIXME: we're computing all the with elements twice
     min_, max_ = _min_max(conn, table, column, with_=with_, use_backticks=use_backticks)
 
@@ -654,7 +660,7 @@ def _histogram(
     else:
         template_ = """
         select
-            "{{column}}" as col, count ({{column}})
+            "{{column}}" as col, count ("{{column}}")
         from "{{table}}"
         {{filter_query}}
         group by col

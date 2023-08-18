@@ -420,6 +420,15 @@ def get_line_content_from_toml(file_path, line_number):
         return eline, ekey, evalue
 
 
+def to_upper_if_snowflake_conn(conn, upper):
+    return (
+        upper.upper()
+        if callable(conn._get_sqlglot_dialect)
+        and conn._get_sqlglot_dialect() == "snowflake"
+        else upper
+    )
+
+
 @requires(["toml"])
 def load_toml(file_path):
     """
