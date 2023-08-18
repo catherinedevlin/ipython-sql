@@ -41,6 +41,7 @@ df = pd.DataFrame(np.random.randn(num_rows, num_cols))
 
 ```{code-cell} ipython3
 import duckdb
+
 conn = duckdb.connect()
 ```
 

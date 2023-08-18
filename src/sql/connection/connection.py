@@ -222,15 +222,25 @@ class ConnectionManager:
                 existing = rough_dict_get(cls.connections, descriptor)
                 if existing and existing.alias == alias:
                     cls.current = existing
-                # passing an existing descriptor and not alias: use existing connection
                 elif existing and alias is None:
-                    cls.current = existing
-
-                    if _current._config_feedback_normal_or_more():
+                    if (
+                        _current._config_feedback_normal_or_more()
+                        and cls.current != existing
+                    ):
                         display.message(f"Switching to connection {descriptor}")
+                    cls.current = existing
 
                 # passing the same URL but different alias: create a new connection
                 elif existing is None or existing.alias != alias:
+                    if (
+                        _current._config_feedback_normal_or_more()
+                        and cls.current
+                        and cls.current.alias != alias
+                    ):
+                        identifier = alias or descriptor
+                        display.message(
+                            f"Connecting and switching to connection {identifier}"
+                        )
                     cls.current = cls.from_connect_str(
                         connect_str=descriptor,
                         connect_args=connect_args,

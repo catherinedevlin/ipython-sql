@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.15.0
+    jupytext_version: 1.14.7
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -174,10 +174,12 @@ Use `--section` to start a connection from the `dsn_filename`. To learn more, se
 ```{code-cell} ipython3
 from pathlib import Path
 
-Path("odbc.ini").write_text("""
+Path("odbc.ini").write_text(
+    """
 [duck]
 drivername = duckdb
-""")
+"""
+)
 ```
 
 ```{code-cell} ipython3

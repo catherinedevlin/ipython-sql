@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.15.0
+    jupytext_version: 1.14.7
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -68,10 +68,12 @@ drivername = duckdb
 ```{code-cell} ipython3
 from pathlib import Path
 
-_ = Path("my-connections.ini").write_text("""
+_ = Path("my-connections.ini").write_text(
+    """
 [duck]
 drivername = duckdb
-""")
+"""
+)
 ```
 
 To connect to a database defined in the connections file, use `--section` and pass the section name:
@@ -120,13 +122,15 @@ select * from penguins
 Let's now define another connection so we can show how we can manage multiple ones:
 
 ```{code-cell} ipython3
-_ = Path("my-connections.ini").write_text("""
+_ = Path("my-connections.ini").write_text(
+    """
 [duck]
 drivername = duckdb
 
 [second_duck]
 drivername = duckdb
-""")
+"""
+)
 ```
 
 Start a new connection from the `second_duck` section name:
