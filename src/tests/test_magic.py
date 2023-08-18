@@ -677,6 +677,28 @@ def test_displaylimit_with_conditional_clause(
         assert f"Truncated to {DISPLAYLIMIT_LINK} of 10" in out._repr_html_()
 
 
+@pytest.mark.parametrize(
+    "config_value",
+    [
+        (1),
+        (0),
+        (None),
+    ],
+)
+def test_displaylimit_with_count_statement(ip, load_penguin, config_value):
+    ip.run_cell(f"%config SqlMagic.displaylimit = {config_value}")
+    result = ip.run_line_magic("sql", "select count(*) from penguins.csv")
+
+    assert isinstance(result, ResultSet)
+    assert str(result) == (
+        "+--------------+\n"
+        "| count_star() |\n"
+        "+--------------+\n"
+        "|     344      |\n"
+        "+--------------+"
+    )
+
+
 def test_column_local_vars(ip):
     ip.run_line_magic("config", "SqlMagic.column_local_vars = True")
     result = runsql(ip, "SELECT * FROM author;")
