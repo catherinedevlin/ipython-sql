@@ -125,6 +125,60 @@ def test_error(tmp_empty, ip, cell, error_message):
     assert str(excinfo.value) == error_message
 
 
+@pytest.mark.parametrize(
+    "command",
+    [
+        "tables",
+        "columns",
+        "test",
+        "profile",
+        "explore",
+    ],
+)
+def test_sqlcmd_error_when_no_connection(ip_empty, command):
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell(f"%sqlcmd {command}")
+
+    assert excinfo.value.error_type == "RuntimeError"
+    assert str(excinfo.value) == (
+        f"Cannot execute %sqlcmd {command} because there is no "
+        "active connection. Connect to a database and try again."
+    )
+
+
+def test_sqlcmd_snippets_when_no_connection(ip_empty, capsys):
+    for key in list(store):
+        del store[key]
+
+    ip_empty.run_cell("%sqlcmd snippets")
+    captured = capsys.readouterr()
+    assert "No snippets stored" in captured.out
+
+
+@pytest.mark.parametrize(
+    "query, command",
+    [
+        ("%sqlcmd tables", "tables"),
+        ("%sqlcmd columns --table penguins.csv", "columns"),
+        (
+            "%sqlcmd test --table penguins.csv  --column body_mass_g --greater 2900",
+            "test",
+        ),
+        ("%sqlcmd explore --table penguins.csv", "explore"),
+    ],
+)
+def test_sqlcmd_not_supported_error(ip_with_connections, query, command, capsys):
+    ip_with_connections.run_cell("%sql duckdb_dbapi")
+    expected_error_message = (
+        f"%sqlcmd {command} is only supported with SQLAlchemy connections, "
+        "not with DBAPI connections"
+    )
+    with pytest.raises(UsageError) as excinfo:
+        ip_with_connections.run_cell(query)
+
+    assert expected_error_message in str(excinfo.value)
+
+
 def test_tables(ip):
     out = ip.run_cell("%sqlcmd tables").result._repr_html_()
     assert "author" in out

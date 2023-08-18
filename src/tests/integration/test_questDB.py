@@ -615,17 +615,17 @@ NOT_SUPPORTED_SUFFIX = (
 
 
 @pytest.mark.parametrize(
-    "query",
+    "query, command",
     [
-        ("%sqlcmd tables"),
-        ("%sqlcmd tables --schema some_schema"),
-        ("%sqlcmd columns --table penguins.csv"),
-        ("%sqlcmd test"),
-        ("%sqlcmd test --table penguins.csv"),
+        ("%sqlcmd tables", "tables"),
+        ("%sqlcmd tables --schema some_schema", "tables"),
+        ("%sqlcmd columns --table penguins.csv", "columns"),
+        ("%sqlcmd test", "test"),
+        ("%sqlcmd test --table penguins.csv", "test"),
     ],
 )
-def test_sqlcmd_not_supported_error(ip_questdb, query, capsys):
-    expected_error_message = f"%sqlcmd {NOT_SUPPORTED_SUFFIX}"
+def test_sqlcmd_not_supported_error(ip_questdb, query, command, capsys):
+    expected_error_message = f"%sqlcmd {command} {NOT_SUPPORTED_SUFFIX}"
 
     with pytest.raises(UsageError) as excinfo:
         ip_questdb.run_cell(query)
