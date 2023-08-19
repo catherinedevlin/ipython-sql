@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.10.1dev
+
 ## 0.10.0 (2023-08-19)
 
 * [API Change] `%config SqlMagic.feedback` now takes values `0` (disabled), `1` (normal), `2` (verbose)
