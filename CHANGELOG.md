@@ -1,28 +1,28 @@
 # CHANGELOG
 
-## 0.10.0dev
+## 0.10.0 (2023-08-19)
 
-* [Feature] Add `--binwidth/-W` to ggplot histogram for specifying binwidth (#784)
-* [Feature] Add `%sqlcmd profile` support for DBAPI connections (#743)
+* [API Change] `%config SqlMagic.feedback` now takes values `0` (disabled), `1` (normal), `2` (verbose)
+* [API Change] When loading connections from a `.ini` file via `%sql --section section_name`, the section name is set as the connection alias
+* [API Change] Starting connections from a `.ini` file via `%sql [section_name]` has been deprecated
+* [API Change] `%config SqlMagic.dsn_filename` default value changed from `odbc.ini` to `~/.jupysql/connections.ini`
+* [Feature] Add `--binwidth/-W` to ggplot histogram for specifying binwidth ([#784](https://github.com/ploomber/jupysql/issues/784))
+* [Feature] Add `%sqlcmd profile` support for DBAPI connections ([#743](https://github.com/ploomber/jupysql/issues/743))
 * [Fix] Perform `ROLLBACK` when SQLAlchemy raises `PendingRollbackError`
 * [Fix] Perform `ROLLBACK` when `psycopg2` raises `current transaction is aborted, commands ignored until end of transaction block`
-* [Fix] Perform `ROLLBACK` when `psycopg2` raises `server closed the connection unexpectedly` (#677)
-* [Fix] Fix a bug that caused a cell with a CTE to fail if it referenced a table/view with the same name as an existing snippet (#753)
+* [Fix] Perform `ROLLBACK` when `psycopg2` raises `server closed the connection unexpectedly` ([#677](https://github.com/ploomber/jupysql/issues/677))
+* [Fix] Fix a bug that caused a cell with a CTE to fail if it referenced a table/view with the same name as an existing snippet ([#753](https://github.com/ploomber/jupysql/issues/753))
 * [Fix] Shorter `displaylimit` footer
-* [API Change] `%config SqlMagic.feedback` now takes values `0` (disabled), `1` (normal), `2` (verbose)
 * [Fix] `ResultSet` footer only displayed when `feedback=2`
 * [Fix] Current connection and switching connections message only displayed when `feedback>=1`
 * [Fix] `--persist/--persist-replace` perform `ROLLBACK` automatically when needed
-* [Fix] `ResultSet` footer (when `displaylimit` truncates results and when showing how to convert to a data frame) now appears in the `ResultSet` plain text representation (#682)
-* [Fix] Improve error when calling `%sqlcmd` (#761)
-* [Fix] Fix count statement's result not displayed when `displaylimit=None` (#801)
-* [API Change] When loading connections from a `.ini` file via `%sql --section section_name`, the section name is set as the connection alias
-* [API Change] Starting connections from a `.ini` file via `%sql [section_name]` has been deprecated
-* [Doc] Fixes documentation inaccuracy that said `:variable` was deprecated (we brought it back in `0.9.0`)
+* [Fix] `ResultSet` footer (when `displaylimit` truncates results and when showing how to convert to a data frame) now appears in the `ResultSet` plain text representation ([#682](https://github.com/ploomber/jupysql/issues/682))
+* [Fix] Improve error when calling `%sqlcmd` ([#761](https://github.com/ploomber/jupysql/issues/761))
+* [Fix] Fix count statement's result not displayed when `displaylimit=None` ([#801](https://github.com/ploomber/jupysql/issues/801))
 * [Fix] Fix an error that caused a connection error message to be turned into a `print` statement
-* [Fix] Fix Twice message printing when switching to the current connection (#772)
-* [Fix] Error when using %sqlplot in snowflake (#697)
-* [API Change] `%config SqlMagic.dsn_filename` default value changed from `odbc.ini` to `~/.jupysql/connections.ini`
+* [Fix] Fix Twice message printing when switching to the current connection ([#772](https://github.com/ploomber/jupysql/issues/772))
+* [Fix] Error when using %sqlplot in snowflake ([#697](https://github.com/ploomber/jupysql/issues/697))
+* [Doc] Fixes documentation inaccuracy that said `:variable` was deprecated (we brought it back in `0.9.0`)
 
 ## 0.9.1 (2023-08-10)
 
