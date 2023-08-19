@@ -1022,3 +1022,23 @@ def test_ignore_operationalerror_if_it_doesnt_match_the_selected_patterns(monkey
     assert "(test_connection.SomeError) message" in str(excinfo.value)
     assert isinstance(excinfo.value.orig, SomeError)
     assert str(excinfo.value.orig) == "message"
+
+
+@pytest.mark.parametrize(
+    "uri, expected",
+    [
+        (
+            "sqlite:///path/to.db",
+            "unable to open database file",
+        ),
+        (
+            "duckdb:///path/to.db",
+            "Cannot open file",
+        ),
+    ],
+)
+def test_database_in_directory_that_doesnt_exist(tmp_empty, uri, expected):
+    with pytest.raises(UsageError) as excinfo:
+        SQLAlchemyConnection(engine=create_engine(uri))
+
+    assert expected in str(excinfo.value)

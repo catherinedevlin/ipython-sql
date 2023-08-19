@@ -30,7 +30,7 @@ def connection_str_from_dsn_section(section, config):
         cfg_content = dsn_file.read_text()
     except FileNotFoundError as e:
         raise exceptions.FileNotFoundError(
-            f"%config SqlMagic.dsn_filename ({config.dsn_filename!r}) not found."
+            f"%config SqlMagic.dsn_filename ({str(config.dsn_filename)!r}) not found."
             " Ensure the file exists or change the configuration: "
             "%config SqlMagic.dsn_filename = 'path/to/file.ini'"
         ) from e

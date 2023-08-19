@@ -879,9 +879,9 @@ class SQLAlchemyConnection(AbstractConnection):
         except OperationalError as e:
             detailed_msg = detail(e)
             if detailed_msg is not None:
-                raise exceptions.UsageError(detailed_msg)
+                raise exceptions.RuntimeError(detailed_msg) from e
             else:
-                print(e)
+                raise exceptions.RuntimeError(str(e)) from e
         except Exception as e:
             raise _error_invalid_connection_info(e, connect_str) from e
 
