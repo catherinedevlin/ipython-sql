@@ -72,6 +72,8 @@ def test_parsed(
     parsed_return_result_var,
     tmp_empty,
 ):
+    ip.run_cell("%config SqlMagic.dsn_filename = 'odbc.ini'")
+
     # needed for the last test case
     Path("odbc.ini").write_text(
         """

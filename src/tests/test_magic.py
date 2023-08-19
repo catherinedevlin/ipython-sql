@@ -1803,9 +1803,8 @@ def test_error_when_using_section_argument_but_dsn_is_missing(ip_empty, tmp_empt
         ip_empty.run_cell("%sql --section some_section")
 
     assert excinfo.value.error_type == "FileNotFoundError"
-    assert "%config SqlMagic.dsn_filename ('path/to/connections.ini') not found" in str(
-        excinfo.value
-    )
+    assert "%config SqlMagic.dsn_filename" in str(excinfo.value)
+    assert "not found" in str(excinfo.value)
 
 
 def test_error_when_using_section_argument_but_dsn_section_is_missing(

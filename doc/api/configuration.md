@@ -130,6 +130,18 @@ One displayed, but all results fetched:
 len(res)
 ```
 
+## `dsn_filename`
+
+```{versionchanged} 0.10.0
+`dsn_filename` default changed from `odbc.ini` to `~/.jupysql/connections.ini`.
+```
+
+Default: `~/.jupysql/connections.ini`
+
+File to load connections configuration from. For an example, see: [](../user-guide/connection-file.md)
+
++++
+
 ## `autopandas`
 
 Default: `False`

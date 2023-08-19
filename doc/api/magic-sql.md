@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.15.0
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -163,9 +163,23 @@ def creator():
 %sql --creator creator
 ```
 
-## Start a connection from `.ini file`
+## Start a connection from `.ini` file
+
+```{versionchanged} 0.10.0
+`dsn_filename` default changed from `odbc.ini` to `~/.jupysql/connections.ini`.
+```
 
 Use `--section` to start a connection from the `dsn_filename`. To learn more, see: [](../user-guide/connection-file.md)
+
+By default, JupySQL reads connections from `~/.jupysql/connections.ini`, but you can set it to a different value:
+
+```{code-cell} ipython3
+%config SqlMagic.dsn_filename
+```
+
+```{code-cell} ipython3
+%config SqlMagic.dsn_filename = "connections.ini"
+```
 
 ```{code-cell} ipython3
 %config SqlMagic.dsn_filename
@@ -174,16 +188,16 @@ Use `--section` to start a connection from the `dsn_filename`. To learn more, se
 ```{code-cell} ipython3
 from pathlib import Path
 
-Path("odbc.ini").write_text(
+_ = Path("connections.ini").write_text(
     """
-[duck]
+[mydb]
 drivername = duckdb
 """
 )
 ```
 
 ```{code-cell} ipython3
-%sql --section duck
+%sql --section mydb
 ```
 
 ```{code-cell} ipython3

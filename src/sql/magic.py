@@ -1,5 +1,6 @@
 import json
 import re
+from pathlib import Path
 
 try:
     from ipywidgets import interact
@@ -159,7 +160,7 @@ class SqlMagic(Magics, Configurable):
     )
 
     dsn_filename = Unicode(
-        default_value="odbc.ini",
+        default_value=str(Path("~/.jupysql/connections.ini").expanduser()),
         config=True,
         help="Path to DSN file. "
         "When the first argument is of the form [section], "
@@ -187,6 +188,11 @@ class SqlMagic(Magics, Configurable):
 
         # Add ourself to the list of module configurable via %config
         self.shell.configurables.append(self)
+
+    @validate("dsn_filename")
+    def _valid_dsn_filename(self, proposal):
+        path = Path(proposal["value"]).expanduser()
+        return str(path)
 
     # To verify displaylimit is valid positive integer
     # If:

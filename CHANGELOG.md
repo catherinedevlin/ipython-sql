@@ -22,6 +22,7 @@
 * [Fix] Fix an error that caused a connection error message to be turned into a `print` statement
 * [Fix] Fix Twice message printing when switching to the current connection (#772)
 * [Fix] Error when using %sqlplot in snowflake (#697)
+* [API Change] `%config SqlMagic.dsn_filename` default value changed from `odbc.ini` to `~/.jupysql/connections.ini`
 
 ## 0.9.1 (2023-08-10)
 

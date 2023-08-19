@@ -103,6 +103,27 @@ def ip_empty():
     ConnectionManager.close_all()
 
 
+@pytest.fixture
+def sql_magic():
+    c = Config()
+    # By default, InteractiveShell will record command's history in a SQLite database
+    # which leads to "too many open files" error when running tests; this setting
+    # disables the history recording.
+    # https://ipython.readthedocs.io/en/stable/config/options/terminal.html#configtrait-HistoryAccessor.enabled
+    c.HistoryAccessor.enabled = False
+    ip_session = TestingShell(config=c)
+
+    sql_magic = SqlMagic(ip_session)
+
+    # there is some weird bug in ipython that causes this function to hang the pytest
+    # process when all tests have been executed (an internal call to gc.collect()
+    # hangs). This is a workaround.
+    ip_session.displayhook.flush = lambda: None
+
+    yield sql_magic
+    ConnectionManager.close_all()
+
+
 def insert_sample_data(ip):
     ip.run_cell(
         """%%sql
