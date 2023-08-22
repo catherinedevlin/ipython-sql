@@ -65,7 +65,7 @@ class SQLCommand:
 
             self.command_text = file_contents + "\n" + self.command_text
 
-        self.parsed = parse.parse(self.command_text, magic)
+        self.parsed = parse.parse(self.command_text, magic.dsn_filename)
 
         self.parsed["sql_original"] = self.parsed["sql"] = self._var_expand(
             self.parsed["sql"], user_ns, magic

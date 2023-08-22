@@ -6,7 +6,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.5
+    jupytext_version: 1.15.0
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -20,11 +20,36 @@ myst:
 
 # Connecting to a database
 
-Learn how to connect to various databases using JupySQL.
+JupySQL offers several ways to configure a database connection. In this guide, we discuss the pros and cons of each.
+
+## Connecting with a `.ini` file
+
+```{versionchanged} 0.10.0
+```
+
+Using a `.ini` file is the recommended way to connect to databases. By default, JupySQL reads the `~/.jupysql/connections.ini` file, but you can change this setting. A `.ini` file looks like this:
+
+```ini
+[mydb]
+drivername = postgresql
+username = person
+password = mypass
+host = localhost
+port = 5432
+database = db
+```
+
+To learn more, see: [](user-guide/connection-file.md).
+
++++
 
 ## Connect with a URL string
 
-Connection strings follow the [SQLAlchemy URL format](http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls). This is the fastest way to connect to your database and the recommended way if you're using SQLite or DuckDB.
+```{important}
+If you connect using a URL string, **do not hardcode your password in your notebook**, see: [](building-url-strings-securely)
+```
+
+Connection strings follow the [SQLAlchemy URL format](http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls).
 
 Database URLs have the following format:
 
@@ -32,14 +57,17 @@ Database URLs have the following format:
 dialect+driver://username:password@host:port/database
 ```
 
+In-memory databases have the following format:
 
-```{important}
-If you're using a database that requires a password, keep reading for more secure methods.
+```
+sqlite://
+duckdb://
 ```
 
-## Building URL strings securely
+(building-url-strings-securely)=
+### Building URL strings securely
 
-To connect in a more secure way, you can dynamically build your URL string so your password isn't hardcoded:
+To connect more securely, you can dynamically build your URL string so your password isn't hardcoded; you can use the `getpass` function so you're prompted for your password whenever you want to connect:
 
 ```python
 from getpass import getpass
@@ -91,23 +119,6 @@ engine = create_engine(db_url)
 
 +++ {"user_expressions": []}
 
-## Secure Connections
-
-
-**It is highly recommended** that you do not pass plain credentials.
-
-```{code-cell} ipython3
-:tags: [remove-output]
-
-%load_ext sql
-```
-
-```{code-cell} ipython3
-%sql engine
-```
-
-+++ {"user_expressions": []}
-
 ```{important}
 Unlike `ipython-sql`, JupySQL doesn't allow expanding your database URL with the `$` character:
 
@@ -122,7 +133,9 @@ db_url = "dialect+driver://username:password@host:port/database"
 
 ## Securely storing your password
 
-If you want to store your password securely (and don't get prompted whenever you start a connection), you can use [keyring](https://github.com/jaraco/keyring):
+Using a `.ini` file has the advantage of not having to hardcode your password. However, it's still stored in a file in plain text. On the other hand, using `getpass` will always prompt you for your password, which isn't ideal when running [scheduled notebooks.](https://github.com/ploomber/ploomber-engine)
+
+The most secure way to store your password is to use [keyring](https://github.com/jaraco/keyring), a library that uses the operating system credentials manager to securely store your password. The caveat is that the configuration settings depend on your operating system.
 
 ```{code-cell} ipython3
 :tags: [remove-output]
@@ -132,7 +145,7 @@ If you want to store your password securely (and don't get prompted whenever you
 
 +++ {"user_expressions": []}
 
-Execute the following in your notebook:
+Once `keyring` is configured. Execute the following in your notebook:
 
 ```python
 import keyring
@@ -280,7 +293,7 @@ df.to_sql("numbers", engine)
 SELECT * FROM numbers
 ```
 
-## Custom Connection
+## DBAPI connections
 
 ```{versionadded} 0.7.2
 ```
@@ -324,23 +337,4 @@ You're all set
 %sql select * from penguins.csv limit 3
 ```
 
-For a more detailed example please see [QuestDB tutorial](integrations/questdb.ipynb)
-
-## Conclusion
-
-Once the URL string is constructed, you can create an engine using `create_engine` and establish a connection to the database. JupySQL provides the `%load_ext sql` magic command to load the SQL extension. Then, you can execute SQL queries using `%sql`.
-
-JupySQL offers flexible and secure methods for connecting to databases in Jupyter notebooks, allowing you to execute SQL queries and interact with various database systems efficiently.
-
-## Tutorials
-
-Vendor-specific details are available in our tutorials:
-
-- [PostgreSQL](integrations/postgres-connect)
-- [ClickHouse](integrations/clickhouse)
-- [MariaDB](integrations/mariadb)
-- [MindsDB](integrations/mindsdb)
-- [MSSQL](integrations/mssql)
-- [MySQL](integrations/mysql)
-- [QuestDB](integrations/questdb)
-- [Oracle](integrations/oracle)
+For a more detailed example, see [QuestDB tutorial](integrations/questdb.ipynb)

@@ -1,10 +1,8 @@
-from traitlets.config import Config
 import os
 import urllib.request
 from pathlib import Path
 
 import pytest
-
 
 from sql.magic import SqlMagic, RenderMagic
 from sql.magic_plot import SqlPlotMagic
@@ -77,48 +75,35 @@ def clean_conns():
 
 
 @pytest.fixture
-def ip_empty():
-    c = Config()
-    # By default, InteractiveShell will record command's history in a SQLite database
-    # which leads to "too many open files" error when running tests; this setting
-    # disables the history recording.
-    # https://ipython.readthedocs.io/en/stable/config/options/terminal.html#configtrait-HistoryAccessor.enabled
-    c.HistoryAccessor.enabled = False
-    ip_session = TestingShell(config=c)
+def ip_no_magics():
+    ip_session = TestingShell.preconfigured_shell()
 
-    sql_magic = SqlMagic(ip_session)
-    _current._set_sql_magic(sql_magic)
-
-    ip_session.register_magics(sql_magic)
-    ip_session.register_magics(RenderMagic)
-    ip_session.register_magics(SqlPlotMagic)
-    ip_session.register_magics(SqlCmdMagic)
-
-    # there is some weird bug in ipython that causes this function to hang the pytest
-    # process when all tests have been executed (an internal call to gc.collect()
-    # hangs). This is a workaround.
-    ip_session.displayhook.flush = lambda: None
+    # to prevent using the actual default, which reads from the home directory
+    ip_session.run_cell("%config SqlMagic.dsn_filename = 'default.ini'")
 
     yield ip_session
     ConnectionManager.close_all()
 
 
 @pytest.fixture
+def ip_empty(ip_no_magics):
+    sql_magic = SqlMagic(ip_no_magics)
+    _current._set_sql_magic(sql_magic)
+
+    ip_no_magics.register_magics(sql_magic)
+    ip_no_magics.register_magics(RenderMagic)
+    ip_no_magics.register_magics(SqlPlotMagic)
+    ip_no_magics.register_magics(SqlCmdMagic)
+
+    yield ip_no_magics
+    ConnectionManager.close_all()
+
+
+@pytest.fixture
 def sql_magic():
-    c = Config()
-    # By default, InteractiveShell will record command's history in a SQLite database
-    # which leads to "too many open files" error when running tests; this setting
-    # disables the history recording.
-    # https://ipython.readthedocs.io/en/stable/config/options/terminal.html#configtrait-HistoryAccessor.enabled
-    c.HistoryAccessor.enabled = False
-    ip_session = TestingShell(config=c)
+    ip_session = TestingShell.preconfigured_shell()
 
     sql_magic = SqlMagic(ip_session)
-
-    # there is some weird bug in ipython that causes this function to hang the pytest
-    # process when all tests have been executed (an internal call to gc.collect()
-    # hangs). This is a workaround.
-    ip_session.displayhook.flush = lambda: None
 
     yield sql_magic
     ConnectionManager.close_all()

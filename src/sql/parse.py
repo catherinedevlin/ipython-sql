@@ -12,6 +12,24 @@ from IPython.core.magic_arguments import parse_argstring
 from sql import exceptions
 
 
+class ConnectionsFile:
+    def __init__(self, path_to_file) -> None:
+        self.parser = configparser.ConfigParser()
+        dsn_file = Path(path_to_file)
+
+        cfg_content = dsn_file.read_text()
+        self.parser.read_string(cfg_content)
+
+    def get_default_connection_url(self):
+        try:
+            section = self.parser.items("default")
+        except configparser.NoSectionError:
+            return None
+
+        url = URL.create(**dict(section))
+        return str(url.render_as_string(hide_password=False))
+
+
 def connection_str_from_dsn_section(section, config):
     """Return a SQLAlchemy connection string from a section in a DSN file
 
@@ -69,7 +87,7 @@ def connection_str_from_dsn_section(section, config):
     return str(url.render_as_string(hide_password=False))
 
 
-def _connection_string(s, config):
+def _connection_string(arg, path_to_file):
     """
     Given a string, return a SQLAlchemy connection string if possible.
 
@@ -78,19 +96,27 @@ def _connection_string(s, config):
     - If the string is a valid URL, return it
     - If the string is a valid section in the DSN file return the connection string
     - Otherwise return an empty string
+
+    Parameters
+    ----------
+    arg : str
+        The string to parse
+
+    path_to_file : str
+        The path to the DSN file
     """
     # for environment variables
-    s = expandvars(s)
+    arg = expandvars(arg)
 
     # if it's a URL, return it
-    if "@" in s or "://" in s:
-        return s
+    if "@" in arg or "://" in arg:
+        return arg
 
     # if it's a section in the DSN file, return the connection string
-    if s.startswith("[") and s.endswith("]"):
-        section = s.lstrip("[").rstrip("]")
+    if arg.startswith("[") and arg.endswith("]"):
+        section = arg.lstrip("[").rstrip("]")
         parser = configparser.ConfigParser()
-        parser.read(config.dsn_filename)
+        parser.read(path_to_file)
         cfg_dict = dict(parser.items(section))
         url = URL.create(**cfg_dict)
         url_ = str(url.render_as_string(hide_password=False))
@@ -107,7 +133,7 @@ def _connection_string(s, config):
     return ""
 
 
-def parse(cell, config):
+def parse(arg, path_to_file):
     """Extract connection info and result variable from SQL
 
     Please don't add any more syntax requiring
@@ -116,6 +142,14 @@ def parse(cell, config):
 
     We're grandfathering the
     connection string and `<<` operator in.
+
+    Parameters
+    ----------
+    arg : str
+        The string to parse
+
+    path_to_file : str
+        The path to the DSN file
     """
     result = {
         "connection": "",
@@ -124,21 +158,21 @@ def parse(cell, config):
         "return_result_var": False,
     }
 
-    pieces = cell.split(None, 1)
+    pieces = arg.split(None, 1)
     if not pieces:
         return result
 
-    result["connection"] = _connection_string(pieces[0], config)
+    result["connection"] = _connection_string(pieces[0], path_to_file)
 
     if result["connection"]:
         if len(pieces) == 1:
             return result
-        cell = pieces[1]
+        arg = pieces[1]
 
-    pointer = cell.find("<<")
+    pointer = arg.find("<<")
     if pointer != -1:
-        left = cell[:pointer].replace(" ", "").replace("\n", "")
-        right = cell[pointer + 2 :].strip(" ")
+        left = arg[:pointer].replace(" ", "").replace("\n", "")
+        right = arg[pointer + 2 :].strip(" ")
 
         if "=" in left:
             result["result_var"] = left[:-1]
@@ -148,7 +182,7 @@ def parse(cell, config):
 
         result["sql"] = right
     else:
-        result["sql"] = cell
+        result["sql"] = arg
     return result
 
 

@@ -92,6 +92,16 @@ def message_success(message):
     display(Message(message, style="color: green"))
 
 
+def message_warning(message):
+    """Display a success message"""
+    display(
+        Message(
+            message,
+            style="background-color:#fff3cd;color:#d39e00",
+        )
+    )
+
+
 def message_html(message):
     """Display a message as HTML"""
     display(HTML(str(Message(message))))

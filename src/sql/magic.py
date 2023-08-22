@@ -703,7 +703,19 @@ def load_SqlMagic_configs(ip):
     """Loads saved SqlMagic configs in pyproject.toml"""
     file_path = util.find_path_from_root("pyproject.toml")
     if file_path:
-        table_rows = set_configs(ip, file_path)
+        try:
+            table_rows = set_configs(ip, file_path)
+        except Exception as e:
+            if type(e).__name__ == "TomlDecodeError":
+                display.message_warning(
+                    f"Could not load configuration file at {file_path} "
+                    "(default configuration will be used).\nPlease "
+                    f"check that it is valid TOML: {e}"
+                )
+                return
+            else:
+                raise
+
         if table_rows:
             display.message("Settings changed:")
             display.table(["Config", "value"], table_rows)
@@ -713,12 +725,17 @@ def load_ipython_extension(ip):
     """Load the magics, this function is executed when the user runs: %load_ext sql"""
     sql_magic = SqlMagic(ip)
     _set_sql_magic(sql_magic)
-
     ip.register_magics(sql_magic)
+
+    load_SqlMagic_configs(ip)
+
+    # start the default connection if the user has one in their config file
+    sql.connection.ConnectionManager.load_default_connection_from_file_if_any(
+        config=sql_magic
+    )
+
     ip.register_magics(RenderMagic)
     ip.register_magics(SqlPlotMagic)
     ip.register_magics(SqlCmdMagic)
 
     patch_ipython_usage_error(ip)
-
-    load_SqlMagic_configs(ip)

@@ -6,6 +6,7 @@ import time
 from sqlalchemy.engine import URL
 import sqlalchemy
 from IPython.core.interactiveshell import InteractiveShell
+from traitlets.config import Config
 
 from ploomber_core.dependencies import requires
 
@@ -36,6 +37,24 @@ class TestingShell(InteractiveShell):
         result = super().run_cell(*args, **kwargs)
         result.raise_error()
         return result
+
+    @classmethod
+    def preconfigured_shell(cls):
+        c = Config()
+
+        # By default, InteractiveShell will record command's history in a SQLite
+        # database which leads to "too many open files" error when running tests;
+        # this setting disables the history recording.
+        # https://ipython.readthedocs.io/en/stable/config/options/terminal.html#configtrait-HistoryAccessor.enabled
+        c.HistoryAccessor.enabled = False
+        ip = cls(config=c)
+
+        # there is some weird bug in ipython that causes this function to hang the
+        # pytest process when all tests have been executed (an internal call to
+        # gc.collect() hangs). This is a workaround.
+        ip.displayhook.flush = lambda: None
+
+        return ip
 
 
 class DatabaseConfigHelper:

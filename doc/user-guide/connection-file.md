@@ -19,6 +19,10 @@ myst:
 
 # Using a connection file
 
+```{important}
+When using a connection file, ensure the file has the appropriate permissions, so only you can read its contents.
+```
+
 Using a connection file is the recommended way to manage connections, it helps you to:
 
 - Avoid storing your credentials in your notebook
@@ -39,6 +43,10 @@ However, you can change this:
 
 ```{code-cell} ipython3
 %config SqlMagic.dsn_filename = "connections.ini"
+```
+
+```{tip}
+You can also define your configuration settings in a [`pyproject.toml` file.](../api/configuration.md#loading-from-pyprojecttoml)
 ```
 
 The `.ini` format defines sections and you can define key-value pairs within each section. For example:
@@ -63,6 +71,18 @@ For example, to configure an in-memory DuckDB database:
 ```ini
 [duck]
 drivername = duckdb
+```
+
+Or, to connect to a PostgreSQL database:
+
+```ini
+[pg]
+drivername = postgresql
+username = person
+password = mypass
+host = localhost
+port = 5432
+database = db
 ```
 
 ```{code-cell} ipython3
@@ -119,6 +139,8 @@ select * from penguins.csv
 select * from penguins
 ```
 
+## Managing multiple connections
+
 Let's now define another connection so we can show how we can manage multiple ones:
 
 ```{code-cell} ipython3
@@ -169,6 +191,16 @@ We can change back to the other connection:
 %sqlcmd tables
 ```
 
-```{code-cell} ipython3
+## Setting a default connection
 
+```{versionadded} 0.10.1
 ```
+
+If JupySQL finds a `default` section in your connections file, it'll automatically connect to it when the extension is loaded. For example, to connect to an in-memory DuckDB database:
+
+```ini
+[default]
+drivername = duckdb
+```
+
+Then, whenever you run: `load_ext %sql`, the connection will start.
