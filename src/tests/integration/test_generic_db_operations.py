@@ -20,6 +20,7 @@ ALL_DATABASES = [
     "ip_with_MSSQL",
     "ip_with_Snowflake",
     "ip_with_oracle",
+    "ip_with_clickhouse",
 ]
 
 
@@ -50,6 +51,7 @@ def mock_log_api(monkeypatch):
         "ip_with_duckDB",
         "ip_with_Snowflake",
         "ip_with_redshift",
+        "ip_with_clickhouse",
     ],
 )
 def test_run_query(ip_with_dynamic_db, request, test_table_name_dict):
@@ -85,6 +87,7 @@ def test_run_query(ip_with_dynamic_db, request, test_table_name_dict):
         "ip_with_duckDB_native",
         "ip_with_Snowflake",
         "ip_with_redshift",
+        "ip_with_clickhouse",
     ],
 )
 def test_handle_multiple_open_result_sets(
@@ -135,6 +138,14 @@ def test_handle_multiple_open_result_sets(
         # pass --no-index
         ("ip_with_Snowflake", "--no-index"),
         ("ip_with_redshift", "--no-index"),
+        pytest.param(
+            "ip_with_clickhouse",
+            "",
+            marks=pytest.mark.xfail(
+                reason="sqlalchemy.exc.CompileError: "
+                "No engine for table <table_name>"
+            ),
+        ),
     ],
 )
 def test_create_table_with_indexed_df(
@@ -199,6 +210,7 @@ def get_connection_count(ip_with_dynamic_db):
         ("ip_with_duckDB_native", 1),
         ("ip_with_MSSQL", 1),
         ("ip_with_Snowflake", 1),
+        ("ip_with_clickhouse", 1),
     ],
 )
 def test_active_connection_number(ip_with_dynamic_db, expected, request):
@@ -218,6 +230,7 @@ def test_active_connection_number(ip_with_dynamic_db, expected, request):
         ("ip_with_MSSQL", "MSSQL"),
         ("ip_with_Snowflake", "Snowflake"),
         ("ip_with_oracle", "oracle"),
+        ("ip_with_clickhouse", "clickhouse"),
     ],
 )
 def test_close_and_connect(
@@ -252,6 +265,7 @@ def test_close_and_connect(
         ("ip_with_MSSQL", "mssql", "pyodbc"),
         ("ip_with_Snowflake", "snowflake", "snowflake"),
         ("ip_with_oracle", "oracle", "oracledb"),
+        ("ip_with_clickhouse", "clickhouse", "native"),
     ],
 )
 def test_telemetry_execute_command_has_connection_info(
@@ -320,6 +334,12 @@ def test_telemetry_execute_command_has_connection_info(
             "ip_with_MSSQL",
             marks=pytest.mark.xfail(reason="sqlglot does not support SQL server"),
         ),
+        pytest.param(
+            "ip_with_clickhouse",
+            marks=pytest.mark.xfail(
+                reason="Plotting from snippet not working in clickhouse"
+            ),
+        ),
     ],
 )
 def test_sqlplot_histogram(ip_with_dynamic_db, cell, request, test_table_name_dict):
@@ -386,6 +406,12 @@ BOX_PLOT_FAIL_REASON = (
                 reason="Something wrong with sqlplot boxplot in snowflake"
             ),
         ),
+        pytest.param(
+            "ip_with_clickhouse",
+            marks=pytest.mark.xfail(
+                reason="Plotting from snippet not working in clickhouse"
+            ),
+        ),
     ],
 )
 def test_sqlplot_boxplot(ip_with_dynamic_db, cell, request, test_table_name_dict):
@@ -431,12 +457,7 @@ def test_sqlplot_bar(ip_with_dynamic_db, request, test_table_name_dict):
 
 @pytest.mark.parametrize(
     "ip_with_dynamic_db",
-    [
-        "ip_with_postgreSQL",
-        "ip_with_duckDB",
-        "ip_with_redshift",
-        "ip_with_MSSQL",
-    ],
+    ["ip_with_postgreSQL", "ip_with_duckDB", "ip_with_redshift", "ip_with_MSSQL"],
 )
 def test_sqlplot_pie(ip_with_dynamic_db, request, test_table_name_dict):
     plt.cla()
@@ -475,6 +496,7 @@ def test_sqlplot_pie(ip_with_dynamic_db, request, test_table_name_dict):
         ),
         ("ip_with_Snowflake"),
         ("ip_with_oracle"),
+        ("ip_with_clickhouse"),
     ],
 )
 def test_sqlcmd_test(ip_with_dynamic_db, request, test_table_name_dict):
@@ -509,6 +531,7 @@ def test_sqlcmd_test(ip_with_dynamic_db, request, test_table_name_dict):
             ),
         ),
         ("ip_with_oracle"),
+        ("ip_with_clickhouse"),
     ],
 )
 def test_profile_data_mismatch(ip_with_dynamic_db, request, capsys):
@@ -676,6 +699,21 @@ def test_profile_data_mismatch(ip_with_dynamic_db, request, capsys):
                 reason="Something wrong with test_profile_query in snowflake"
             ),
         ),
+        pytest.param(
+            "ip_with_clickhouse",
+            "taxi",
+            ["taxi_driver_name"],
+            {
+                "count": [45],
+                "mean": [0.0],
+                "min": ["Eric Ken"],
+                "max": ["Kevin Kelly"],
+                "unique": [3],
+                "freq": [15],
+                "top": ["Kevin Kelly"],
+            },
+            "Following statistics are not available in",
+        ),
     ],
 )
 def test_sqlcmd_profile(
@@ -736,6 +774,7 @@ def test_sqlcmd_profile(
         ),
         ("ip_with_MSSQL"),
         ("ip_with_Snowflake"),
+        ("ip_with_clickhouse"),
     ],
 )
 def test_sqlcmd_columns(ip_with_dynamic_db, table, request, test_table_name_dict):
@@ -761,6 +800,7 @@ def test_sqlcmd_columns(ip_with_dynamic_db, table, request, test_table_name_dict
         ),
         ("ip_with_MSSQL"),
         ("ip_with_Snowflake"),
+        ("ip_with_clickhouse"),
     ],
 )
 def test_sqlcmd_tables(ip_with_dynamic_db, request):
@@ -819,6 +859,10 @@ def test_sql_query(ip_with_dynamic_db, cell, request, test_table_name_dict):
         ),
         "ip_with_Snowflake",
         "ip_with_oracle",
+        pytest.param(
+            "ip_with_clickhouse",
+            marks=pytest.mark.xfail(reason="some issue in cte . issue #812"),
+        ),
     ],
 )
 def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
@@ -850,7 +894,12 @@ def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
             "ip_with_MSSQL", marks=pytest.mark.xfail(reason="Not yet implemented")
         ),
         pytest.param(
-            "ip_with_oracle", marks=pytest.mark.xfail(reason="Not yet implemented")
+            "ip_with_oracle",
+            marks=pytest.mark.xfail(reason="Not yet implemented"),
+        ),
+        pytest.param(
+            "ip_with_clickhouse",
+            marks=pytest.mark.xfail(reason="Not yet implemented"),
         ),
     ],
 )
@@ -881,6 +930,7 @@ S"""
         "ip_with_Snowflake",
         "ip_with_MSSQL",
         "ip_with_oracle",
+        "ip_with_clickhouse",
     ],
 )
 def test_results_sets_are_closed(ip_with_dynamic_db, request, test_table_name_dict):
@@ -917,6 +967,7 @@ DROP TABLE my_numbers
         "ip_with_Snowflake",
         "ip_with_MSSQL",
         "ip_with_oracle",
+        "ip_with_clickhouse",
     ],
 )
 @pytest.mark.parametrize(
@@ -1038,6 +1089,11 @@ CREATE_GLOBAL_TEMPORARY_TABLE = (
         ),
         ("ip_with_Snowflake", CREATE_TABLE),
         ("ip_with_Snowflake", CREATE_TEMPORARY_TABLE),
+        pytest.param(
+            "ip_with_clickhouse",
+            CREATE_TABLE,
+            marks=pytest.mark.xfail(reason="Not working yet"),
+        ),
     ],
 )
 def test_autocommit_create_table_single_cell(
@@ -1105,6 +1161,11 @@ SELECT * FROM {__TABLE_NAME__};
         ),
         ("ip_with_Snowflake", CREATE_TABLE),
         ("ip_with_Snowflake", CREATE_TEMPORARY_TABLE),
+        pytest.param(
+            "ip_with_clickhouse",
+            CREATE_TABLE,
+            marks=pytest.mark.xfail(reason="Not working yet"),
+        ),
     ],
 )
 def test_autocommit_create_table_multiple_cells(

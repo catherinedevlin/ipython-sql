@@ -70,6 +70,7 @@ INTEGRATION = [
     # redshift
     "redshift-connector",
     "sqlalchemy-redshift",
+    "clickhouse-sqlalchemy",
 ]
 
 setup(

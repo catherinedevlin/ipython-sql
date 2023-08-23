@@ -127,11 +127,22 @@ def test_integration_cloud(session):
     SQLAlchemy 1.x)
     """
 
-    # TODO: do not require integrationt test dependencies if only running snowflake
+    # TODO: do not require integration test dependencies if only running snowflake
     # tests
     _install(session, integration=True)
-    session.install("snowflake-sqlalchemy", "redshift-connector", "sqlalchemy-redshift")
-    session.run("pytest", "src/tests/integration", "-k", "snowflake or redshift", "-v")
+    session.install(
+        "snowflake-sqlalchemy",
+        "redshift-connector",
+        "sqlalchemy-redshift",
+        "clickhouse-sqlalchemy",
+    )
+    session.run(
+        "pytest",
+        "src/tests/integration",
+        "-k",
+        "snowflake or redshift or clickhouse",
+        "-v",
+    )
 
 
 @nox.session(
@@ -145,6 +156,6 @@ def test_integration(session):
         "pytest",
         "src/tests/integration",
         "-k",
-        "not (snowflake or redshift)",
+        "not (snowflake or redshift or clickhouse)",
         "-v",
     )
