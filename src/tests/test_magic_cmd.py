@@ -9,12 +9,13 @@ from sql.connection import SQLAlchemyConnection
 from sql.store import store
 from sql.inspect import _is_numeric
 from sql.display import Table, Message
+from jupysql_plugin.widgets import ConnectorWidget
 import duckdb
 import sqlite3
 
 
 VALID_COMMANDS_MESSAGE = (
-    "Valid commands are: tables, " "columns, test, profile, explore, snippets"
+    "Valid commands are: tables, columns, test, profile, explore, snippets, connect"
 )
 
 
@@ -761,3 +762,48 @@ def test_delete_invalid_snippet(arg, ip_snippets):
 
     assert excinfo.value.error_type == "UsageError"
     assert str(excinfo.value) == "No such saved snippet found : non_existent_snippet"
+
+
+@pytest.mark.parametrize(
+    "file_content, stored_conns",
+    [
+        (
+            """[conn1]
+drivername = sqlite
+""",
+            [{"name": "conn1", "driver": "sqlite"}],
+        ),
+        (
+            """[conn1]
+drivername = sqlite
+
+[conn2]
+drivername = sqlite
+
+[conn3]
+drivername = duckdb
+""",
+            [
+                {"name": "conn1", "driver": "sqlite"},
+                {"name": "conn2", "driver": "sqlite"},
+                {"name": "conn3", "driver": "duckdb"},
+            ],
+        ),
+        ("", []),
+    ],
+)
+def test_connect_with_connections_ini(tmp_empty, ip_empty, file_content, stored_conns):
+    Path("connections.ini").write_text(file_content)
+    ip_empty.run_cell("%load_ext sql")
+    ip_empty.run_cell("%config SqlMagic.dsn_filename = './connections.ini'")
+    connector_widget = ip_empty.run_cell("%sqlcmd connect").result
+    assert isinstance(connector_widget, ConnectorWidget)
+    assert connector_widget.stored_connections == stored_conns
+
+
+def test_connect_when_no_connections_ini(tmp_empty, ip_empty):
+    ip_empty.run_cell("%load_ext sql")
+    ip_empty.run_cell("%config SqlMagic.dsn_filename = './connections.ini'")
+    connector_widget = ip_empty.run_cell("%sqlcmd connect").result
+    assert isinstance(connector_widget, ConnectorWidget)
+    assert connector_widget.stored_connections == []

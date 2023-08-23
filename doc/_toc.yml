@@ -52,6 +52,7 @@ parts:
     - file: api/python
     - file: api/magic-tables-columns
     - file: api/magic-profile
+    - file: api/magic-connect
     - file: api/plot-legacy
 
   - caption: How-To

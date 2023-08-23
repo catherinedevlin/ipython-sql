@@ -11,6 +11,7 @@ from sql.cmd.test import test
 from sql.cmd.profile import profile
 from sql.cmd.explore import explore
 from sql.cmd.snippets import snippets
+from sql.cmd.connect import connect
 from sql.connection import ConnectionManager
 
 try:
@@ -51,6 +52,7 @@ class SqlCmdMagic(Magics, Configurable):
             "profile",
             "explore",
             "snippets",
+            "connect",
         ]
         COMMANDS_CONNECTION_REQUIRED = [
             "tables",
@@ -109,6 +111,7 @@ class SqlCmdMagic(Magics, Configurable):
             "profile": profile,
             "explore": explore,
             "snippets": snippets,
+            "connect": connect,
         }
 
         cmd = router.get(cmd_name)
