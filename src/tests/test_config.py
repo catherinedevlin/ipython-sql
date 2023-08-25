@@ -109,6 +109,24 @@ drivername = duckdb
     assert ConnectionManager.current.dialect == "duckdb"
 
 
+def test_magic_initialization_when_default_connection_fails(
+    tmp_empty, ip_no_magics, capsys
+):
+    ip_no_magics.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
+
+    Path("connections.ini").write_text(
+        """
+[default]
+drivername = someunknowndriver
+"""
+    )
+
+    load_ipython_extension(ip_no_magics)
+
+    captured = capsys.readouterr()
+    assert "Cannot start default connection" in captured.out
+
+
 def test_magic_initialization_with_no_pyproject(tmp_empty, ip_no_magics):
     load_ipython_extension(ip_no_magics)
 

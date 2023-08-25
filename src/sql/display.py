@@ -72,7 +72,8 @@ class Message:
 
     def __init__(self, message, style=None) -> None:
         self._message = message
-        self._message_html = html.escape(message)
+        # escape html and replace newlines with <br> tags so newlines are displayed
+        self._message_html = html.escape(message).replace("\n\n", "<br>")
         self._style = "" or style
 
     def _repr_html_(self):

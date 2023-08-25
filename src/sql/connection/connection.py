@@ -411,12 +411,21 @@ class ConnectionManager:
         default_url = connections_file.get_default_connection_url()
 
         if default_url is not None:
-            cls.set(
-                default_url,
-                displaycon=False,
-                alias="default",
-                config=config,
-            )
+            try:
+                cls.set(
+                    default_url,
+                    displaycon=False,
+                    alias="default",
+                    config=config,
+                )
+            except Exception as e:
+                # this is executed during the magic initialization, we don't want
+                # to raise an exception here because it would prevent the magic
+                # from being used
+                display.message_warning(
+                    "WARNING: Cannot start default connection from .ini file:"
+                    f"\n\n{str(e)}"
+                )
 
 
 class AbstractConnection(abc.ABC):
