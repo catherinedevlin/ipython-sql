@@ -713,6 +713,12 @@ def load_SqlMagic_configs(ip):
                     f"check that it is valid TOML: {e}"
                 )
                 return
+            if type(e).__name__ == "ModuleNotFoundError":
+                display.message(
+                    "The 'toml' package isn't installed. To load settings from "
+                    "the pyproject.toml file, install with: pip install toml"
+                )
+                return
             else:
                 raise
 
