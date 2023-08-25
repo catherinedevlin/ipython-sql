@@ -1209,6 +1209,46 @@ def test_error_on_invalid_connection_string_duckdb(ip_empty, clean_conns):
     assert invalid_connection_string_duckdb.strip() == str(excinfo.value)
 
 
+@pytest.mark.parametrize(
+    "establish_non_identifier, non_identifier",
+    [
+        (
+            "conn_in_lst = [conn]",
+            "conn_in_lst[0]",
+        ),
+        (
+            "conn_in_dict = {'conn1': conn}",
+            "conn_in_dict['conn1']",
+        ),
+        (
+            """
+class ConnInObj(object):
+    def __init__(self, conn):
+        self.conn1 = conn
+
+conn_in_obj = ConnInObj(conn)
+""",
+            "conn_in_obj.conn1",
+        ),
+    ],
+)
+def test_error_on_passing_non_identifier_to_connect(
+    ip_empty, establish_non_identifier, non_identifier
+):
+    ip_empty.run_cell("import duckdb; conn = duckdb.connect();")
+    ip_empty.run_cell(establish_non_identifier)
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell(f"%sql {non_identifier}")
+
+    assert excinfo.value.error_type == "UsageError"
+    assert (
+        f"'{non_identifier}' is not a valid connection identifier. "
+        "Please pass the variable's name directly, as passing "
+        "object attributes, dictionaries or lists won't work."
+    ) in str(excinfo.value)
+
+
 def test_jupysql_alias():
     assert SqlMagic.magics == {
         "line": {"jupysql": "execute", "sql": "execute"},

@@ -7,6 +7,7 @@ from sqlalchemy.engine import Engine
 from sql import parse, exceptions
 from sql.store import store
 from sql.connection import ConnectionManager, is_pep249_compliant
+from sql.util import validate_nonidentifier_connection
 
 
 class SQLPlotCommand:
@@ -80,6 +81,14 @@ class SQLCommand:
         if self.args.with_:
             final = store.render(self.parsed["sql"], with_=self.args.with_)
             self.parsed["sql"] = str(final)
+
+        if (
+            one_arg
+            and self.sql
+            and not (add_conn or add_alias)
+            and not (self.args.persist_replace or self.args.persist or self.args.append)
+        ):
+            validate_nonidentifier_connection(self.sql.split(" ")[0])
 
     @property
     def sql(self):

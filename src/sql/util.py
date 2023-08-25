@@ -7,6 +7,7 @@ from sql import exceptions, display
 import json
 from pathlib import Path
 from ploomber_core.dependencies import requires
+import ast
 
 try:
     import toml
@@ -527,3 +528,29 @@ def validate_mutually_exclusive_args(arg_names, args):
             f"{pretty_print(specified_args)} are specified. "
             "You can only specify one of them."
         )
+
+
+def validate_nonidentifier_connection(arg):
+    """
+    Raises UsageError if a connection is passed to `%sql/%%sql` through
+    object property, list, or dictionary.
+
+    Parameters
+    ----------
+    arg : str
+        argument to check whether it is a valid connection or not
+    """
+    if not arg.isidentifier() and is_valid_python_code(arg):
+        raise exceptions.UsageError(
+            f"'{arg}' is not a valid connection identifier. "
+            "Please pass the variable's name directly, as passing "
+            "object attributes, dictionaries or lists won't work."
+        )
+
+
+def is_valid_python_code(code):
+    try:
+        ast.parse(code)
+        return True
+    except SyntaxError:
+        return False
