@@ -32,14 +32,18 @@ from sql.parse import (
 )
 from sql.warnings import JupySQLQuotedNamedParametersWarning, JupySQLRollbackPerformed
 from sql import _current
+from sql.connection import error_handling
+
+BASE_DOC_URL = "https://jupysql.ploomber.io/en/latest"
 
 
-PLOOMBER_DOCS_LINK_STR = (
-    "Documentation: https://jupysql.ploomber.io/en/latest/connecting.html"
-)
+PLOOMBER_DOCS_LINK_STR = f"{BASE_DOC_URL}/connecting.html"
+
 IS_SQLALCHEMY_ONE = int(sqlalchemy.__version__.split(".")[0]) == 1
 
 # Check Full List: https://docs.sqlalchemy.org/en/20/dialects
+
+
 MISSING_PACKAGE_LIST_EXCEPT_MATCHERS = {
     # SQLite
     "sqlite": "sqlite",
@@ -67,21 +71,28 @@ MISSING_PACKAGE_LIST_EXCEPT_MATCHERS = {
     # MSSQL
     "pyodbc": "pyodbc",
     "pymssql": "pymssql",
+    # snowflake
+    "snowflake": "snowflake-sqlalchemy",
+}
+
+BASE_DRIVERS_URL = f"{BASE_DOC_URL}/howto/db-drivers.html"
+
+DBNAME_2_DOC_LINK = {
+    "psycopg2": f"{BASE_DRIVERS_URL}#postgresql",
+    "duckdb": f"{BASE_DRIVERS_URL}#duckdb",
 }
 
 DIALECT_NAME_SQLALCHEMY_TO_SQLGLOT_MAPPING = {"postgresql": "postgres", "mssql": "tsql"}
 
 # All the DBs and their respective documentation links
 DB_DOCS_LINKS = {
-    "duckdb": "https://jupysql.ploomber.io/en/latest/integrations/duckdb.html",
-    "mysql": "https://jupysql.ploomber.io/en/latest/integrations/mysql.html",
-    "mssql": "https://jupysql.ploomber.io/en/latest/integrations/mssql.html",
-    "mariadb": "https://jupysql.ploomber.io/en/latest/integrations/mariadb.html",
-    "clickhouse": "https://jupysql.ploomber.io/en/latest/integrations/clickhouse.html",
-    "postgresql": (
-        "https://jupysql.ploomber.io/en/latest/integrations/postgres-connect.html"
-    ),
-    "questdb": "https://jupysql.ploomber.io/en/latest/integrations/questdb.html",
+    "duckdb": f"{BASE_DOC_URL}/integrations/duckdb.html",
+    "mysql": f"{BASE_DOC_URL}/integrations/mysql.html",
+    "mssql": f"{BASE_DOC_URL}/integrations/mssql.html",
+    "mariadb": f"{BASE_DOC_URL}/integrations/mariadb.html",
+    "clickhouse": f"{BASE_DOC_URL}/integrations/clickhouse.html",
+    "postgresql": f"{BASE_DOC_URL}/integrations/postgres-connect.html",
+    "questdb": f"{BASE_DOC_URL}/integrations/questdb.html",
 }
 
 
@@ -125,29 +136,52 @@ class ResultSetCollection:
 
 
 def get_missing_package_suggestion_str(e):
+    """Provide a better error when a user tries to connect to a database but they're
+    missing the database driver
+    """
     suggestion_prefix = "To fix it, "
+
     module_name = None
+
     if isinstance(e, ModuleNotFoundError):
         module_name = extract_module_name_from_ModuleNotFoundError(e)
     elif isinstance(e, NoSuchModuleError):
         module_name = extract_module_name_from_NoSuchModuleError(e)
 
     module_name = module_name.lower()
-    # Excepted
-    for matcher, suggested_package in MISSING_PACKAGE_LIST_EXCEPT_MATCHERS.items():
-        if matcher == module_name:
-            return suggestion_prefix + "try to install package: " + suggested_package
-    # Closely matched
-    close_matches = difflib.get_close_matches(
-        module_name, MISSING_PACKAGE_LIST_EXCEPT_MATCHERS.keys()
-    )
-    if close_matches:
-        return f'Perhaps you meant to use driver the dialect: "{close_matches[0]}"'
-    # Not found
-    return (
+
+    error_message = (
         suggestion_prefix + "make sure you are using correct driver name:\n"
         "Ref: https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls"
     )
+
+    # Exact match
+    suggested_package = MISSING_PACKAGE_LIST_EXCEPT_MATCHERS.get(module_name)
+
+    if suggested_package:
+        error_message = (
+            suggestion_prefix
+            + "run this in your notebook: "
+            + error_handling.install_command(suggested_package)
+        )
+    else:
+        # Closely matched
+        close_matches = difflib.get_close_matches(
+            module_name, MISSING_PACKAGE_LIST_EXCEPT_MATCHERS.keys()
+        )
+
+        if close_matches:
+            error_message = (
+                f'Perhaps you meant to use driver the dialect: "{close_matches[0]}"'
+            )
+
+    error_suffix = (
+        DBNAME_2_DOC_LINK.get(module_name)
+        if DBNAME_2_DOC_LINK.get(module_name)
+        else PLOOMBER_DOCS_LINK_STR
+    )
+
+    return error_message + "\n\nFor more details, see: " + error_suffix
 
 
 def rough_dict_get(dct, sought, default=None):
@@ -385,13 +419,7 @@ class ConnectionManager:
         except (ModuleNotFoundError, NoSuchModuleError) as e:
             suggestion_str = get_missing_package_suggestion_str(e)
             raise exceptions.MissingPackageError(
-                "\n\n".join(
-                    [
-                        str(e),
-                        suggestion_str,
-                        PLOOMBER_DOCS_LINK_STR,
-                    ]
-                )
+                "\n\n".join([str(e), suggestion_str])
             ) from e
         except Exception as e:
             raise _error_invalid_connection_info(e, connect_str) from e
@@ -1099,7 +1127,7 @@ def _suggest_fix(env_var, connect_str=None):
     if len(options) >= 3:
         options.insert(-1, "OR")
 
-    options.append(PLOOMBER_DOCS_LINK_STR)
+    options.append(f"For more details, see: {PLOOMBER_DOCS_LINK_STR}")
 
     return "\n\n".join(options)
 

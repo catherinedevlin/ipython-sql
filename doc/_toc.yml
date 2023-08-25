@@ -37,11 +37,11 @@ parts:
       - file: integrations/mariadb
       - file: integrations/clickhouse
       - file: integrations/mindsdb
-      - file: integrations/compatibility
       - file: integrations/questdb
       - file: integrations/oracle
       - file: integrations/trinodb
       - file: integrations/duckdb-native
+      - file: integrations/compatibility
 
   - caption: API Reference
     chapters:
@@ -66,6 +66,7 @@ parts:
     - file: howto/py-scripts
     - file: howto/interactive
     - file: howto/testing-columns
+    - file: howto/db-drivers
 
   - caption: Tutorials
     chapters:

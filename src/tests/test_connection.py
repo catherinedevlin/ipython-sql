@@ -13,6 +13,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy import exc
 
+from sql.connection import connection as connection_module
 import sql.connection
 from sql.connection import (
     SQLAlchemyConnection,
@@ -23,6 +24,7 @@ from sql.connection import (
     ResultSetCollection,
 )
 from sql.warnings import JupySQLRollbackPerformed
+from sql.connection import error_handling
 
 
 @pytest.fixture
@@ -241,41 +243,139 @@ def test_missing_duckdb_dependencies(cleanup, monkeypatch):
 
 
 @pytest.mark.parametrize(
-    "missing_pkg, except_missing_pkg_suggestion, connect_str",
+    "connect_str, pkg_missing, pkg_in_install_command",
     [
         # MySQL + MariaDB
-        ["pymysql", "pymysql", "mysql+pymysql://"],
-        ["mysqlclient", "mysqlclient", "mysql+mysqldb://"],
-        ["mariadb", "mariadb", "mariadb+mariadbconnector://"],
-        ["mysql-connector-python", "mysql-connector-python", "mysql+mysqlconnector://"],
-        ["asyncmy", "asyncmy", "mysql+asyncmy://"],
-        ["aiomysql", "aiomysql", "mysql+aiomysql://"],
-        ["cymysql", "cymysql", "mysql+cymysql://"],
-        ["pyodbc", "pyodbc", "mysql+pyodbc://"],
+        ("mysql+pymysql://", "pymysql", "pymysql"),
+        ("mysql+mysqldb://", "mysqlclient", "mysqlclient"),
+        ("mariadb+mariadbconnector://", "mariadb", "mariadb"),
+        ("mysql+mysqlconnector://", "mysql-connector-python", "mysql-connector-python"),
+        ("mysql+asyncmy://", "asyncmy", "asyncmy"),
+        ("mysql+aiomysql://", "aiomysql", "aiomysql"),
+        ("mysql+cymysql://", "cymysql", "cymysql"),
+        ("mysql+pyodbc://", "pyodbc", "pyodbc"),
         # PostgreSQL
-        ["psycopg2", "psycopg2", "postgresql+psycopg2://"],
-        ["psycopg", "psycopg", "postgresql+psycopg://"],
-        ["pg8000", "pg8000", "postgresql+pg8000://"],
-        ["asyncpg", "asyncpg", "postgresql+asyncpg://"],
-        ["psycopg2cffi", "psycopg2cffi", "postgresql+psycopg2cffi://"],
+        ("postgresql://", "psycopg2", "psycopg2"),
+        ("postgresql+psycopg2://", "psycopg2", "psycopg2"),
+        ("postgresql+psycopg://", "psycopg", "psycopg"),
+        ("postgresql+pg8000://", "pg8000", "pg8000"),
+        ("postgresql+asyncpg://", "asyncpg", "asyncpg"),
+        ("postgresql+psycopg2cffi://", "psycopg2cffi", "psycopg2cffi"),
         # Oracle
-        ["cx_oracle", "cx_oracle", "oracle+cx_oracle://"],
-        ["oracledb", "oracledb", "oracle+oracledb://"],
+        ("oracle+cx_oracle://", "cx_oracle", "cx_oracle"),
+        ("oracle+oracledb://", "oracledb", "oracledb"),
         # MSSQL
-        ["pyodbc", "pyodbc", "mssql+pyodbc://"],
-        ["pymssql", "pymssql", "mssql+pymssql://"],
+        ("mssql+pyodbc://", "pyodbc", "pyodbc"),
+        ("mssql+pymssql://", "pymssql", "pymssql"),
     ],
 )
-def test_missing_driver(
-    missing_pkg, except_missing_pkg_suggestion, connect_str, monkeypatch
+def test_error_when_missing_driver(
+    connect_str, pkg_missing, pkg_in_install_command, monkeypatch
 ):
+    # psycopg2 returns %conda install if conda is installed
+    monkeypatch.setattr(error_handling, "_CONDA_INSTALLED", False)
+
+    with patch.dict(sys.modules):
+        sys.modules[pkg_missing] = None
+
+        with pytest.raises(UsageError) as excinfo:
+            ConnectionManager.from_connect_str(connect_str)
+
+    assert excinfo.value.error_type == "MissingPackageError"
+    expected = f"run this in your notebook: %pip install {pkg_in_install_command}"
+    assert expected in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "connect_str, dialect, pkg_in_install_command",
+    [
+        ("duckdb://", "duckdb", "duckdb-engine"),
+        ("snowflake://", "snowflake", "snowflake-sqlalchemy"),
+    ],
+)
+def test_error_when_cannot_load_plugin(
+    connect_str, dialect, pkg_in_install_command, monkeypatch
+):
+    mock = Mock(
+        side_effect=exc.NoSuchModuleError(
+            f"Can't load plugin: sqlalchemy.dialects:{dialect}"
+        )
+    )
+    monkeypatch.setattr(connection_module.sqlalchemy, "create_engine", mock)
+
+    with pytest.raises(UsageError) as excinfo:
+        ConnectionManager.from_connect_str(connect_str)
+
+    assert excinfo.value.error_type == "MissingPackageError"
+    expected = f"run this in your notebook: %pip install {pkg_in_install_command}"
+    assert expected in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "missing_pkg, except_missing_pkg_suggestion, connect_str",
+    [
+        ("psycopg2", "psycopg2", "postgresql+psycopg2://"),
+    ],
+)
+def test_error_when_missing_driver_with_conda(
+    monkeypatch, missing_pkg, except_missing_pkg_suggestion, connect_str
+):
+    # psycopg2 returns %conda install if conda is installed
+    monkeypatch.setattr(error_handling, "_CONDA_INSTALLED", True)
+
     with patch.dict(sys.modules):
         sys.modules[missing_pkg] = None
+
         with pytest.raises(UsageError) as excinfo:
             ConnectionManager.from_connect_str(connect_str)
 
         assert excinfo.value.error_type == "MissingPackageError"
-        assert "try to install package: " + missing_pkg in str(excinfo.value)
+        expected = f"run this in your notebook: %conda install {missing_pkg}"
+        assert expected in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "missing_pkg, section_name, connect_str",
+    [
+        ("psycopg2", "postgresql", "postgresql+psycopg2://"),
+    ],
+)
+def test_error_shows_link_to_installation_instructions_when_missing_package(
+    monkeypatch, missing_pkg, section_name, connect_str
+):
+    with patch.dict(sys.modules):
+        sys.modules[missing_pkg] = None
+
+        with pytest.raises(UsageError) as excinfo:
+            ConnectionManager.from_connect_str(connect_str)
+
+        assert excinfo.value.error_type == "MissingPackageError"
+        expected = f"howto/db-drivers.html#{section_name}"
+        assert expected in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "missing_pkg, dialect, connect_str",
+    [
+        ("duckdb_engine", "duckdb", "duckdb://"),
+    ],
+)
+def test_error_shows_link_to_installation_instructions_when_missing_dialect(
+    monkeypatch, missing_pkg, dialect, connect_str
+):
+    mock = Mock(
+        side_effect=exc.NoSuchModuleError(
+            f"Can't load plugin: sqlalchemy.dialects:{dialect}"
+        )
+    )
+    monkeypatch.setattr(connection_module.sqlalchemy, "create_engine", mock)
+
+    with pytest.raises(UsageError) as excinfo:
+        ConnectionManager.from_connect_str(connect_str)
+
+    assert excinfo.value.error_type == "MissingPackageError"
+    expected = f"howto/db-drivers.html#{dialect}"
+    assert expected in str(excinfo.value)
 
 
 def test_get_connections():

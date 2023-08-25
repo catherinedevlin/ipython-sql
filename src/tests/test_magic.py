@@ -1125,7 +1125,7 @@ OR
 
 Set the environment variable $DATABASE_URL
 
-{PLOOMBER_DOCS_LINK_STR}
+For more details, see: {PLOOMBER_DOCS_LINK_STR}
 {COMMUNITY}
 """
 
@@ -1143,7 +1143,7 @@ Can't load plugin: sqlalchemy.dialects:something
 To fix it, make sure you are using correct driver name:
 Ref: https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls
 
-{PLOOMBER_DOCS_LINK_STR}
+For more details, see: {PLOOMBER_DOCS_LINK_STR}
 {COMMUNITY}
 """  # noqa
 
@@ -1169,7 +1169,7 @@ Can't load plugin: sqlalchemy.dialects:sqlit
 
 Perhaps you meant to use driver the dialect: "sqlite"
 
-{PLOOMBER_DOCS_LINK_STR}
+For more details, see: {PLOOMBER_DOCS_LINK_STR}
 {COMMUNITY}
 """  # noqa
 
@@ -1197,7 +1197,7 @@ To fix it:
 Pass a valid connection string:
     Example: %sql postgresql://username:password@hostname/dbname
 
-{PLOOMBER_DOCS_LINK_STR}
+For more details, see: {PLOOMBER_DOCS_LINK_STR}
 {COMMUNITY}
 """  # noqa
 

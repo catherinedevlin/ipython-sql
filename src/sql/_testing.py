@@ -1,3 +1,4 @@
+import argparse
 import os
 from contextlib import contextmanager
 import sys
@@ -287,11 +288,16 @@ def get_docker_client():
 
 @contextmanager
 @requires(["docker", "dockerctx"])
-def postgres(is_bypass_init=False):
+def postgres(is_bypass_init=False, print_credentials=False):
     if is_bypass_init:
         yield None
         return
+
     db_config = DatabaseConfigHelper.get_database_config("postgreSQL")
+
+    if print_credentials:
+        print(db_config)
+
     try:
         client = get_docker_client()
         container = client.containers.get(db_config["docker_ct"]["name"])
@@ -320,11 +326,16 @@ def postgres(is_bypass_init=False):
 
 @contextmanager
 @requires(["docker", "dockerctx"])
-def mysql(is_bypass_init=False):
+def mysql(is_bypass_init=False, print_credentials=False):
     if is_bypass_init:
         yield None
         return
+
     db_config = DatabaseConfigHelper.get_database_config("mySQL")
+
+    if print_credentials:
+        print(db_config)
+
     try:
         client = get_docker_client()
         container = client.containers.get(db_config["docker_ct"]["name"])
@@ -361,11 +372,16 @@ def mysql(is_bypass_init=False):
 
 @contextmanager
 @requires(["docker", "dockerctx"])
-def mariadb(is_bypass_init=False):
+def mariadb(is_bypass_init=False, print_credentials=False):
     if is_bypass_init:
         yield None
         return
+
     db_config = DatabaseConfigHelper.get_database_config("mariaDB")
+
+    if print_credentials:
+        print(db_config)
+
     try:
         client = get_docker_client()
         curr = client.containers.get(db_config["docker_ct"]["name"])
@@ -402,11 +418,16 @@ def mariadb(is_bypass_init=False):
 
 @contextmanager
 @requires(["docker", "dockerctx"])
-def mssql(is_bypass_init=False):
+def mssql(is_bypass_init=False, print_credentials=False):
     if is_bypass_init:
         yield None
         return
+
     db_config = DatabaseConfigHelper.get_database_config("MSSQL")
+
+    if print_credentials:
+        print(db_config)
+
     try:
         client = get_docker_client()
         curr = client.containers.get(db_config["docker_ct"]["name"])
@@ -436,11 +457,16 @@ def mssql(is_bypass_init=False):
 
 @contextmanager
 @requires(["docker", "dockerctx"])
-def oracle(is_bypass_init=False):
+def oracle(is_bypass_init=False, print_credentials=False):
     if is_bypass_init:
         yield None
         return
+
     db_config = DatabaseConfigHelper.get_database_config("oracle")
+
+    if print_credentials:
+        print(db_config)
+
     try:
         client = get_docker_client()
         curr = client.containers.get(db_config["docker_ct"]["name"])
@@ -464,11 +490,16 @@ def oracle(is_bypass_init=False):
 
 @contextmanager
 @requires(["docker", "dockerctx"])
-def clickhouse(is_bypass_init=False):
+def clickhouse(is_bypass_init=False, print_credentials=False):
     if is_bypass_init:
         yield None
         return
+
     db_config = DatabaseConfigHelper.get_database_config("clickhouse")
+
+    if print_credentials:
+        print(db_config)
+
     try:
         client = get_docker_client()
         curr = client.containers.get(db_config["docker_ct"]["name"])
@@ -490,9 +521,28 @@ def clickhouse(is_bypass_init=False):
 
 
 def main():
-    print("Starting test containers...")
-    with postgres(), mysql(), mariadb(), mssql(), oracle(), clickhouse():
+    available_databases = [
+        "postgres",
+        "mysql",
+        "mariadb",
+        "mssql",
+        "oracle",
+        "clickhouse",
+    ]
+
+    parser = argparse.ArgumentParser(description="Start database containers")
+    parser.add_argument(
+        "database",
+        choices=available_databases,
+        help="database to start",
+    )
+
+    args = parser.parse_args()
+    fn = globals()[args.database]
+
+    with fn(print_credentials=True):
         print("Press CTRL+C to exit")
+
         try:
             while True:
                 time.sleep(5)
