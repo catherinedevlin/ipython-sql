@@ -535,12 +535,7 @@ def test_connection_args_enforce_json(ip):
     with pytest.raises(UsageError) as excinfo:
         ip.run_cell('%sql --connection_arguments {"badlyformed":true')
 
-    expected_message = (
-        "Expecting property name enclosed in double quotes"
-        if platform.system() == "Windows"
-        else "Expecting ',' delimiter"
-    )
-
+    expected_message = "Expecting ',' delimiter"
     assert expected_message in str(excinfo.value)
 
 
@@ -1829,3 +1824,34 @@ def test_error_when_ini_file_is_corrupted(
 
     assert error_type in str(excinfo.value)
     assert error_detail in str(excinfo.value)
+
+
+def test_spaces_in_variable_name(ip_empty):
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql create table 'table with spaces' (n INT)")
+    ip_empty.run_cell('%sql create table "table with spaces2" (n INT)')
+    tables_result = ip_empty.run_cell("%sqlcmd tables").result
+    assert "table with spaces" in str(tables_result)
+    assert "table with spaces2" in str(tables_result)
+
+    ip_empty.run_cell("%sql INSERT INTO 'table with spaces' VALUES (1)")
+    ip_empty.run_cell('%sql INSERT INTO "table with spaces" VALUES (2)')
+    ip_empty.run_cell(
+        """%%sql
+INSERT INTO 'table with spaces' VALUES (3)
+"""
+    )
+    ip_empty.run_cell(
+        """%%sql
+INSERT INTO "table with spaces" VALUES (4)
+"""
+    )
+    select_result_with_single_quote = ip_empty.run_cell(
+        "%sql SELECT * FROM 'table with spaces'"
+    ).result
+    assert select_result_with_single_quote.dict() == {"n": (1, 2, 3, 4)}
+
+    select_result_with_double_quote = ip_empty.run_cell(
+        '%sql SELECT * FROM "table with spaces"'
+    ).result
+    assert select_result_with_double_quote.dict() == {"n": (1, 2, 3, 4)}
