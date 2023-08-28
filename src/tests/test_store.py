@@ -1,7 +1,8 @@
 import pytest
 from sql.connection import SQLAlchemyConnection, ConnectionManager
 from IPython.core.error import UsageError
-from sql.store import SQLStore, SQLQuery
+from sql import store
+from sql import store_utils
 from sqlalchemy import create_engine
 
 
@@ -10,16 +11,44 @@ def setup_no_current_connect(monkeypatch):
     monkeypatch.setattr(ConnectionManager, "current", None)
 
 
+@pytest.fixture
+def ip_snippets(ip):
+    ip.run_cell(
+        """
+%%sql --save a --no-execute
+SELECT *
+FROM number_table
+"""
+    )
+    ip.run_cell(
+        """
+            %%sql --save b --no-execute
+            SELECT *
+            FROM a
+            WHERE x > 5
+            """
+    )
+    ip.run_cell(
+        """
+            %%sql --save c --no-execute
+            SELECT *
+            FROM a
+            WHERE x < 5
+            """
+    )
+    yield ip
+
+
 def test_sqlstore_setitem():
-    store = SQLStore()
-    store["a"] = "SELECT * FROM a"
-    assert store["a"] == "SELECT * FROM a"
+    sql_store = store.SQLStore()
+    sql_store["a"] = "SELECT * FROM a"
+    assert sql_store["a"] == "SELECT * FROM a"
 
 
 def test_sqlstore_getitem_success():
-    store = SQLStore()
-    store["first"] = "SELECT * FROM a"
-    assert store["first"] == "SELECT * FROM a"
+    sql_store = store.SQLStore()
+    sql_store["first"] = "SELECT * FROM a"
+    assert sql_store["first"] == "SELECT * FROM a"
 
 
 @pytest.mark.parametrize(
@@ -43,23 +72,23 @@ def test_sqlstore_getitem_success():
     ],
 )
 def test_sqlstore_getitem(key, expected_error):
-    store = SQLStore()
-    store["first"] = "SELECT * FROM a"
+    sql_store = store.SQLStore()
+    sql_store["first"] = "SELECT * FROM a"
 
     with pytest.raises(UsageError) as excinfo:
-        store[key]
+        sql_store[key]
 
     assert excinfo.value.error_type == "UsageError"
     assert str(excinfo.value) == expected_error
 
 
 def test_sqlstore_getitem_with_multiple_existing_snippets():
-    store = SQLStore()
-    store["first"] = "SELECT * FROM a"
-    store["first2"] = "SELECT * FROM a"
+    sql_store = store.SQLStore()
+    sql_store["first"] = "SELECT * FROM a"
+    sql_store["first2"] = "SELECT * FROM a"
 
     with pytest.raises(UsageError) as excinfo:
-        store["second"]
+        sql_store["second"]
 
     assert excinfo.value.error_type == "UsageError"
     assert (
@@ -70,19 +99,19 @@ def test_sqlstore_getitem_with_multiple_existing_snippets():
 
 
 def test_hyphen():
-    store = SQLStore()
+    sql_store = store.SQLStore()
 
     with pytest.raises(UsageError) as excinfo:
-        SQLQuery(store, "SELECT * FROM a", with_=["first-"])
+        store.SQLQuery(sql_store, "SELECT * FROM a", with_=["first-"])
 
     assert "Using hyphens is not allowed." in str(excinfo.value)
 
 
 def test_key():
-    store = SQLStore()
+    sql_store = store.SQLStore()
 
     with pytest.raises(UsageError) as excinfo:
-        store.store("first", "SELECT * FROM first WHERE x > 20", with_=["first"])
+        sql_store.store("first", "SELECT * FROM first WHERE x > 20", with_=["first"])
 
     assert "cannot appear in with_ argument" in str(excinfo.value)
 
@@ -128,13 +157,15 @@ def test_serial(with_, is_dialect_support_backtick, monkeypatch):
     )
     identifier = "`" if is_dialect_support_backtick else ""
 
-    store = SQLStore()
-    store.store("first", "SELECT * FROM a WHERE x > 10")
-    store.store("second", "SELECT * FROM first WHERE x > 20", with_=["first"])
+    sql_store = store.SQLStore()
+    sql_store.store("first", "SELECT * FROM a WHERE x > 10")
+    sql_store.store("second", "SELECT * FROM first WHERE x > 20", with_=["first"])
 
-    store.store("third", "SELECT * FROM second WHERE x > 30", with_=["second", "first"])
+    sql_store.store(
+        "third", "SELECT * FROM second WHERE x > 30", with_=["second", "first"]
+    )
 
-    result = store.render("SELECT * FROM third", with_=with_)
+    result = sql_store.render("SELECT * FROM third", with_=with_)
 
     assert (
         str(result)
@@ -172,14 +203,16 @@ def test_branch_root(is_dialect_support_backtick, monkeypatch):
     )
     identifier = "`" if is_dialect_support_backtick else ""
 
-    store = SQLStore()
-    store.store("first_a", "SELECT * FROM a WHERE x > 10")
-    store.store("second_a", "SELECT * FROM first_a WHERE x > 20", with_=["first_a"])
-    store.store("third_a", "SELECT * FROM second_a WHERE x > 30", with_=["second_a"])
+    sql_store = store.SQLStore()
+    sql_store.store("first_a", "SELECT * FROM a WHERE x > 10")
+    sql_store.store("second_a", "SELECT * FROM first_a WHERE x > 20", with_=["first_a"])
+    sql_store.store(
+        "third_a", "SELECT * FROM second_a WHERE x > 30", with_=["second_a"]
+    )
 
-    store.store("first_b", "SELECT * FROM b WHERE y > 10")
+    sql_store.store("first_b", "SELECT * FROM b WHERE y > 10")
 
-    result = store.render("SELECT * FROM third", with_=["third_a", "first_b"])
+    result = sql_store.render("SELECT * FROM third", with_=["third_a", "first_b"])
     assert (
         str(result)
         == "WITH {0}first_a{0} AS (SELECT * FROM a WHERE x > 10), \
@@ -218,15 +251,17 @@ def test_branch_root_reverse_final_with(is_dialect_support_backtick, monkeypatch
     )
     identifier = "`" if is_dialect_support_backtick else ""
 
-    store = SQLStore()
+    sql_store = store.SQLStore()
 
-    store.store("first_a", "SELECT * FROM a WHERE x > 10")
-    store.store("second_a", "SELECT * FROM first_a WHERE x > 20", with_=["first_a"])
-    store.store("third_a", "SELECT * FROM second_a WHERE x > 30", with_=["second_a"])
+    sql_store.store("first_a", "SELECT * FROM a WHERE x > 10")
+    sql_store.store("second_a", "SELECT * FROM first_a WHERE x > 20", with_=["first_a"])
+    sql_store.store(
+        "third_a", "SELECT * FROM second_a WHERE x > 30", with_=["second_a"]
+    )
 
-    store.store("first_b", "SELECT * FROM b WHERE y > 10")
+    sql_store.store("first_b", "SELECT * FROM b WHERE y > 10")
 
-    result = store.render("SELECT * FROM third", with_=["first_b", "third_a"])
+    result = sql_store.render("SELECT * FROM third", with_=["first_b", "third_a"])
     assert (
         str(result)
         == "WITH {0}first_a{0} AS (SELECT * FROM a WHERE x > 10), \
@@ -263,15 +298,19 @@ def test_branch(is_dialect_support_backtick, monkeypatch):
     )
     identifier = "`" if is_dialect_support_backtick else ""
 
-    store = SQLStore()
+    sql_store = store.SQLStore()
 
-    store.store("first_a", "SELECT * FROM a WHERE x > 10")
-    store.store("second_a", "SELECT * FROM first_a WHERE x > 20", with_=["first_a"])
-    store.store("third_a", "SELECT * FROM second_a WHERE x > 30", with_=["second_a"])
+    sql_store.store("first_a", "SELECT * FROM a WHERE x > 10")
+    sql_store.store("second_a", "SELECT * FROM first_a WHERE x > 20", with_=["first_a"])
+    sql_store.store(
+        "third_a", "SELECT * FROM second_a WHERE x > 30", with_=["second_a"]
+    )
 
-    store.store("first_b", "SELECT * FROM second_a WHERE y > 10", with_=["second_a"])
+    sql_store.store(
+        "first_b", "SELECT * FROM second_a WHERE y > 10", with_=["second_a"]
+    )
 
-    result = store.render("SELECT * FROM third", with_=["first_b", "third_a"])
+    result = sql_store.render("SELECT * FROM third", with_=["first_b", "third_a"])
     assert (
         str(result)
         == "WITH {0}first_a{0} AS (SELECT * FROM a WHERE x > 10), \
@@ -281,3 +320,28 @@ def test_branch(is_dialect_support_backtick, monkeypatch):
             identifier
         )
     )
+
+
+def test_get_all_keys(ip_snippets):
+    keys = store_utils.get_all_keys()
+    assert "a" in keys
+    assert "b" in keys
+    assert "c" in keys
+
+
+def test_get_key_dependents(ip_snippets):
+    keys = store_utils.get_key_dependents("a")
+    assert "b" in keys
+    assert "c" in keys
+
+
+def test_del_saved_key(ip_snippets):
+    keys = store_utils.del_saved_key("c")
+    assert "a" in keys
+    assert "b" in keys
+
+
+def test_del_saved_key_error(ip_snippets):
+    with pytest.raises(UsageError) as excinfo:
+        store_utils.del_saved_key("non_existent_key")
+    assert "No such saved snippet found : non_existent_key" in str(excinfo.value)

@@ -4,7 +4,7 @@ import sqlalchemy.exc
 from sqlalchemy.exc import OperationalError
 from IPython.core.error import UsageError
 
-from sql.error_message import ORIGINAL_ERROR, CTE_MSG
+from sql.error_handler import ORIGINAL_ERROR, CTE_MSG
 from ploomber_core.exceptions import COMMUNITY
 
 

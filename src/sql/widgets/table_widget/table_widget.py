@@ -2,12 +2,8 @@ from sql.connection import ConnectionManager
 from IPython import get_ipython
 import math
 import time
-from sql.util import (
-    fetch_sql_with_pagination,
-    parse_sql_results_to_json,
-    is_table_exists,
-)
-
+from sql.util import parse_sql_results_to_json
+from sql.inspect import fetch_sql_with_pagination, is_table_exists
 from sql.widgets import utils
 from sql.telemetry import telemetry
 

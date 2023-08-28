@@ -27,7 +27,6 @@ from traitlets import Bool, Int, TraitError, Unicode, Dict, observe, validate
 
 import warnings
 import shlex
-from difflib import get_close_matches
 import sql.connection
 import sql.parse
 from sql.run.run import run_statements
@@ -38,10 +37,9 @@ from sql.command import SQLCommand
 from sql.magic_plot import SqlPlotMagic
 from sql.magic_cmd import SqlCmdMagic
 from sql._patch import patch_ipython_usage_error
-from sql import query_util, util
-from sql.util import get_suggestions_message, pretty_print
-from sql.exceptions import RuntimeError
-from sql.error_message import detail
+from sql import util
+from sql.util import pretty_print
+from sql.error_handler import handle_exception
 from sql._current import _set_sql_magic
 
 
@@ -249,33 +247,6 @@ class SqlMagic(Magics, Configurable):
                     raise exceptions.UsageError(
                         "Unrecognized argument(s): {}".format(check_argument)
                     )
-
-    def _error_handling(self, e, query):
-        detailed_msg = detail(e)
-        if self.short_errors:
-            if detailed_msg is not None:
-                raise exceptions.RuntimeError(detailed_msg) from e
-                # TODO: move to error_messages.py
-                # Added here due to circular dependency issue (#545)
-            elif "no such table" in str(e):
-                tables = query_util.extract_tables_from_query(query)
-                for table in tables:
-                    suggestions = get_close_matches(table, list(self._store))
-                    err_message = f"There is no table with name {table!r}."
-                    # with_message = "Alternatively, please specify table
-                    # name using --with argument"
-                    if len(suggestions) > 0:
-                        suggestions_message = get_suggestions_message(suggestions)
-                        raise exceptions.TableNotFoundError(
-                            f"{err_message}{suggestions_message}"
-                        ) from e
-
-            raise RuntimeError(str(e)) from e
-        else:
-            if detailed_msg is not None:
-                display.message(detailed_msg)
-            e.modify_exception = True
-            raise e
 
     @no_var_expand
     @needs_local_scope
@@ -612,13 +583,10 @@ class SqlMagic(Magics, Configurable):
             StatementError,
         ) as e:
             # Sqlite apparently return all errors as OperationalError :/
-            self._error_handling(e, command.sql)
+            handle_exception(e, command.sql, self.short_errors)
         except Exception as e:
-            # handle DuckDB exceptions
-            if "Catalog Error" in str(e):
-                self._error_handling(e, command.sql)
-            else:
-                raise e
+            # Handle non SQLAlchemy errors
+            handle_exception(e, command.sql, self.short_errors)
 
     legal_sql_identifier = re.compile(r"^[A-Za-z0-9#_$]+")
 

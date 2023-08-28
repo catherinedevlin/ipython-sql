@@ -6,6 +6,7 @@ from sql.telemetry import telemetry
 from sql import exceptions
 import math
 from sql import util
+from sql.store_utils import get_all_keys
 from IPython.core.display import HTML
 import uuid
 
@@ -172,7 +173,7 @@ class Columns(DatabaseInspection):
     """
 
     def __init__(self, name, schema, conn=None) -> None:
-        util.is_table_exists(name, schema)
+        is_table_exists(name, schema)
 
         inspector = _get_inspector(conn)
 
@@ -230,7 +231,7 @@ class TableDescription(DatabaseInspection):
     """
 
     def __init__(self, table_name, schema=None) -> None:
-        util.is_table_exists(table_name, schema)
+        is_table_exists(table_name, schema)
 
         if schema:
             table_name = f"{schema}.{table_name}"
@@ -501,3 +502,171 @@ def get_schema_names(conn=None):
     """Get list of schema names for a given connection"""
     inspector = _get_inspector(conn)
     return inspector.get_schema_names()
+
+
+def support_only_sql_alchemy_connection(command):
+    """
+    Throws a sql.exceptions.RuntimeError if connection is not SQLAlchemy
+    """
+    if ConnectionManager.current.is_dbapi_connection:
+        raise exceptions.RuntimeError(
+            f"{command} is only supported with SQLAlchemy "
+            "connections, not with DBAPI connections"
+        )
+
+
+def _is_table_exists(table: str, conn) -> bool:
+    """
+    Runs a SQL query to check if table exists
+    """
+    if not conn:
+        conn = ConnectionManager.current
+
+    identifiers = conn.get_curr_identifiers()
+
+    for iden in identifiers:
+        if isinstance(iden, tuple):
+            query = "SELECT * FROM {0}{1}{2} WHERE 1=0".format(iden[0], table, iden[1])
+        else:
+            query = "SELECT * FROM {0}{1}{0} WHERE 1=0".format(iden, table)
+        try:
+            conn.execute(query)
+            return True
+        except Exception:
+            pass
+
+    return False
+
+
+def _get_list_of_existing_tables() -> list:
+    """
+    Returns a list of table names for a given connection
+    """
+    tables = []
+    tables_rows = get_table_names()._table
+    for row in tables_rows:
+        table_name = row.get_string(fields=["Name"], border=False, header=False).strip()
+
+        tables.append(table_name)
+    return tables
+
+
+def is_table_exists(
+    table: str,
+    schema: str = None,
+    ignore_error: bool = False,
+    conn=None,
+) -> bool:
+    """
+    Checks if a given table exists for a given connection
+
+    Parameters
+    ----------
+    table: str
+        Table name
+
+    schema: str, default None
+        Schema name
+
+    ignore_error: bool, default False
+        Avoid raising a ValueError
+    """
+    if table is None:
+        if ignore_error:
+            return False
+        else:
+            raise exceptions.UsageError("Table cannot be None")
+    if not ConnectionManager.current:
+        raise exceptions.RuntimeError("No active connection")
+    if not conn:
+        conn = ConnectionManager.current
+
+    table = util.strip_multiple_chars(table, "\"'")
+
+    if schema:
+        table_ = f"{schema}.{table}"
+    else:
+        table_ = table
+
+    _is_exist = _is_table_exists(table_, conn)
+
+    if not _is_exist:
+        if not ignore_error:
+            try_find_suggestions = not conn.is_dbapi_connection
+            expected = []
+            existing_schemas = []
+            existing_tables = []
+
+            if try_find_suggestions:
+                existing_schemas = get_schema_names()
+
+            if schema and schema not in existing_schemas:
+                expected = existing_schemas
+                invalid_input = schema
+            else:
+                if try_find_suggestions:
+                    existing_tables = _get_list_of_existing_tables()
+
+                expected = existing_tables
+                invalid_input = table
+
+            if schema:
+                err_message = (
+                    f"There is no table with name {table!r} in schema {schema!r}"
+                )
+            else:
+                err_message = (
+                    f"There is no table with name {table!r} in the default schema"
+                )
+
+            if table not in get_all_keys():
+                suggestions = util.find_close_match(invalid_input, expected)
+                suggestions_store = util.find_close_match(invalid_input, get_all_keys())
+                suggestions.extend(suggestions_store)
+                suggestions_message = util.get_suggestions_message(suggestions)
+                if suggestions_message:
+                    err_message = f"{err_message}{suggestions_message}"
+            raise exceptions.TableNotFoundError(err_message)
+
+    return _is_exist
+
+
+def fetch_sql_with_pagination(
+    table, offset, n_rows, sort_column=None, sort_order=None
+) -> tuple:
+    """
+    Returns next n_rows and columns from table starting at the offset
+
+    Parameters
+    ----------
+    table : str
+        Table name
+
+    offset : int
+        Specifies the number of rows to skip before
+        it starts to return rows from the query expression.
+
+    n_rows : int
+        Number of rows to return.
+
+    sort_column : str, default None
+        Sort by column
+
+    sort_order : 'DESC' or 'ASC', default None
+        Order list
+    """
+    is_table_exists(table)
+
+    order_by = "" if not sort_column else f"ORDER BY {sort_column} {sort_order}"
+
+    query = f"""
+    SELECT * FROM {table} {order_by}
+    OFFSET {offset} ROWS FETCH NEXT {n_rows} ROWS ONLY"""
+
+    rows = ConnectionManager.current.execute(query).fetchall()
+
+    columns = ConnectionManager.current.raw_execute(
+        f"SELECT * FROM {table} WHERE 1=0"
+    ).keys()
+
+    return rows, columns

@@ -1,13 +1,14 @@
 import warnings
-from sql import inspect
 import difflib
-from sql.connection import ConnectionManager
-from sql.store import store, _get_dependents_for_key
 from sql import exceptions, display
 import json
 from pathlib import Path
+from sqlglot import parse_one, exp
+from sqlglot.errors import ParseError
+from sqlalchemy.exc import SQLAlchemyError
 from ploomber_core.dependencies import requires
 import ast
+
 
 try:
     import toml
@@ -64,103 +65,8 @@ def get_suggestions_message(suggestions):
     suggestions_message = ""
     if len(suggestions) > 0:
         _suggestions_string = pretty_print(suggestions, last_delimiter="or")
-        suggestions_message = f"\nDid you mean : {_suggestions_string}"
+        suggestions_message = f"\nDid you mean: {_suggestions_string}"
     return suggestions_message
-
-
-def is_table_exists(
-    table: str,
-    schema: str = None,
-    ignore_error: bool = False,
-    conn=None,
-) -> bool:
-    """
-    Checks if a given table exists for a given connection
-
-    Parameters
-    ----------
-    table: str
-        Table name
-
-    schema: str, default None
-        Schema name
-
-    ignore_error: bool, default False
-        Avoid raising a ValueError
-    """
-    if table is None:
-        if ignore_error:
-            return False
-        else:
-            raise exceptions.UsageError("Table cannot be None")
-    if not ConnectionManager.current:
-        raise exceptions.RuntimeError("No active connection")
-    if not conn:
-        conn = ConnectionManager.current
-
-    table = strip_multiple_chars(table, "\"'")
-
-    if schema:
-        table_ = f"{schema}.{table}"
-    else:
-        table_ = table
-
-    _is_exist = _is_table_exists(table_, conn)
-
-    if not _is_exist:
-        if not ignore_error:
-            try_find_suggestions = not conn.is_dbapi_connection
-            expected = []
-            existing_schemas = []
-            existing_tables = []
-
-            if try_find_suggestions:
-                existing_schemas = inspect.get_schema_names()
-
-            if schema and schema not in existing_schemas:
-                expected = existing_schemas
-                invalid_input = schema
-            else:
-                if try_find_suggestions:
-                    existing_tables = _get_list_of_existing_tables()
-
-                expected = existing_tables
-                invalid_input = table
-
-            if schema:
-                err_message = (
-                    f"There is no table with name {table!r} in schema {schema!r}"
-                )
-            else:
-                err_message = (
-                    f"There is no table with name {table!r} in the default schema"
-                )
-
-            if table not in list(store):
-                suggestions = difflib.get_close_matches(invalid_input, expected)
-                suggestions_store = difflib.get_close_matches(
-                    invalid_input, list(store)
-                )
-                suggestions.extend(suggestions_store)
-                suggestions_message = get_suggestions_message(suggestions)
-                if suggestions_message:
-                    err_message = f"{err_message}{suggestions_message}"
-            raise exceptions.TableNotFoundError(err_message)
-
-    return _is_exist
-
-
-def _get_list_of_existing_tables() -> list:
-    """
-    Returns a list of table names for a given connection
-    """
-    tables = []
-    tables_rows = inspect.get_table_names()._table
-    for row in tables_rows:
-        table_name = row.get_string(fields=["Name"], border=False, header=False).strip()
-
-        tables.append(table_name)
-    return tables
 
 
 def pretty_print(
@@ -185,36 +91,6 @@ def strip_multiple_chars(string: str, chars: str) -> str:
     Trims characters from the start and end of the string
     """
     return string.translate(str.maketrans("", "", chars))
-
-
-def is_saved_snippet(table: str) -> bool:
-    if table in list(store):
-        display.message(f"Plotting using saved snippet : {table}")
-        return True
-    return False
-
-
-def _is_table_exists(table: str, conn) -> bool:
-    """
-    Runs a SQL query to check if table exists
-    """
-    if not conn:
-        conn = ConnectionManager.current
-
-    identifiers = conn.get_curr_identifiers()
-
-    for iden in identifiers:
-        if isinstance(iden, tuple):
-            query = "SELECT * FROM {0}{1}{2} WHERE 1=0".format(iden[0], table, iden[1])
-        else:
-            query = "SELECT * FROM {0}{1}{0} WHERE 1=0".format(iden, table)
-        try:
-            conn.execute(query)
-            return True
-        except Exception:
-            pass
-
-    return False
 
 
 def flatten(src, ltypes=(list, tuple)):
@@ -253,58 +129,6 @@ def flatten(src, ltypes=(list, tuple)):
     return process_list
 
 
-def support_only_sql_alchemy_connection(command):
-    """
-    Throws a sql.exceptions.RuntimeError if connection is not SQLAlchemy
-    """
-    if ConnectionManager.current.is_dbapi_connection:
-        raise exceptions.RuntimeError(
-            f"{command} is only supported with SQLAlchemy "
-            "connections, not with DBAPI connections"
-        )
-
-
-def fetch_sql_with_pagination(
-    table, offset, n_rows, sort_column=None, sort_order=None
-) -> tuple:
-    """
-    Returns next n_rows and columns from table starting at the offset
-
-    Parameters
-    ----------
-    table : str
-        Table name
-
-    offset : int
-        Specifies the number of rows to skip before
-        it starts to return rows from the query expression.
-
-    n_rows : int
-        Number of rows to return.
-
-    sort_column : str, default None
-        Sort by column
-
-    sort_order : 'DESC' or 'ASC', default None
-        Order list
-    """
-    is_table_exists(table)
-
-    order_by = "" if not sort_column else f"ORDER BY {sort_column} {sort_order}"
-
-    query = f"""
-    SELECT * FROM {table} {order_by}
-    OFFSET {offset} ROWS FETCH NEXT {n_rows} ROWS ONLY"""
-
-    rows = ConnectionManager.current.execute(query).fetchall()
-
-    columns = ConnectionManager.current.raw_execute(
-        f"SELECT * FROM {table} WHERE 1=0"
-    ).keys()
-
-    return rows, columns
-
-
 def parse_sql_results_to_json(rows, columns) -> str:
     """
     Serializes sql rows to a JSON formatted ``str``
@@ -315,52 +139,6 @@ def parse_sql_results_to_json(rows, columns) -> str:
     )
 
     return rows_json
-
-
-def get_all_keys():
-    """
-
-    Returns
-    -------
-    All stored snippets in the current session
-    """
-    return list(store)
-
-
-def get_key_dependents(key: str) -> list:
-    """
-    Function to find the stored snippets dependent on key
-    Parameters
-    ----------
-    key : str, name of the table
-
-    Returns
-    -------
-    list
-        List of snippets dependent on key
-
-    """
-    deps = _get_dependents_for_key(store, key)
-    return deps
-
-
-def del_saved_key(key: str) -> str:
-    """
-    Deletes a stored snippet
-    Parameters
-    ----------
-    key : str, name of the snippet to be deleted
-
-    Returns
-    -------
-    list
-        Remaining stored snippets
-    """
-    all_keys = get_all_keys()
-    if key not in all_keys:
-        raise exceptions.UsageError(f"No such saved snippet found : {key}")
-    del store[key]
-    return get_all_keys()
 
 
 def show_deprecation_warning():
@@ -389,6 +167,11 @@ def find_path_from_root(file_name):
     display.message(f"Found {file_name} from '{current}'")
 
     return str(Path(current, file_name))
+
+
+def find_close_match(word, possibilities):
+    """Find closest match between invalid input and possible options"""
+    return difflib.get_close_matches(word, possibilities)
 
 
 def find_close_match_config(word, possibilities, n=3):
@@ -554,3 +337,48 @@ def is_valid_python_code(code):
         return True
     except SyntaxError:
         return False
+
+
+def extract_tables_from_query(query):
+    """
+    Function to extract names of tables from
+    a syntactically correct query
+
+    Parameters
+    ----------
+    query : str, user query
+
+    Returns
+    -------
+    list
+        List of tables in the query
+        [] if error in parsing the query
+    """
+    try:
+        tables = [table.name for table in parse_one(query).find_all(exp.Table)]
+        return tables
+    except ParseError:
+        # TODO : Instead of returning [] return the
+        # exact parse error
+        return []
+
+
+def is_sqlalchemy_error(error):
+    """Function to check if error is SQLAlchemy error"""
+    return isinstance(error, SQLAlchemyError)
+
+
+def is_non_sqlalchemy_error(error):
+    """Function to check if error is a specific non-SQLAlchemy error"""
+    specific_db_errors = [
+        "duckdb.CatalogException",
+        "Parser Error",
+        "pyodbc.ProgrammingError",
+    ]
+    return any(msg in str(error) for msg in specific_db_errors)
+
+
+def if_substring_exists(string, substrings):
+    """Function to check if any of substring in
+    substrings exist in string"""
+    return any(msg in string for msg in substrings)

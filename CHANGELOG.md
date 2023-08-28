@@ -35,6 +35,7 @@
 * [Fix] Fix Twice message printing when switching to the current connection ([#772](https://github.com/ploomber/jupysql/issues/772))
 * [Fix] Error when using %sqlplot in snowflake ([#697](https://github.com/ploomber/jupysql/issues/697))
 * [Doc] Fixes documentation inaccuracy that said `:variable` was deprecated (we brought it back in `0.9.0`)
+* [Fix] Descriptive error messages when specific syntax error occurs when running query in DuckDB or Oracle.
 
 ## 0.9.1 (2023-08-10)
 

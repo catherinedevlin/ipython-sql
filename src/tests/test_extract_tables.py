@@ -1,5 +1,5 @@
 import pytest
-from sql.query_util import extract_tables_from_query
+from sql.util import extract_tables_from_query
 
 
 @pytest.mark.parametrize(

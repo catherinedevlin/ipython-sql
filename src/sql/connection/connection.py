@@ -24,7 +24,7 @@ from ploomber_core.exceptions import modify_exceptions
 from sql.store import store
 from sql.telemetry import telemetry
 from sql import exceptions, display
-from sql.error_message import detail
+from sql.error_handler import handle_exception
 from sql.parse import (
     escape_string_literals_with_colon_prefix,
     find_named_parameters,
@@ -935,11 +935,7 @@ class SQLAlchemyConnection(AbstractConnection):
             connection = engine.connect()
             return connection
         except OperationalError as e:
-            detailed_msg = detail(e)
-            if detailed_msg is not None:
-                raise exceptions.RuntimeError(detailed_msg) from e
-            else:
-                raise exceptions.RuntimeError(str(e)) from e
+            handle_exception(e)
         except Exception as e:
             raise _error_invalid_connection_info(e, connect_str) from e
 

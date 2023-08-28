@@ -577,7 +577,7 @@ def test_sqlplot_snippet_deletion(ip_snippets, arg):
 
 TABLE_NAME_TYPO_MSG = """
 There is no table with name 'subst' in the default schema
-Did you mean : 'subset'
+Did you mean: 'subset'
 If you need help solving this issue, send us a message: https://ploomber.io/community
 """
 

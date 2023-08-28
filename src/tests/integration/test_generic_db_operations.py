@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 import pytest
 import warnings
 from sql.telemetry import telemetry
-from sql.error_message import CTE_MSG
+from sql.error_handler import CTE_MSG
 from unittest.mock import ANY, Mock
 from IPython.core.error import UsageError
 
@@ -851,12 +851,7 @@ def test_sql_query(ip_with_dynamic_db, cell, request, test_table_name_dict):
         "ip_with_SQLite",
         "ip_with_duckDB_native",
         "ip_with_duckDB",
-        pytest.param(
-            "ip_with_MSSQL",
-            marks=pytest.mark.xfail(
-                reason="We need to close any pending results for this to work"
-            ),
-        ),
+        "ip_with_MSSQL",
         "ip_with_Snowflake",
         "ip_with_oracle",
         pytest.param(
@@ -884,19 +879,11 @@ def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
         "ip_with_mySQL",
         "ip_with_mariaDB",
         "ip_with_SQLite",
-        pytest.param(
-            "ip_with_duckDB_native",
-            marks=pytest.mark.xfail(reason="Not yet implemented"),
-        ),
+        "ip_with_duckDB_native",
         "ip_with_duckDB",
         "ip_with_Snowflake",
-        pytest.param(
-            "ip_with_MSSQL", marks=pytest.mark.xfail(reason="Not yet implemented")
-        ),
-        pytest.param(
-            "ip_with_oracle",
-            marks=pytest.mark.xfail(reason="Not yet implemented"),
-        ),
+        "ip_with_MSSQL",
+        "ip_with_oracle",
         pytest.param(
             "ip_with_clickhouse",
             marks=pytest.mark.xfail(reason="Not yet implemented"),

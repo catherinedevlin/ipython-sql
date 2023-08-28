@@ -16,6 +16,8 @@ from sql import plot
 from sql.command import SQLPlotCommand
 from sql import exceptions
 from sql import util
+from sql.inspect import is_table_exists
+from sql.store_utils import is_saved_snippet
 
 SUPPORTED_PLOTS = ["histogram", "boxplot", "bar", "pie"]
 
@@ -154,8 +156,8 @@ class SqlPlotMagic(Magics, Configurable):
     @staticmethod
     def _check_table_exists(table):
         with_ = None
-        if util.is_saved_snippet(table):
+        if is_saved_snippet(table):
             with_ = [table]
         else:
-            util.is_table_exists(table)
+            is_table_exists(table)
         return with_

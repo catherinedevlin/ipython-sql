@@ -1,6 +1,6 @@
 import pytest
 from IPython.core.error import UsageError
-from sql.error_message import CTE_MSG
+from sql.error_handler import CTE_MSG
 
 
 def test_trailing_semicolons_removed_from_cte(ip):
@@ -62,8 +62,12 @@ def test_infer_dependencies(ip, capsys):
 
 TABLE_NAME_TYPO_ERR_MSG = """
 There is no table with name 'author_subb'.
-Did you mean : 'author_sub'
-If you need help solving this issue, send us a message: https://ploomber.io/community
+Did you mean: 'author_sub'
+
+
+Original error message from DB driver:
+(sqlite3.OperationalError) no such table: author_subb
+[SQL: SELECT last_name FROM author_subb;]
 """
 
 
@@ -82,7 +86,7 @@ def test_table_name_typo(ip):
         )
 
     assert excinfo.value.error_type == "TableNotFoundError"
-    assert str(excinfo.value) == TABLE_NAME_TYPO_ERR_MSG.strip()
+    assert TABLE_NAME_TYPO_ERR_MSG.strip() in str(excinfo.value)
 
 
 def test_snippets_delete(ip, capsys):
