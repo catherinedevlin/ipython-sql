@@ -1855,3 +1855,52 @@ INSERT INTO "table with spaces" VALUES (4)
         '%sql SELECT * FROM "table with spaces"'
     ).result
     assert select_result_with_double_quote.dict() == {"n": (1, 2, 3, 4)}
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        (" SELECT * FROM test"),
+        ("  SELECT * FROM test"),
+        ("  SELECT  * FROM test"),
+        (
+            """
+SELECT * FROM test"""
+        ),
+        (
+            """
+
+SELECT * FROM test"""
+        ),
+        (
+            """
+SELECT
+ * FROM test"""
+        ),
+        (
+            """
+
+SELECT
+ * FROM test"""
+        ),
+    ],
+)
+def test_whitespaces_linebreaks_near_first_token(ip, query):
+    expected_result = (
+        "+---+------+\n"
+        "| n | name |\n"
+        "+---+------+\n"
+        "| 1 | foo  |\n"
+        "| 2 | bar  |\n"
+        "+---+------+"
+    )
+
+    ip.user_global_ns["query"] = query
+    out = ip.run_cell("%sql {{query}}").result
+    assert str(out) == expected_result
+
+    out = ip.run_cell(
+        """%%sql
+{{query}}"""
+    ).result
+    assert str(out) == expected_result
