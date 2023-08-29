@@ -22,6 +22,12 @@ myst:
 
 JupySQL offers several ways to configure a database connection. In this guide, we discuss the pros and cons of each.
 
+## Using the connector widget
+
+The easiest way to connect to a database, is via the connector widget. To learn more, see: [](api/magic-connect.md)
+
+![create](static/create-connection.gif)
+
 ## Connecting with a `.ini` file
 
 ```{versionchanged} 0.10.0
