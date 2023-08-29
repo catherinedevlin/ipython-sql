@@ -20,46 +20,46 @@ myst:
 
 # `%sqlcmd connect`
 
-`%sqlcmd connect` displays a widget that shows existing connections and allows users to create new connections.
+```{versionadded} 0.10.1
+```
+
+`%sqlcmd connect` displays a widget that allows you to create new connections and manage existing ones.
 
 ## Installation
-Since `%sqlcmd connect` uses an optional `jupysql_plugin` package, please ensure that you have installed the latest version of the JupySQL plugin by running the following command: 
+
+Since `%sqlcmd connect` uses the optional `jupysql-plugin` package, please install it before continuing:
 
 ```sh
 pip install jupysql-plugin --upgrade
 ```
 
-+++
+## Create a new connection
 
-## Store connections in `connections.ini`
+Click on the `+ Create new connection` button and fill out the form:
 
-For every connection, the alias should be enclosed within brackets [], followed by the corresponding connection details. When connecting using sqlite or duckdb, `database` and `drivername` need to be specified. For postgresql, mysql, mariadb, and snowflake connections, the `username`, `password`, `host`, `database`, `drivername`, and `port` are required.
+![create](../static/create-connection.gif)
 
-![connections_ini](../static/sample_connections_ini.png)
+## Delete a connection
 
-+++
+Click on trash bin icon and confirm:
 
-## `%sqlcmd connect`
+![delete](../static/delete-connection.gif)
 
-Displays existing connections. 
 
-### Connect to a connection
-Using the provided widget, you can easily connect to a different connection by clicking the Connect button on the right.
+## Edit an existing connection
 
-![connect](../static/change_connections.gif)
+Click on the pencil button, edit details, and click on `Update`:
 
-### Delete a connection
+![edit](../static/edit-connection.gif)
 
-You can delete an existing connection by clicking the trash bin icon located on the right.
+## Connect to an existing connection
 
-![delete](../static/delete_connection.gif)
+Click on the `Connect` button:
 
-### Create a new connection
+![existing](../static/existing-connection.gif)
 
-You can create a new connection by clicking the 'Create new connection' and filling up the required information.
+## The connections file
 
-![create](../static/create_connection.gif)
-
-```{code-cell} ipython3
-
-```
+All your connections are stored in the `%config SqlMagic.dsn_filename` file
+(`~/.jupysql/connections.ini` by default). You can change the file location
+and edit it manually, to learn more, see: [](../user-guide/connection-file.md)
