@@ -6,7 +6,7 @@ from sql.telemetry import telemetry
 from sql import exceptions
 import math
 from sql import util
-from sql.store_utils import get_all_keys
+from sql.store import get_all_keys
 from IPython.core.display import HTML
 import uuid
 

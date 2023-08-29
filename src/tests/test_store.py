@@ -2,7 +2,6 @@ import pytest
 from sql.connection import SQLAlchemyConnection, ConnectionManager
 from IPython.core.error import UsageError
 from sql import store
-from sql import store_utils
 from sqlalchemy import create_engine
 
 
@@ -323,25 +322,25 @@ def test_branch(is_dialect_support_backtick, monkeypatch):
 
 
 def test_get_all_keys(ip_snippets):
-    keys = store_utils.get_all_keys()
+    keys = store.get_all_keys()
     assert "a" in keys
     assert "b" in keys
     assert "c" in keys
 
 
 def test_get_key_dependents(ip_snippets):
-    keys = store_utils.get_key_dependents("a")
+    keys = store.get_key_dependents("a")
     assert "b" in keys
     assert "c" in keys
 
 
 def test_del_saved_key(ip_snippets):
-    keys = store_utils.del_saved_key("c")
+    keys = store.del_saved_key("c")
     assert "a" in keys
     assert "b" in keys
 
 
 def test_del_saved_key_error(ip_snippets):
     with pytest.raises(UsageError) as excinfo:
-        store_utils.del_saved_key("non_existent_key")
+        store.del_saved_key("non_existent_key")
     assert "No such saved snippet found : non_existent_key" in str(excinfo.value)

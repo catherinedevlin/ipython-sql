@@ -17,7 +17,7 @@ from sql.command import SQLPlotCommand
 from sql import exceptions
 from sql import util
 from sql.inspect import is_table_exists
-from sql.store_utils import is_saved_snippet
+from sql.store import is_saved_snippet
 
 SUPPORTED_PLOTS = ["histogram", "boxplot", "bar", "pie"]
 

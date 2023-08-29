@@ -1,8 +1,7 @@
 from sql import util
+from sql import store
 from sql.exceptions import UsageError
 from sql.cmd.cmd_utils import CmdParser
-from sql.store import store
-from sql import store_utils
 from sql.display import Table, Message
 
 
@@ -65,10 +64,10 @@ def snippets(others):
         help="Force delete all stored snippets",
         required=False,
     )
-    all_snippets = store_utils.get_all_keys()
+    all_snippets = store.get_all_keys()
     if len(others) == 1:
         if others[0] in all_snippets:
-            return str(store[others[0]])
+            return str(store.store[others[0]])
 
         base_err_msg = f"'{others[0]}' is not a snippet. "
         if len(all_snippets) == 0:
@@ -88,7 +87,7 @@ def snippets(others):
             return Table(["Stored snippets"], [[snippet] for snippet in all_snippets])
 
     if args.delete:
-        deps = store_utils.get_key_dependents(args.delete)
+        deps = store.get_key_dependents(args.delete)
         if deps:
             deps = ", ".join(deps)
             raise UsageError(
@@ -98,18 +97,18 @@ def snippets(others):
             )
         else:
             key = args.delete
-            remaining_keys = store_utils.del_saved_key(key)
+            remaining_keys = store.del_saved_key(key)
             return _modify_display_msg(key, remaining_keys)
 
     elif args.delete_force:
         key = args.delete_force
-        deps = store_utils.get_key_dependents(key)
-        remaining_keys = store_utils.del_saved_key(key)
+        deps = store.get_key_dependents(key)
+        remaining_keys = store.del_saved_key(key)
         return _modify_display_msg(key, remaining_keys, deps)
 
     elif args.delete_force_all:
-        deps = store_utils.get_key_dependents(args.delete_force_all)
+        deps = store.get_key_dependents(args.delete_force_all)
         deps.append(args.delete_force_all)
         for key in deps:
-            remaining_keys = store_utils.del_saved_key(key)
+            remaining_keys = store.del_saved_key(key)
         return _modify_display_msg(", ".join(deps), remaining_keys)

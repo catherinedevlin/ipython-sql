@@ -1,6 +1,6 @@
 from sql import display
 from sql import util
-from sql.store_utils import get_all_keys
+from sql.store import get_all_keys
 from sql.exceptions import RuntimeError, TableNotFoundError
 
 
