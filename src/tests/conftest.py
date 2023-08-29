@@ -10,7 +10,7 @@ from sql.magic_cmd import SqlCmdMagic
 from sql.connection import ConnectionManager
 from sql._testing import TestingShell
 from sql import connection
-from sql import store
+from sql.store import store
 from sql import _current
 
 PATH_TO_TESTS = Path(__file__).absolute().parent
@@ -32,7 +32,7 @@ def isolate_tests(monkeypatch):
     monkeypatch.setattr(connection.ConnectionManager, "current", None)
 
     # reset store
-    store.store = store.SQLStore()
+    store.clear()
 
     yield
 

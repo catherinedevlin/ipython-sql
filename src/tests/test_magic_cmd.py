@@ -5,7 +5,6 @@ from pathlib import Path
 
 from sqlalchemy import create_engine
 from sql.connection import SQLAlchemyConnection
-from sql.store import store
 from sql.inspect import _is_numeric
 from sql.display import Table, Message
 from jupysql_plugin.widgets import ConnectorWidget
@@ -35,8 +34,6 @@ def _get_row_string(row, column_name):
 
 @pytest.fixture
 def ip_snippets(ip):
-    for key in list(store):
-        del store[key]
     ip.run_cell("%sql sqlite://")
     ip.run_cell(
         """
@@ -67,8 +64,6 @@ WHERE symbol == 'b'
 
 @pytest.fixture
 def ip_with_connections(ip_empty):
-    for key in list(store):
-        del store[key]
     ip_empty.run_cell("%sql duckdb:// --alias duckdb_sqlalchemy")
     ip_empty.run_cell("%sql sqlite:// --alias sqlite_sqlalchemy")
     duckdb_dbapi = duckdb.connect("")
@@ -82,8 +77,6 @@ def ip_with_connections(ip_empty):
 
 @pytest.fixture
 def test_snippet_ip(ip):
-    for key in list(store):
-        del store[key]
     ip.run_cell("%sql sqlite://")
     yield ip
 
@@ -147,9 +140,6 @@ def test_sqlcmd_error_when_no_connection(ip_empty, command):
 
 
 def test_sqlcmd_snippets_when_no_connection(ip_empty, capsys):
-    for key in list(store):
-        del store[key]
-
     ip_empty.run_cell("%sqlcmd snippets")
     captured = capsys.readouterr()
     assert "No snippets stored" in captured.out
