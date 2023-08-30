@@ -323,7 +323,7 @@ def validate_nonidentifier_connection(arg):
     arg : str
         argument to check whether it is a valid connection or not
     """
-    if not arg.isidentifier() and is_valid_python_code(arg):
+    if not arg.isidentifier() and is_valid_python_code(arg) and not arg.endswith(";"):
         raise exceptions.UsageError(
             f"'{arg}' is not a valid connection identifier. "
             "Please pass the variable's name directly, as passing "
