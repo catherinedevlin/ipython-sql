@@ -1,17 +1,17 @@
 # CHANGELOG
 
-## 0.10.1dev
+## 0.10.1 (2023-08-30)
 
 * [Feature] Automatically connect if the `dsn_filename` (defaults to `~/.jupysql/connections.ini`) contains a `default` section
-* [Feature] Add `%sqlcmd connect` to see existing connections and create new ones (#632)
+* [Feature] Add `%sqlcmd connect` to see existing connections and create new ones ([#632](https://github.com/ploomber/jupysql/issues/632))
 * [Fix] Clearer error messages when failing to initialize a connection
-* [Doc] Added section on installing database drivers
-* [Fix] Improve error when passing a non-identifier to start a connection (#764)
+* [Fix] Improve error when passing a non-identifier to start a connection ([#764](https://github.com/ploomber/jupysql/issues/764))
 * [Fix] Display a warning (instead of raising an error) if the `default` connection in the `.ini` file cannot start
-* [Fix] Display a message instead of an error when `toml` isn't installed and `pyproject.toml` is found (#825)
-* [Fix] Fix argument parsing error on Windows when it contains quotations (#425)
+* [Fix] Display a message instead of an error when `toml` isn't installed and `pyproject.toml` is found ([#825](https://github.com/ploomber/jupysql/issues/825))
+* [Fix] Fix argument parsing error on Windows when it contains quotations ([#425](https://github.com/ploomber/jupysql/issues/425))
 * [Fix] Fix error when a linebreak is included during nonidentifier validation process
-* [Fix] Fix error when an argument ending with semicolon is passed to `%sql/%%sql` (#842)
+* [Fix] Fix error when an argument ending with semicolon is passed to `%sql/%%sql` ([#842](https://github.com/ploomber/jupysql/issues/842))
+* [Doc] Added section on installing database drivers
 
 ## 0.10.0 (2023-08-19)
 
