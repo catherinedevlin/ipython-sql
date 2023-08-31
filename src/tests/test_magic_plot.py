@@ -45,19 +45,21 @@ WHERE x > 2
     [
         [
             "%sqlplot someplot -t a -c b",
-            f"Unknown plot 'someplot'. Must be any of: {plot_str}",
+            "argument plot_name: invalid choice: 'someplot' "
+            "(choose from 'histogram', 'hist', 'boxplot', 'box', 'bar', 'pie')",
         ],
         [
             "%sqlplot -t a -c b",
-            f"Missing the first argument, must be any of: {plot_str}",
+            "the following arguments are required: plot_name",
         ],
     ],
+    ids=["invalid_plot_name", "missing_plot_name"],
 )
 def test_validate_plot_name(tmp_empty, ip, cell, error_message):
     with pytest.raises(UsageError) as excinfo:
         ip.run_cell(cell)
 
-    assert excinfo.value.error_type == "UsageError"
+    assert excinfo.typename == "UsageError"
     assert str(error_message).lower() in str(excinfo.value).lower()
 
 
