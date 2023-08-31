@@ -16,7 +16,7 @@ BASE_DIR = os.path.dirname(__file__)
 
 class TableWidget:
     @telemetry.log_call("TableWidget-init")
-    def __init__(self, table):
+    def __init__(self, table, schema=None):
         """
         Creates an HTML table element and populates it with SQL table
 
@@ -28,13 +28,13 @@ class TableWidget:
 
         self.html = ""
 
-        is_table_exists(table)
+        is_table_exists(table, schema)
 
         # load css
         html_style = utils.load_css(f"{BASE_DIR}/css/tableWidget.css")
         self.add_to_html(html_style)
 
-        self.create_table(table)
+        self.create_table(table, schema)
 
         # register listener for jupyter lab
         self.register_comm()
@@ -48,17 +48,22 @@ class TableWidget:
     def add_to_html(self, html):
         self.html += html
 
-    def create_table(self, table):
+    def create_table(self, table, schema):
         """
         Creates an HTML table with default data
         """
+        if schema:
+            table_ = f"{schema}.{table}"
+        else:
+            table_ = table
+
         rows_per_page = 10
-        rows, columns = fetch_sql_with_pagination(table, 0, rows_per_page)
+        rows, columns = fetch_sql_with_pagination(table_, 0, rows_per_page)
         rows = parse_sql_results_to_json(rows, columns)
 
-        query = f"SELECT count(*) FROM {table}"
+        query = f"SELECT count(*) FROM {table_}"
         n_total = ConnectionManager.current.raw_execute(query).fetchone()[0]
-        table_name = table.strip('"').strip("'")
+        table_name = table_.strip('"').strip("'")
 
         n_pages = math.ceil(n_total / rows_per_page)
 
@@ -81,7 +86,7 @@ class TableWidget:
                     n_total=n_total,
                     table_name=table_name,
                     table_container_id=table_container_id,
-                    table=table,
+                    table=table_,
                     initialRows=rows,
                 ),
             ]

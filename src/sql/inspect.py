@@ -180,6 +180,8 @@ class Columns(DatabaseInspection):
         # this returns a list of dictionaries. e.g.,
         # [{"name": "column_a", "type": "INT"}
         #  {"name": "column_b", "type": "FLOAT"}]
+        if not schema and "." in name:
+            schema, name = name.split(".")
         columns = inspector.get_columns(name, schema) or []
 
         self._table = PrettyTable()

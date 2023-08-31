@@ -23,7 +23,11 @@ def return_test_results(args, conn, query):
 
 
 def run_each_individually(args, conn):
-    base_query = select("*").from_(args.table)
+    if args.schema:
+        table_ = f"{args.schema}.{args.table}"
+    else:
+        table_ = args.table
+    base_query = select("*").from_(table_)
 
     storage = {}
 
@@ -99,6 +103,7 @@ def test(others):
     parser = CmdParser()
 
     parser.add_argument("-t", "--table", type=str, help="Table name", required=True)
+    parser.add_argument("-s", "--schema", type=str, help="Schema name", required=False)
     parser.add_argument("-c", "--column", type=str, help="Column name", required=False)
     parser.add_argument(
         "-g",
