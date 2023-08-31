@@ -18,6 +18,8 @@ except ModuleNotFoundError:
 SINGLE_QUOTE = "'"
 DOUBLE_QUOTE = '"'
 
+CONFIGURATION_DOCS_STR = "https://jupysql.ploomber.io/en/latest/api/configuration.html#loading-from-pyproject-toml"  # noqa
+
 
 def sanitize_identifier(identifier):
     if (identifier[0] == SINGLE_QUOTE and identifier[-1] == SINGLE_QUOTE) or (
@@ -164,7 +166,6 @@ def find_path_from_root(file_name):
             return None
 
         current = current.parent
-    display.message(f"Found {file_name} from '{current}'")
 
     return str(Path(current, file_name))
 
@@ -230,22 +231,24 @@ def load_toml(file_path):
 def parse_toml_error(e, file_path):
     eline, ekey, evalue = get_line_content_from_toml(file_path, e.lineno)
     if "Duplicate keys!" in str(e):
-        return exceptions.ConfigurationError(f"Duplicate key found : '{ekey}'")
+        return exceptions.ConfigurationError(
+            f"Duplicate key found: '{ekey}' in {file_path}"
+        )
     elif "Only all lowercase booleans" in str(e):
         return exceptions.ConfigurationError(
-            f"Invalid value '{evalue}' in '{eline}'. "
+            f"Invalid value '{evalue}' in '{eline}' in {file_path}. "
             "Valid boolean values: true, false"
         )
     elif "invalid literal for int()" in str(e):
         return exceptions.ConfigurationError(
-            f"Invalid value '{evalue}' in '{eline}'. "
+            f"Invalid value '{evalue}' in '{eline}' in {file_path}. "
             "To use str value, enclose it with ' or \"."
         )
     else:
         return e
 
 
-def get_user_configs(file_path, section_names):
+def get_user_configs(file_path):
     """
     Returns saved configuration settings in a toml file from given file_path
 
@@ -253,9 +256,6 @@ def get_user_configs(file_path, section_names):
     ----------
     file_path : str
         file path to a toml file
-    section_names : list
-        section names that contains the configuration settings
-        (e.g., ["tool", "jupysql", "SqlMagic"])
 
     Returns
     -------
@@ -263,18 +263,40 @@ def get_user_configs(file_path, section_names):
         saved configuration settings
     """
     data = load_toml(file_path)
+    section_names = ["tool", "jupysql", "SqlMagic"]
     while section_names:
         section_to_find, sections_from_user = section_names.pop(0), data.keys()
         if section_to_find not in sections_from_user:
             close_match = difflib.get_close_matches(section_to_find, sections_from_user)
             if not close_match:
+                MESSAGE_PREFIX = (
+                    f"Tip: You may define configurations in "
+                    f"{file_path}. Please review our "
+                )
+                display.message_html(
+                    f"{MESSAGE_PREFIX}<a href='{CONFIGURATION_DOCS_STR}'>"
+                    "configuration guideline</a>."
+                )
                 return {}
             else:
                 raise exceptions.ConfigurationError(
-                    f"{pretty_print(close_match)} is an invalid section name. "
+                    f"{pretty_print(close_match)} is an invalid section "
+                    f"name in {file_path}. "
                     f"Did you mean '{section_to_find}'?"
                 )
         data = data[section_to_find]
+    if not data:
+        if section_to_find == "SqlMagic":
+            MESSAGE_PREFIX = (
+                f"[tool.jupysql.SqlMagic] present in {file_path} but empty. "
+                f"Please review our "
+            )
+            display.message_html(
+                f"{MESSAGE_PREFIX}<a href='{CONFIGURATION_DOCS_STR}'>"
+                "configuration guideline</a>."
+            )
+    else:
+        display.message(f"Loading configurations from {file_path}")
     return data
 
 

@@ -94,7 +94,7 @@ def message_success(message):
 
 
 def message_warning(message):
-    """Display a success message"""
+    """Display a warning message"""
     display(
         Message(
             message,

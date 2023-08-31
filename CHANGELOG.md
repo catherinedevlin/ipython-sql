@@ -2,6 +2,8 @@
 
 ## 0.10.2dev
 
+* [Feature] Improved messages when loading configurations from `pyproject.toml` file.
+
 ## 0.10.1 (2023-08-30)
 
 * [Feature] Automatically connect if the `dsn_filename` (defaults to `~/.jupysql/connections.ini`) contains a `default` section

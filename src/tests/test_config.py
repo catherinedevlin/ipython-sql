@@ -4,10 +4,12 @@ from pathlib import Path
 
 import pytest
 import sys
+from unittest.mock import Mock
 
 from sql.magic import load_ipython_extension
 from sql.connection import ConnectionManager
-from sql.util import get_default_configs
+from sql.util import get_default_configs, CONFIGURATION_DOCS_STR
+from sql import display
 from IPython.core.error import UsageError
 
 
@@ -146,87 +148,107 @@ dsn_filename = myconnections.ini
     assert "Could not load configuration file" in captured.out
 
 
-@pytest.mark.parametrize(
-    "file_content, expect, config_expected",
-    [
-        (
-            """
+def test_loading_valid_pyproject_toml_shows_feedback_and_modifies_config(
+    tmp_empty, ip_no_magics, capsys
+):
+    Path("pyproject.toml").write_text(
+        """
 [tool.jupysql.SqlMagic]
 autocommit = false
 autolimit = 1
 style = "RANDOM"
-""",
-            [
-                "Found pyproject.toml from '%s'",
-                "Settings changed:",
-                r"autocommit\s*\|\s*False",
-                r"autolimit\s*\|\s*1",
-                r"style\s*\|\s*RANDOM",
-            ],
-            {"autocommit": False, "autolimit": 1, "style": "RANDOM"},
-        ),
-        (
-            """
-[tool.jupysql.SqlMagic]
-""",
-            ["Found pyproject.toml from '%s'"],
-            {},
-        ),
-        (
-            """
-[test]
-github = "ploomber/jupysql"
-""",
-            ["Found pyproject.toml from '%s'"],
-            {},
-        ),
-        (
-            """
-[tool.pkgmt]
-github = "ploomber/jupysql"
-""",
-            ["Found pyproject.toml from '%s'"],
-            {},
-        ),
-        (
-            """
-[tool.jupysql.test]
-github = "ploomber/jupysql"
-""",
-            ["Found pyproject.toml from '%s'"],
-            {},
-        ),
-        (
-            "",
-            ["Found pyproject.toml from '%s'"],
-            {},
-        ),
-    ],
-)
-def test_loading_valid_pyproject_toml_shows_feedback_and_modifies_config(
-    tmp_empty,
-    ip_no_magics,
-    capsys,
-    file_content,
-    expect,
-    config_expected,
-):
-    Path("pyproject.toml").write_text(file_content)
-    toml_dir = os.getcwd()
+"""
+    )
+
+    expect = [
+        "Loading configurations from {path}",
+        "Settings changed:",
+        r"autocommit\s*\|\s*False",
+        r"autolimit\s*\|\s*1",
+        r"style\s*\|\s*RANDOM",
+    ]
+
+    config_expected = {"autocommit": False, "autolimit": 1, "style": "RANDOM"}
+
+    toml_path = str(Path(os.getcwd()).joinpath("pyproject.toml"))
 
     os.mkdir("sub")
     os.chdir("sub")
 
     load_ipython_extension(ip_no_magics)
-
     magic = ip_no_magics.find_magic("sql").__self__
-
     combined = {**get_default_testing_configs(magic), **config_expected}
     out, _ = capsys.readouterr()
-
-    expect[0] = expect[0] % (re.escape(toml_dir))
+    expect[0] = expect[0].format(path=re.escape(toml_path))
     assert all(re.search(substring, out) for substring in expect)
     assert get_current_configs(magic) == combined
+
+
+@pytest.mark.parametrize(
+    "file_content, param",
+    [
+        (
+            """
+[tool.jupysql.SqlMagic]
+""",
+            "[tool.jupysql.SqlMagic] present in {path} but empty.",
+        ),
+        ("", "Tip: You may define configurations in {path}."),
+    ],
+    ids=["empty_sqlmagic_key", "missing_sqlmagic_key"],
+)
+def test_loading_pyproject_toml_display_configuration_docs_link(
+    tmp_empty, ip_no_magics, file_content, param, monkeypatch
+):
+    Path("pyproject.toml").write_text(file_content)
+    toml_path = str(Path(os.getcwd()).joinpath("pyproject.toml"))
+
+    os.mkdir("sub")
+    os.chdir("sub")
+    mock = Mock()
+    monkeypatch.setattr(display, "message_html", mock)
+
+    load_ipython_extension(ip_no_magics)
+    param = (
+        f"{param.format(path=toml_path)} Please review our "
+        f"<a href='{CONFIGURATION_DOCS_STR}'>configuration guideline</a>."
+    )
+    mock.assert_called_once_with(param)
+
+
+@pytest.mark.parametrize(
+    "file_content",
+    [
+        (
+            """
+[test]
+github = "ploomber/jupysql"
+"""
+        ),
+        (
+            """
+[tool.pkgmt]
+github = "ploomber/jupysql"
+"""
+        ),
+        (
+            """
+[tool.jupysql.test]
+github = "ploomber/jupysql"
+"""
+        ),
+    ],
+)
+def test_load_pyproject_toml_user_configurations_not_specified(
+    tmp_empty, ip_no_magics, capsys, file_content
+):
+    Path("pyproject.toml").write_text(file_content)
+    os.mkdir("sub")
+    os.chdir("sub")
+
+    load_ipython_extension(ip_no_magics)
+    out, _ = capsys.readouterr()
+    assert "Loading configurations from" not in out
 
 
 @pytest.mark.parametrize(
@@ -238,14 +260,14 @@ def test_loading_valid_pyproject_toml_shows_feedback_and_modifies_config(
 autocommit = true
 autocommit = true
 """,
-            "Duplicate key found : 'autocommit'",
+            "Duplicate key found: 'autocommit' in {path}",
         ),
         (
             """
 [tool.jupySql.SqlMagic]
 autocommit = true
 """,
-            "'jupySql' is an invalid section name. Did you mean 'jupysql'?",
+            "'jupySql' is an invalid section name in {path}. Did you mean 'jupysql'?",
         ),
         (
             """
@@ -253,7 +275,7 @@ autocommit = true
 autocommit = True
 """,
             (
-                "Invalid value 'True' in 'autocommit = True'. "
+                "Invalid value 'True' in 'autocommit = True' in {path}. "
                 "Valid boolean values: true, false"
             ),
         ),
@@ -263,7 +285,7 @@ autocommit = True
 autocommit = invalid
 """,
             (
-                "Invalid value 'invalid' in 'autocommit = invalid'. "
+                "Invalid value 'invalid' in 'autocommit = invalid' in {path}. "
                 "To use str value, enclose it with ' or \"."
             ),
         ),
@@ -273,8 +295,7 @@ def test_error_on_toml_parsing(
     tmp_empty, ip_no_magics, capsys, file_content, error_msg
 ):
     Path("pyproject.toml").write_text(file_content)
-    toml_dir = os.getcwd()
-    found_statement = "Found pyproject.toml from '%s'" % (toml_dir)
+    toml_path = str(Path(os.getcwd()).joinpath("pyproject.toml"))
     os.makedirs("sub")
     os.chdir("sub")
 
@@ -283,9 +304,8 @@ def test_error_on_toml_parsing(
 
     out, _ = capsys.readouterr()
 
-    assert out.strip() == found_statement
     assert excinfo.value.error_type == "ConfigurationError"
-    assert str(excinfo.value) == error_msg
+    assert str(excinfo.value) == error_msg.format(path=toml_path)
 
 
 def test_valid_and_invalid_configs(tmp_empty, ip_no_magics, capsys):
@@ -299,14 +319,14 @@ invalid = false
 displaycon = false
 """
     )
-    toml_dir = os.getcwd()
+    toml_path = str(Path(os.getcwd()).joinpath("pyproject.toml"))
     os.makedirs("sub")
     os.chdir("sub")
 
     load_ipython_extension(ip_no_magics)
     out, _ = capsys.readouterr()
     expect = [
-        "Found pyproject.toml from '%s'" % (re.escape(toml_dir)),
+        f"Loading configurations from {re.escape(toml_path)}",
         "'autocomm' is an invalid configuration. Did you mean 'autocommit'?",
         (
             "'autop' is an invalid configuration. "

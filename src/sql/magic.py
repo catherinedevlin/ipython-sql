@@ -647,7 +647,7 @@ class SqlMagic(Magics, Configurable):
 def set_configs(ip, file_path):
     """Set user defined SqlMagic configuration settings"""
     sql = ip.find_cell_magic("sql").__self__
-    user_configs = util.get_user_configs(file_path, ["tool", "jupysql", "SqlMagic"])
+    user_configs = util.get_user_configs(file_path)
     default_configs = util.get_default_configs(sql)
     table_rows = []
     for config, value in user_configs.items():
