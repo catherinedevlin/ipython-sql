@@ -4,6 +4,7 @@
 
 * [Feature] Improved messages when loading configurations from `pyproject.toml` file.
 * [Feature] Add `--schema/-s` for `%sqlcmd` commands that support `--table/-t` and ensure `--table schema.table` works (#519)
+* [Feature] Show feedback when starting a new connection (#807)
 
 ## 0.10.1 (2023-08-30)
 

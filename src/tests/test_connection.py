@@ -672,7 +672,7 @@ def test_feedback_when_switching_connection_with_alias(
     ip_empty.run_cell("%sql one")
 
     captured = capsys.readouterr()
-    assert "Switching to connection one" == captured.out.splitlines()[-1]
+    assert "Switching to connection 'one'" == captured.out.splitlines()[-1]
 
 
 def test_feedback_when_switching_connection_with_descriptors(
@@ -684,7 +684,7 @@ def test_feedback_when_switching_connection_with_descriptors(
 
     captured = capsys.readouterr()
     assert (
-        "Connecting and switching to connection sqlite://"
+        "Connecting and switching to connection 'sqlite://'"
         == captured.out.splitlines()[-1]
     )
 
@@ -702,7 +702,7 @@ def test_feedback_when_switching_connection_without_alias(
     ip_empty.run_cell("%sql duckdb://")
 
     captured = capsys.readouterr()
-    assert "Switching to connection duckdb://" == captured.out.splitlines()[-1]
+    assert "Switching to connection 'duckdb://'" == captured.out.splitlines()[-1]
 
 
 def test_feedback_when_switching_connection_with_existing_connection(
@@ -714,18 +714,30 @@ def test_feedback_when_switching_connection_with_existing_connection(
     ip_empty.run_cell("%sql one")
 
     captured = capsys.readouterr()
-    assert "Switching to connection one" == captured.out.splitlines()[-1]
+    assert "Switching to connection 'one'" == captured.out.splitlines()[-1]
 
 
-def test_no_feedback(ip_empty, tmp_empty, capsys):
+@pytest.mark.parametrize(
+    "connection, identifier, feedback",
+    [
+        ("duckdb://", "duckdb://", 1),
+        ("duckdb:// --alias one", "one", 1),
+        ("duckdb://", "duckdb://", 2),
+        ("duckdb:// --alias one", "one", 2),
+    ],
+)
+def test_feedback_when_connecting_to_new_connection(
+    ip_empty, capsys, connection, identifier, feedback
+):
     ip_empty.run_cell("%load_ext sql")
-    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell(f"%config SqlMagic.feedback = {feedback}")
+    ip_empty.run_cell(f"%sql {connection}")
 
     captured = capsys.readouterr()
-    assert "" == captured.out
+    assert f"Connecting to '{identifier}'" == captured.out.splitlines()[-1]
 
 
-def test_no_switching_connection_feedback_if_disabled(ip_empty, capsys):
+def test_no_connecting_and_switching_connection_feedback_if_disabled(ip_empty, capsys):
     ip_empty.run_cell("%config SqlMagic.feedback = 0")
 
     ip_empty.run_cell("%sql duckdb://")
@@ -735,6 +747,36 @@ def test_no_switching_connection_feedback_if_disabled(ip_empty, capsys):
 
     captured = capsys.readouterr()
     assert captured.out == ""
+
+
+@pytest.mark.parametrize(
+    "alias, expected",
+    [(None, "postgresql://user:***@somedomain.com/db"), ("alias", "alias")],
+)
+def test_password_in_feedback_when_connecting_to_new_connection(
+    mock_postgres, ip_empty, capsys, alias, expected
+):
+    url = "postgresql://user:topsecret@somedomain.com/db"
+    _ = ConnectionManager.set(url, displaycon=False, alias=alias)
+    captured = capsys.readouterr()
+    assert f"Connecting to '{expected}'" in captured.out.strip()
+
+
+@pytest.mark.parametrize(
+    "alias, expected",
+    [(None, "postgresql://user:***@somedomain.com/db"), ("alias", "alias")],
+)
+def test_password_in_feedback_when_connecting_and_switching_connection(
+    mock_postgres, ip_empty, capsys, alias, expected
+):
+    ip_empty.run_cell("%sql duckdb://")
+    url = "postgresql://user:topsecret@somedomain.com/db"
+    _ = ConnectionManager.set(url, displaycon=False, alias=alias)
+    captured = capsys.readouterr()
+    assert (
+        f"Connecting and switching to connection '{expected}'"
+        in captured.out.splitlines()[-1]
+    )
 
 
 @pytest.fixture
