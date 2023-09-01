@@ -1932,3 +1932,35 @@ def test_whitespaces_linebreaks_near_first_token(ip, query):
 {{query}}"""
     ).result
     assert str(out) == expected_result
+
+
+def test_summarize_in_duckdb(ip_empty):
+    expected_result = {
+        "column_name": ("id", "x"),
+        "column_type": ("INTEGER", "INTEGER"),
+        "min": ("1", "-1"),
+        "max": ("3", "2"),
+        "approx_unique": ("3", "3"),
+        "avg": ("2.0", "0.6666666666666666"),
+        "std": ("1.0", "1.5275252316519468"),
+        "q25": ("1", "0"),
+        "q50": ("2", "1"),
+        "q75": ("3", "2"),
+        "count": (3, 3),
+        "null_percentage": ("0.0%", "0.0%"),
+    }
+
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql CREATE TABLE table1 (id INTEGER, x INTEGER)")
+    ip_empty.run_cell(
+        """%%sql
+INSERT INTO table1 VALUES (1, -1), (2, 1), (3, 2)"""
+    )
+    out = ip_empty.run_cell("%sql SUMMARIZE table1").result
+    assert out.dict() == expected_result
+
+    out = ip_empty.run_cell(
+        """%%sql
+SUMMARIZE table1"""
+    ).result
+    assert out.dict() == expected_result
