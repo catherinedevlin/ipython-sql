@@ -30,6 +30,8 @@ dependencies:
     - memory-profiler
     - pyarrow
     - pkgmt>=0.1.7
+    # chDB example
+    - chdb>=0.13.0
     # convert to polars example
     - polars
     # for developer guide

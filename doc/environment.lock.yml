@@ -93,6 +93,7 @@ dependencies:
       - docutils==0.16
       - duckdb==0.8.1
       - duckdb-engine==0.9.1
+      - chdb==0.13.0
       - exceptiongroup==1.1.2
       - executing==1.2.0
       - fastjsonschema==2.17.1
