@@ -68,7 +68,7 @@ class SQLCommand:
         self.parsed = parse.parse(self.command_text, magic.dsn_filename)
 
         self.parsed["sql_original"] = self.parsed["sql"] = self._var_expand(
-            self.parsed["sql"], user_ns, magic
+            self.parsed["sql"], user_ns
         )
 
         if add_conn:
@@ -119,7 +119,7 @@ class SQLCommand:
         """Returns the return_result_var"""
         return self.parsed["return_result_var"]
 
-    def _var_expand(self, sql, user_ns, magic):
+    def _var_expand(self, sql, user_ns):
         return Template(sql).render(user_ns)
 
     def __repr__(self) -> str:

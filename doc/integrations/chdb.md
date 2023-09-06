@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.15.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -31,6 +31,7 @@ JupySQL integrates with chDB so you can run SQL queries in a Jupyter notebook. J
 
 ```{code-cell} ipython3
 from chdb import dbapi
+
 conn = dbapi.connect()
 
 %load_ext sql
@@ -39,10 +40,9 @@ conn = dbapi.connect()
 
 ### Get a sample `.parquet` file:
 
-+++
-
 ```{code-cell} ipython3
 from urllib.request import urlretrieve
+
 _ = urlretrieve(
     "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2021-01.parquet",
     "yellow_tripdata_2021-01.parquet",
@@ -52,7 +52,6 @@ _ = urlretrieve(
 ### Query on S3/HTTP/File
 
 +++
-
 
 Query a local file
 
@@ -65,6 +64,7 @@ GROUP BY passenger_count
 ```
 
 Run a file over HTTP
+
 ```{code-cell} ipython3
 %%sql
 SELECT
@@ -77,4 +77,3 @@ GROUP BY
 ORDER BY c
 DESC LIMIT 10
 ```
-
