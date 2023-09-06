@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.15.0
+    jupytext_version: 1.15.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -46,7 +46,7 @@ However, you can change this:
 ```
 
 ```{tip}
-You can also define your configuration settings in a [`pyproject.toml` file.](../api/configuration.md#loading-from-pyprojecttoml)
+For configuration settings other than connections, you can use a [`pyproject.toml`](../api/configuration.md#loading-from-pyprojecttoml) file.
 ```
 
 The `.ini` format defines sections and you can define key-value pairs within each section. For example:

@@ -7,7 +7,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.15.0
+    jupytext_version: 1.15.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -281,3 +281,5 @@ You can define configurations in a `pyproject.toml` file and automatically load 
 feedback = true
 autopandas = true
 ```
+
+Note that `pyproject.toml` is only for setting configurations. To store connection details, please use [`connections.ini`](../user-guide/connection-file.md) file.
