@@ -69,9 +69,8 @@ html_theme_options = {
     "analytics": {"google_analytics_id": "G-JBZ8NNQSLN"},
     "home_page_in_toc": True,
     "announcement": (
-        "To launch a tutorial, click on the 🚀 button "
-        "below! Join us on "
-        "<a href='https://ploomber.io/community/'>Slack!</a>"
+        "Host Voilà and Streamlit apps for free with "
+        "<a href='https://www.platform.ploomber.io/register/'>Ploomber Cloud!</a>"
     ),
     "use_repository_button": True,
     "use_edit_page_button": False,
