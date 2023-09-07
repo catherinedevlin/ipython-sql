@@ -30,6 +30,7 @@ class SqlPlotMagic(Magics, Configurable):
         choices=["histogram", "hist", "boxplot", "box", "bar", "pie"],
     )
     @argument("-t", "--table", type=str, help="Table to use", required=True)
+    @argument("-s", "--schema", type=str, help="Schema to use", required=False)
     @argument(
         "-c", "--column", type=str, nargs="+", help="Column(s) to use", required=True
     )
@@ -89,11 +90,14 @@ class SqlPlotMagic(Magics, Configurable):
 
         column = util.sanitize_identifier(column)
         table = util.sanitize_identifier(cmd.args.table)
+        schema = cmd.args.schema
+        if schema:
+            schema = util.sanitize_identifier(schema)
 
         if cmd.args.with_:
             with_ = cmd.args.with_
         else:
-            with_ = self._check_table_exists(table)
+            with_ = self._check_table_exists(table, schema)
 
         if cmd.args.plot_name in {"box", "boxplot"}:
             return plot.boxplot(
@@ -102,6 +106,7 @@ class SqlPlotMagic(Magics, Configurable):
                 with_=with_,
                 orient=cmd.args.orient,
                 conn=None,
+                schema=schema,
             )
         elif cmd.args.plot_name in {"hist", "histogram"}:
             # to avoid passing bins default value when breaks or binwidth is specified
@@ -120,6 +125,7 @@ class SqlPlotMagic(Magics, Configurable):
                 conn=None,
                 breaks=cmd.args.breaks,
                 binwidth=cmd.args.binwidth,
+                schema=schema,
             )
         elif cmd.args.plot_name in {"bar"}:
             return plot.bar(
@@ -129,6 +135,7 @@ class SqlPlotMagic(Magics, Configurable):
                 orient=cmd.args.orient,
                 show_num=cmd.args.show_numbers,
                 conn=None,
+                schema=schema,
             )
         elif cmd.args.plot_name in {"pie"}:
             return plot.pie(
@@ -137,13 +144,14 @@ class SqlPlotMagic(Magics, Configurable):
                 with_=with_,
                 show_num=cmd.args.show_numbers,
                 conn=None,
+                schema=schema,
             )
 
     @staticmethod
-    def _check_table_exists(table):
+    def _check_table_exists(table, schema=None):
         with_ = None
         if is_saved_snippet(table):
             with_ = [table]
         else:
-            is_table_exists(table)
+            is_table_exists(table, schema)
         return with_

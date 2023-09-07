@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.15.0
+    jupytext_version: 1.15.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -73,6 +73,8 @@ Shortcut: `%sqlplot box`
 
 `-t`/`--table` Table to use (if using DuckDB: path to the file to query)
 
+`-s`/`--schema` Schema to use (No need to pass if using a default schema)
+
 `-c`/`--column` Column(s) to plot. You might pass one than one value (e.g., `-c a b c`)
 
 `-o`/`--orient` Boxplot orientation (`h` for horizontal, `v` for vertical)
@@ -121,6 +123,8 @@ WHERE island = 'Biscoe'
 Shortcut: `%sqlplot hist`
 
 `-t`/`--table` Table to use (if using DuckDB: path to the file to query)
+
+`-s`/`--schema` Schema to use (No need to pass if using a default schema)
 
 `-c`/`--column` Column to plot
 
@@ -202,6 +206,8 @@ Shortcut: `%sqlplot bar`
 
 `-t`/`--table` Table to use (if using DuckDB: path to the file to query)
 
+`-s`/`--schema` Schema to use (No need to pass if using a default schema)
+
 `-c`/`--column` Column to plot.
 
 `-o`/`--orient` Barplot orientation (`h` for horizontal, `v` for vertical)
@@ -249,6 +255,8 @@ You can also show the number on top of the bar using the `S`/`show-numbers` argu
 Shortcut: `%sqlplot pie`
 
 `-t`/`--table` Table to use (if using DuckDB: path to the file to query)
+
+`-s`/`--schema` Schema to use (No need to pass if using a default schema)
 
 `-c`/`--column` Column to plot
 

@@ -481,6 +481,68 @@ def test_sqlplot_pie(ip_with_dynamic_db, request, test_table_name_dict):
     "ip_with_dynamic_db",
     [
         ("ip_with_postgreSQL"),
+        ("ip_with_duckDB"),
+        ("ip_with_Snowflake"),
+        ("ip_with_duckDB_native"),
+        ("ip_with_redshift"),
+        pytest.param(
+            "ip_with_SQLite",
+            marks=pytest.mark.xfail(reason="does not support schema"),
+        ),
+        pytest.param(
+            "ip_with_mariaDB",
+            marks=pytest.mark.xfail(reason="schema access denied"),
+        ),
+        pytest.param(
+            "ip_with_mySQL",
+            marks=pytest.mark.xfail(reason="schema access denied"),
+        ),
+        pytest.param(
+            "ip_with_MSSQL",
+            marks=pytest.mark.xfail(reason="sqlplot does not support SQL server"),
+        ),
+        pytest.param(
+            "ip_with_clickhouse",
+            marks=pytest.mark.xfail(
+                reason="Plotting from snippet not working in clickhouse"
+            ),
+        ),
+    ],
+)
+def test_sqlplot_using_schema(ip_with_dynamic_db, request):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    plt.cla()
+    ip_with_dynamic_db.run_cell(
+        """%%sql
+CREATE SCHEMA schema1;
+CREATE TABLE schema1.table1 (
+    x INTEGER,
+    y INTEGER
+);
+
+INSERT INTO schema1.table1 (x, y)
+VALUES
+    (1, 2),
+    (3, 4),
+    (5, 6);
+"""
+    )
+
+    out = ip_with_dynamic_db.run_cell(
+        "%sqlplot histogram --table schema1.table1 --column x"
+    )
+    assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
+
+    out = ip_with_dynamic_db.run_cell(
+        "%sqlplot histogram --table table1 --schema schema1 --column x"
+    )
+    assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        ("ip_with_postgreSQL"),
         ("ip_with_mySQL"),
         ("ip_with_mariaDB"),
         ("ip_with_SQLite"),

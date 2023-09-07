@@ -8,6 +8,7 @@ from sqlglot.errors import ParseError
 from sqlalchemy.exc import SQLAlchemyError
 from ploomber_core.dependencies import requires
 import ast
+from os.path import isfile
 
 
 try:
@@ -404,3 +405,23 @@ def if_substring_exists(string, substrings):
     """Function to check if any of substring in
     substrings exist in string"""
     return any(msg in string for msg in substrings)
+
+
+def enclose_table_with_double_quotations(table, conn):
+    """
+    Function to enclose a file path, schema name,
+    or table name with double quotations
+    """
+    if isfile(table):
+        _table = f'"{table}"'
+    elif "." in table and not table.startswith('"'):
+        parts = table.split(".")
+        _table = f'"{parts[0]}"."{parts[1]}"'
+    else:
+        _table = table
+
+    use_backticks = conn.is_use_backtick_template()
+    if use_backticks:
+        _table = _table.replace('"', "`")
+
+    return _table

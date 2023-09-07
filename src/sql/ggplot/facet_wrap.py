@@ -2,6 +2,7 @@ from jinja2 import Template
 import math
 import sql.connection
 from sql.telemetry import telemetry
+from sql.util import enclose_table_with_double_quotations
 
 
 class facet:
@@ -9,16 +10,16 @@ class facet:
         pass
 
     def get_facet_values(self, table, column, with_):
+        conn = sql.connection.ConnectionManager.current
+        table = enclose_table_with_double_quotations(table, conn)
         template = Template(
             """
             SELECT
             distinct ({{column}})
-            FROM "{{table}}"
+            FROM {{table}}
             """
         )
         query = template.render(table=table, column=column)
-
-        conn = sql.connection.ConnectionManager.current
 
         values = conn.execute(query, with_).fetchall()
         # Added to make histogram more inclusive to NULLs

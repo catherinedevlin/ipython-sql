@@ -11,6 +11,7 @@ from sql.util import (
     _are_numeric_values,
     validate_mutually_exclusive_args,
     to_upper_if_snowflake_conn,
+    enclose_table_with_double_quotations,
 )
 from sql.display import message
 
@@ -39,7 +40,7 @@ def _whishi(conn, table, column, hival, with_=None):
 SELECT COUNT(*), MAX("{{column}}")
 FROM (
     SELECT "{{column}}"
-    FROM "{{table}}"
+    FROM {{table}}
     WHERE "{{column}}" <= {{hival}}
 ) AS _whishi
 """
@@ -60,7 +61,7 @@ def _whislo(conn, table, column, loval, with_=None):
 SELECT COUNT(*), MIN("{{column}}")
 FROM (
     SELECT "{{column}}"
-    FROM "{{table}}"
+    FROM {{table}}
     WHERE "{{column}}" >= {{loval}}
 ) AS _whislo
 """
@@ -80,7 +81,7 @@ def _percentile(conn, table, column, pct, with_=None):
         """
 SELECT
 percentile_disc({{pct}}) WITHIN GROUP (ORDER BY "{{column}}") AS pct,
-FROM "{{table}}"
+FROM {{table}}
 """
     )
     query = template.render(table=table, column=column, pct=pct)
@@ -93,7 +94,7 @@ def _between(conn, table, column, whislo, whishi, with_=None):
     template = Template(
         """
 SELECT "{{column}}"
-FROM "{{table}}"
+FROM {{table}}
 WHERE "{{column}}" < {{whislo}}
 OR  "{{column}}" > {{whishi}}
 """
@@ -177,7 +178,9 @@ def _boxplot_stats(conn, table, column, whis=1.5, autorange=False, with_=None):
 # https://github.com/matplotlib/matplotlib/blob/ddc260ce5a53958839c244c0ef0565160aeec174/lib/matplotlib/axes/_axes.py#L3915
 @requires(["matplotlib"])
 @telemetry.log_call("boxplot", payload=True)
-def boxplot(payload, table, column, *, orient="v", with_=None, conn=None, ax=None):
+def boxplot(
+    payload, table, column, *, orient="v", with_=None, conn=None, ax=None, schema=None
+):
     """Plot boxplot
 
     Parameters
@@ -229,6 +232,10 @@ def boxplot(payload, table, column, *, orient="v", with_=None, conn=None, ax=Non
 
     payload["connection_info"] = conn._get_database_information()
 
+    _table = enclose_table_with_double_quotations(table, conn)
+    if schema:
+        _table = f'"{schema}"."{_table}"'
+
     ax = plt.gca()
     vert = orient == "v"
 
@@ -236,13 +243,13 @@ def boxplot(payload, table, column, *, orient="v", with_=None, conn=None, ax=Non
     set_label = ax.set_ylabel if vert else ax.set_xlabel
 
     if isinstance(column, str):
-        stats = [_boxplot_stats(conn, table, column, with_=with_)]
+        stats = [_boxplot_stats(conn, _table, column, with_=with_)]
         ax.bxp(stats, vert=vert)
         ax.set_title(f"{column!r} from {table!r}")
         set_label(column)
         set_ticklabels([column])
     else:
-        stats = [_boxplot_stats(conn, table, col, with_=with_) for col in column]
+        stats = [_boxplot_stats(conn, _table, col, with_=with_) for col in column]
         ax.bxp(stats, vert=vert)
         ax.set_title(f"Boxplot from {table!r}")
         set_ticklabels(column)
@@ -257,7 +264,7 @@ def _min_max(conn, table, column, with_=None, use_backticks=False):
 SELECT
     MIN("{{column}}"),
     MAX("{{column}}")
-FROM "{{table}}"
+FROM {{table}}
 """
     if use_backticks:
         template_ = template_.replace('"', "`")
@@ -325,6 +332,7 @@ def histogram(
     facet=None,
     breaks=None,
     binwidth=None,
+    schema=None,
 ):
     """Plot histogram
 
@@ -396,6 +404,10 @@ def histogram(
         ["bins", "breaks", "binwidth"], [bins, breaks, binwidth]
     )
 
+    _table = enclose_table_with_double_quotations(table, conn)
+    if schema:
+        _table = f'"{schema}"."{_table}"'
+
     ax = ax or plt.gca()
     payload["connection_info"] = conn._get_database_information()
     if category:
@@ -413,7 +425,7 @@ def histogram(
             raise ValueError("Column name has not been specified")
 
         bin_, height, bin_size = _histogram(
-            table,
+            _table,
             column,
             bins,
             with_=with_,
@@ -423,7 +435,7 @@ def histogram(
         )
         width = _get_bar_width(ax, bin_, bin_size, binwidth)
         data = _histogram_stacked(
-            table,
+            _table,
             column,
             category,
             bin_,
@@ -476,7 +488,7 @@ def histogram(
         ax.legend(handles[::-1], labels[::-1])
     elif isinstance(column, str):
         bin_, height, bin_size = _histogram(
-            table,
+            _table,
             column,
             bins,
             with_=with_,
@@ -506,7 +518,7 @@ def histogram(
             )
         for i, col in enumerate(column):
             bin_, height, bin_size = _histogram(
-                table,
+                _table,
                 col,
                 bins,
                 with_=with_,
@@ -600,7 +612,7 @@ def _histogram(
                 "left join ("
                 f"select case {' '.join(cases)} end as bin, "
                 "count(*) as count "
-                'from "{{table}}" '
+                "from {{table}} "
                 "{{filter_query}} "
                 "group by bin) "
                 "as count_table on all_bins.bin = count_table.bin "
@@ -643,7 +655,7 @@ def _histogram(
                 select
                 ceiling("{{column}}"/{{bin_size}} - 0.5)*{{bin_size}} as bin,
                 count(*) as count
-                from "{{table}}"
+                from {{table}}
                 {{filter_query}}
                 group by bin
                 order by bin;
@@ -661,7 +673,7 @@ def _histogram(
         template_ = """
         select
             "{{column}}" as col, count ("{{column}}")
-        from "{{table}}"
+        from {{table}}
         {{filter_query}}
         group by col
         order by col;
@@ -738,7 +750,7 @@ def _histogram_stacked(
         """
         SELECT {{category}},
         {{cases}}
-        FROM "{{table}}"
+        FROM {{table}}
         {{filter_query}}
         GROUP BY {{category}}
         ORDER BY {{category}} DESC;
@@ -813,7 +825,7 @@ def _bar(table, column, with_=None, conn=None):
         template_ = """
             select "{{x_}}" as x,
             "{{height_}}" as height
-            from "{{table}}"
+            from {{table}}
             where "{{x_}}" is not null
             and "{{height_}}" is not null;
             """
@@ -832,7 +844,7 @@ def _bar(table, column, with_=None, conn=None):
         template_ = """
                 select "{{column}}" as x,
                 count("{{column}}") as height
-                from "{{table}}"
+                from {{table}}
                 where "{{column}}" is not null
                 group by "{{column}}";
                 """
@@ -870,6 +882,7 @@ def bar(
     color=None,
     edgecolor=None,
     ax=None,
+    schema=None,
 ):
     """Plot Bar Chart
 
@@ -905,13 +918,17 @@ def bar(
     if not conn:
         conn = sql.connection.ConnectionManager.current
 
+    _table = enclose_table_with_double_quotations(table, conn)
+    if schema:
+        _table = f'"{schema}"."{_table}"'
+
     ax = ax or plt.gca()
     payload["connection_info"] = conn._get_database_information()
 
     if column is None:
         raise exceptions.UsageError("Column name has not been specified")
 
-    x, height_, xlabel, ylabel = _bar(table, column, with_=with_, conn=conn)
+    x, height_, xlabel, ylabel = _bar(_table, column, with_=with_, conn=conn)
 
     if color and cmap:
         # raise a userwarning
@@ -999,7 +1016,7 @@ def _pie(table, column, with_=None, conn=None):
         template_ = """
                 select "{{labels_}}" as labels,
                 "{{size_}}" as size
-                from "{{table}}"
+                from {{table}}
                 where "{{labels_}}" is not null
                 and "{{size_}}" is not null;
                 """
@@ -1014,7 +1031,7 @@ def _pie(table, column, with_=None, conn=None):
         template_ = """
                 select "{{column}}" as x,
                 count("{{column}}") as height
-                from "{{table}}"
+                from {{table}}
                 where "{{column}}" is not null
                 group by "{{column}}";
                 """
@@ -1046,6 +1063,7 @@ def pie(
     cmap=None,
     color=None,
     ax=None,
+    schema=None,
 ):
     """Plot Pie Chart
 
@@ -1077,13 +1095,17 @@ def pie(
     if not conn:
         conn = sql.connection.ConnectionManager.current
 
+    _table = enclose_table_with_double_quotations(table, conn)
+    if schema:
+        _table = f'"{schema}"."{_table}"'
+
     ax = ax or plt.gca()
     payload["connection_info"] = conn._get_database_information()
 
     if column is None:
         raise exceptions.UsageError("Column name has not been specified")
 
-    labels, size_ = _pie(table, column, with_=with_, conn=conn)
+    labels, size_ = _pie(_table, column, with_=with_, conn=conn)
 
     if color and cmap:
         # raise a userwarning

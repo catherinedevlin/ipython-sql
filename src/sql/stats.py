@@ -25,7 +25,7 @@ SELECT
 percentile_disc(0.25) WITHIN GROUP (ORDER BY "{{column}}") OVER (),
 percentile_disc(0.50) WITHIN GROUP (ORDER BY "{{column}}") OVER (),
 percentile_disc(0.75) WITHIN GROUP (ORDER BY "{{column}}") OVER ()
-FROM "{{table}}"
+FROM {{table}}
 """
     )
     query = template_percentile.render(table=table, column=column)
@@ -37,7 +37,7 @@ FROM "{{table}}"
 SELECT
 AVG("{{column}}") AS mean,
 COUNT(*) AS N
-FROM "{{table}}"
+FROM {{table}}
 """
     )
     query = template.render(table=table, column=column)
@@ -59,7 +59,7 @@ SELECT
 approximate percentile_disc(0.25) WITHIN GROUP (ORDER BY "{{column}}"),
 approximate percentile_disc(0.50) WITHIN GROUP (ORDER BY "{{column}}"),
 approximate percentile_disc(0.75) WITHIN GROUP (ORDER BY "{{column}}")
-FROM "{{table}}"
+FROM {{table}}
 """
     )
     query = template_percentile.render(table=table, column=column)
@@ -71,7 +71,7 @@ FROM "{{table}}"
 SELECT
 AVG("{{column}}") AS mean,
 COUNT(*) AS N
-FROM "{{table}}"
+FROM {{table}}
 """
     )
     query = template.render(table=table, column=column)
@@ -98,7 +98,7 @@ def _summary_stats_parallel(conn, table, column, with_=None):
     (ORDER BY "{{column}}") AS percentiles,
     AVG("{{column}}") AS mean,
     COUNT(*) AS N
-    FROM "{{table}}"
+    FROM {{table}}
 """
     )
 

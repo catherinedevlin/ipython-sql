@@ -40,6 +40,49 @@ WHERE x > 2
     yield ip
 
 
+@pytest.fixture
+def ip_with_schema_and_table(ip_empty, load_penguin):
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell(
+        """%%sql
+CREATE SCHEMA sqlalchemy_schema;
+CREATE TABLE sqlalchemy_schema.penguins1 (
+    species VARCHAR(255),
+    island VARCHAR(255),
+    bill_length_mm DECIMAL(5, 2),
+    bill_depth_mm DECIMAL(5, 2),
+    flipper_length_mm DECIMAL(5, 2),
+    body_mass_g INTEGER,
+    sex VARCHAR(255)
+);
+
+COPY sqlalchemy_schema.penguins1 FROM 'penguins.csv' WITH (FORMAT CSV, HEADER TRUE);
+"""
+    )
+
+    conn = duckdb.connect(database=":memory:", read_only=False)
+    ip_empty.push({"conn": conn})
+    ip_empty.run_cell("%sql conn")
+    ip_empty.run_cell(
+        """%%sql
+CREATE SCHEMA dbapi_schema;
+CREATE TABLE dbapi_schema.penguins2 (
+    species VARCHAR(255),
+    island VARCHAR(255),
+    bill_length_mm DECIMAL(5, 2),
+    bill_depth_mm DECIMAL(5, 2),
+    flipper_length_mm DECIMAL(5, 2),
+    body_mass_g INTEGER,
+    sex VARCHAR(255)
+);
+
+COPY dbapi_schema.penguins2 FROM 'penguins.csv' WITH (FORMAT CSV, HEADER TRUE);
+"""
+    )
+
+    yield ip_empty
+
+
 @pytest.mark.parametrize(
     "cell, error_message",
     [
@@ -553,6 +596,155 @@ def test_hist_binwidth(load_penguin, ip, binwidth):
     ip.run_cell(
         f"%sqlplot histogram --table penguins.csv --column body_mass_g {binwidth} 150"
     )
+
+
+@pytest.mark.parametrize(
+    "cmd, conn",
+    [
+        (
+            "%sqlplot boxplot --table sqlalchemy_schema.penguins1 --column body_mass_g",
+            "%sql duckdb://",
+        ),
+        (
+            (
+                "%sqlplot boxplot --table penguins1 --schema sqlalchemy_schema "
+                "--column body_mass_g"
+            ),
+            "%sql duckdb://",
+        ),
+        (
+            "%sqlplot boxplot --table dbapi_schema.penguins2 --column body_mass_g",
+            "%sql conn",
+        ),
+        (
+            (
+                "%sqlplot boxplot --table penguins2 --schema dbapi_schema "
+                "--column body_mass_g"
+            ),
+            "%sql conn",
+        ),
+        (
+            "%sqlplot boxplot --table penguins.csv --column body_mass_g",
+            "%sql duckdb://",
+        ),
+    ],
+)
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["boxplot_with_table_in_schema"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_boxplot_with_table_in_schema(ip_with_schema_and_table, cmd, conn):
+    ip_with_schema_and_table.run_cell(conn)
+    ip_with_schema_and_table.run_cell(cmd)
+
+
+@pytest.mark.parametrize(
+    "cmd, conn",
+    [
+        (
+            (
+                "%sqlplot histogram --table sqlalchemy_schema.penguins1 "
+                "--column body_mass_g"
+            ),
+            "%sql duckdb://",
+        ),
+        (
+            (
+                "%sqlplot histogram --table penguins1 --schema sqlalchemy_schema "
+                "--column body_mass_g"
+            ),
+            "%sql duckdb://",
+        ),
+        (
+            "%sqlplot histogram --table dbapi_schema.penguins2 --column body_mass_g",
+            "%sql conn",
+        ),
+        (
+            (
+                "%sqlplot histogram --table penguins2 --schema dbapi_schema "
+                "--column body_mass_g"
+            ),
+            "%sql conn",
+        ),
+        (
+            "%sqlplot histogram --table penguins.csv --column body_mass_g",
+            "%sql duckdb://",
+        ),
+    ],
+)
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_with_table_in_schema"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_with_table_in_schema(ip_with_schema_and_table, cmd, conn):
+    ip_with_schema_and_table.run_cell(conn)
+    ip_with_schema_and_table.run_cell(cmd)
+
+
+@pytest.mark.parametrize(
+    "cmd, conn",
+    [
+        (
+            "%sqlplot bar --table sqlalchemy_schema.penguins1 --column species",
+            "%sql duckdb://",
+        ),
+        (
+            (
+                "%sqlplot bar --table penguins1 --schema sqlalchemy_schema "
+                "--column species"
+            ),
+            "%sql duckdb://",
+        ),
+        ("%sqlplot bar --table dbapi_schema.penguins2 --column species", "%sql conn"),
+        (
+            "%sqlplot bar --table penguins2 --schema dbapi_schema --column species",
+            "%sql conn",
+        ),
+        ("%sqlplot bar --table penguins.csv --column species", "%sql duckdb://"),
+    ],
+)
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["bar_with_table_in_schema"], extensions=["png"], remove_text=True
+)
+def test_bar_with_table_in_schema(ip_with_schema_and_table, cmd, conn):
+    ip_with_schema_and_table.run_cell(conn)
+    ip_with_schema_and_table.run_cell(cmd)
+
+
+@pytest.mark.parametrize(
+    "cmd, conn",
+    [
+        (
+            "%sqlplot pie --table sqlalchemy_schema.penguins1 --column species",
+            "%sql duckdb://",
+        ),
+        (
+            (
+                "%sqlplot pie --table penguins1 --schema sqlalchemy_schema "
+                "--column species"
+            ),
+            "%sql duckdb://",
+        ),
+        ("%sqlplot pie --table dbapi_schema.penguins2 --column species", "%sql conn"),
+        (
+            "%sqlplot pie --table penguins2 --schema dbapi_schema --column species",
+            "%sql conn",
+        ),
+        ("%sqlplot pie --table penguins.csv --column species", "%sql duckdb://"),
+    ],
+)
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["pie_with_table_in_schema"], extensions=["png"], remove_text=True
+)
+def test_pie_with_table_in_schema(ip_with_schema_and_table, cmd, conn):
+    ip_with_schema_and_table.run_cell(conn)
+    ip_with_schema_and_table.run_cell(cmd)
 
 
 @pytest.mark.parametrize(
