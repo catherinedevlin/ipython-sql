@@ -130,6 +130,30 @@ One displayed, but all results fetched:
 len(res)
 ```
 
+## `column_local_vars`
+Default: `False`
+Returns data into local variable corresponding to column name.
+To enable this behavior, set to `True`.
+
+```{code-cell} ipython3
+%config SqlMagic.column_local_vars = True
+%sql SELECT * FROM languages
+```
+You can now access columns returned through variables with the same name.
+
+```{code-cell} ipython3
+print(f"Name: {name}")
+print(f"Rating: {rating}")
+print(f"Change: {change}")
+```
+
+Note that ```column_local_vars``` cannot be used when either of
+```autopandas``` or ```autopolars``` is enabled, and vice-versa.
+
+```{code-cell} ipython3
+%config SqlMagic.column_local_vars = False
+```
+
 ## `dsn_filename`
 
 ```{versionchanged} 0.10.0
@@ -267,6 +291,30 @@ rating = 12
 SELECT *
 FROM languages
 WHERE rating > :rating
+```
+
+## `autocommit`
+Default: `True`
+
+Commits each executed query to the database automatically.
+
+Set to `False` to disable this behavior.
+This may be needed when commits are not supported by the database 
+(for example in sqlalchemy 1.x does not support commits)
+
+```{code-cell} ipython3
+%config SqlMagic.autocommit = False
+```
+
+## `short_errors`
+
+DEFAULT: `True`
+
+Set the error description size.
+If `False`, displays entire traceback.
+
+```{code-cell} ipython3
+%config SqlMagic.short_errors = False
 ```
 
 ## Loading from `pyproject.toml`
