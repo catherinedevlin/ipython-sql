@@ -5,6 +5,7 @@ import html
 
 from prettytable import PrettyTable
 from IPython.display import display, HTML
+from IPython import get_ipython
 
 
 class Table:
@@ -71,9 +72,12 @@ class Message:
     """Message for the user"""
 
     def __init__(self, message, style=None) -> None:
-        self._message = message
+        if isinstance(message, str):
+            self._message = message
+        elif isinstance(message, list):
+            self._message = " ".join([str(msg) for msg in message])
         # escape html and replace newlines with <br> tags so newlines are displayed
-        self._message_html = html.escape(message).replace("\n\n", "<br>")
+        self._message_html = html.escape(self._message).replace("\n\n", "<br>")
         self._style = "" or style
 
     def _repr_html_(self):
@@ -81,6 +85,20 @@ class Message:
 
     def __repr__(self) -> str:
         return self._message
+
+
+class Link:
+    """Formatting of link depending on the running environment"""
+
+    def __init__(self, text, url):
+        self.text = text
+        self.url = url
+
+    def __str__(self):
+        if get_ipython():
+            return f'<a href="{self.url}">{self.text}</a>'
+        else:
+            return f"{self.text} ({self.url})"
 
 
 def message(message):
@@ -104,8 +122,11 @@ def message_warning(message):
 
 
 def message_html(message):
-    """Display a message as HTML"""
-    display(HTML(str(Message(message))))
+    """Display a message with link"""
+    if get_ipython():
+        display(HTML(str(Message(message))))
+    else:
+        display(Message(message))
 
 
 def table(headers, rows):

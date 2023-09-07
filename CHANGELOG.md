@@ -5,6 +5,7 @@
 * [Doc] Fixed typo in the `./doc/integrations/postgres-connect.ipynb` file (Line 180) (#845)
 * [Feature] Improved messages when loading configurations from `pyproject.toml` file.
 * [Feature] Add `--schema/-s` for `%sqlcmd` commands that support `--table/-t` and ensure `--table schema.table` works (#519)
+* [Feature] Expose link in feedback when it is shown in a terminal (#846)
 * [Feature] Show feedback when starting a new connection (#807)
 * [Doc] Add chDB integration tutorial
 * [Doc] Clarify the use of `pyproject.toml` and `connections.ini` in documentations (#850)

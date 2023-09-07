@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.5
+    jupytext_version: 1.15.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -88,6 +88,20 @@ message("Some information")
 ```{code-cell} ipython3
 message_success("Some operation finished successfully!")
 ```
+
+You can use `message_html` to embed a link in a message and point users to certain sections in our docs. Here's an example:
+
+```{code-cell} ipython3
+from sql.display import message_html, Link
+```
+
+```{code-cell} ipython3
+message_html(["Go to our", Link("home", "https://ploomber.io"), "page"])
+```
+
+`message_html` will detect the running environment and display `Go to our home (https://ploomber.io) page` message instead if feedback is shown through a terminal.
+
++++
 
 ## Throwing errors
 
