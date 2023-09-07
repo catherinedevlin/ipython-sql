@@ -69,20 +69,17 @@ If you have autopandas set to true, the displaylimit option will not apply. You 
 %config SqlMagic.feedback = 0
 ```
 
-## `displaycon`
-
+## `autocommit`
 Default: `True`
 
-Show connection string after execution.
+Commits each executed query to the database automatically.
+
+Set to `False` to disable this behavior.
+This may be needed when commits are not supported by the database 
+(for example in sqlalchemy 1.x does not support commits)
 
 ```{code-cell} ipython3
-%config SqlMagic.displaycon = True
-%sql SELECT * FROM languages LIMIT 2
-```
-
-```{code-cell} ipython3
-%config SqlMagic.displaycon = False
-%sql SELECT * FROM languages LIMIT 2
+%config SqlMagic.autocommit = False
 ```
 
 ## `autolimit`
@@ -103,6 +100,82 @@ Automatically limit the size of the returned result sets (e.g., add a `LIMIT` at
 
 ```{code-cell} ipython3
 %config SqlMagic.autolimit = 0
+```
+
+## `autopandas`
+
+Default: `False`
+
+Return Pandas DataFrames instead of regular result sets.
+
+```{code-cell} ipython3
+%config SqlMagic.autopandas = True
+df = %sql SELECT * FROM languages
+type(df)
+```
+
+```{code-cell} ipython3
+%config SqlMagic.autopandas = False
+res = %sql SELECT * FROM languages
+type(res)
+```
+
+## `autopolars`
+
+Default: `False`
+
+Return Polars DataFrames instead of regular result sets.
+
+```{code-cell} ipython3
+%config SqlMagic.autopolars = True
+df = %sql SELECT * FROM languages
+type(df)
+```
+
+```{code-cell} ipython3
+%config SqlMagic.autopolars = False
+res = %sql SELECT * FROM languages
+type(res)
+```
+
+## `column_local_vars`
+Default: `False`
+Returns data into local variable corresponding to column name.
+To enable this behavior, set to `True`.
+
+```{code-cell} ipython3
+%config SqlMagic.column_local_vars = True
+%sql SELECT * FROM languages
+```
+You can now access columns returned through variables with the same name.
+
+```{code-cell} ipython3
+print(f"Name: {name}")
+print(f"Rating: {rating}")
+print(f"Change: {change}")
+```
+
+Note that ```column_local_vars``` cannot be used when either of
+```autopandas``` or ```autopolars``` is enabled, and vice-versa.
+
+```{code-cell} ipython3
+%config SqlMagic.column_local_vars = False
+```
+
+## `displaycon`
+
+Default: `True`
+
+Show connection string after execution.
+
+```{code-cell} ipython3
+%config SqlMagic.displaycon = False
+%sql SELECT * FROM languages LIMIT 2
+```
+
+```{code-cell} ipython3
+%config SqlMagic.displaycon = True
+%sql SELECT * FROM languages LIMIT 2
 ```
 
 ## `displaylimit`
@@ -130,30 +203,6 @@ One displayed, but all results fetched:
 len(res)
 ```
 
-## `column_local_vars`
-Default: `False`
-Returns data into local variable corresponding to column name.
-To enable this behavior, set to `True`.
-
-```{code-cell} ipython3
-%config SqlMagic.column_local_vars = True
-%sql SELECT * FROM languages
-```
-You can now access columns returned through variables with the same name.
-
-```{code-cell} ipython3
-print(f"Name: {name}")
-print(f"Rating: {rating}")
-print(f"Change: {change}")
-```
-
-Note that ```column_local_vars``` cannot be used when either of
-```autopandas``` or ```autopolars``` is enabled, and vice-versa.
-
-```{code-cell} ipython3
-%config SqlMagic.column_local_vars = False
-```
-
 ## `dsn_filename`
 
 ```{versionchanged} 0.10.0
@@ -166,40 +215,47 @@ File to load connections configuration from. For an example, see: [](../user-gui
 
 +++
 
-## `autopandas`
+## `feedback`
+
+```{versionchanged} 0.10
+`feedback` takes values `0`, `1`, and `2` instead of `True`/`False`
+```
+
+Default: `1`
+
+Control the quantity of messages displayed when performing certain operations. Each
+value enables the ones from previous values plus new ones:
+
+- `0`: Minimal feedback
+- `1`: Normal feedback (default)
+  - Connection name when switching
+  - Connection name when running a query
+  - Number of rows afffected by DML (e.g., `INSERT`, `UPDATE`, `DELETE`)
+- `2`: All feedback
+  - Footer to distinguish pandas/polars data frames from JupySQL's result sets
+
+## `named_parameters`
+
+```{versionadded} 0.9
+```
 
 Default: `False`
 
-Return Pandas DataFrames instead of regular result sets.
+If True, it enables named parameters `:variable`. Learn more in the [tutorial.](../user-guide/template.md)
 
 ```{code-cell} ipython3
-%config SqlMagic.autopandas = False
-res = %sql SELECT * FROM languages
-type(res)
+%config SqlMagic.named_parameters=True
 ```
 
 ```{code-cell} ipython3
-%config SqlMagic.autopandas = True
-df = %sql SELECT * FROM languages
-type(df)
-```
-
-## `autopolars`
-
-Default: `False`
-
-Return Polars DataFrames instead of regular result sets.
-
-```{code-cell} ipython3
-%config SqlMagic.autopolars = False
-res = %sql SELECT * FROM languages
-type(res)
+rating = 12
 ```
 
 ```{code-cell} ipython3
-%config SqlMagic.autopolars = True
-df = %sql SELECT * FROM languages
-type(df)
+%%sql
+SELECT *
+FROM languages
+WHERE rating > :rating
 ```
 
 ## `polars_dataframe_kwargs`
@@ -232,24 +288,16 @@ To unset:
 %config SqlMagic.polars_dataframe_kwargs = {}
 ```
 
-## `feedback`
+## `short_errors`
 
-```{versionchanged} 0.10
-`feedback` takes values `0`, `1`, and `2` instead of `True`/`False`
+DEFAULT: `True`
+
+Set the error description size.
+If `False`, displays entire traceback.
+
+```{code-cell} ipython3
+%config SqlMagic.short_errors = False
 ```
-
-Default: `1`
-
-Control the quantity of messages displayed when performing certain operations. Each
-value enables the ones from previous values plus new ones:
-
-- `0`: Minimal feedback
-- `1`: Normal feedback (default)
-  - Connection name when switching
-  - Connection name when running a query
-  - Number of rows afffected by DML (e.g., `INSERT`, `UPDATE`, `DELETE`)
-- `2`: All feedback
-  - Footer to distinguish pandas/polars data frames from JupySQL's result sets
 
 ## `style`
 
@@ -267,54 +315,6 @@ print(res)
 %config SqlMagic.style = "SINGLE_BORDER"
 res = %sql SELECT * FROM languages LIMIT 2
 print(res)
-```
-
-## `named_parameters`
-
-```{versionadded} 0.9
-```
-
-Default: `False`
-
-If True, it enables named parameters `:variable`. Learn more in the [tutorial.](../user-guide/template.md)
-
-```{code-cell} ipython3
-%config SqlMagic.named_parameters=True
-```
-
-```{code-cell} ipython3
-rating = 12
-```
-
-```{code-cell} ipython3
-%%sql
-SELECT *
-FROM languages
-WHERE rating > :rating
-```
-
-## `autocommit`
-Default: `True`
-
-Commits each executed query to the database automatically.
-
-Set to `False` to disable this behavior.
-This may be needed when commits are not supported by the database 
-(for example in sqlalchemy 1.x does not support commits)
-
-```{code-cell} ipython3
-%config SqlMagic.autocommit = False
-```
-
-## `short_errors`
-
-DEFAULT: `True`
-
-Set the error description size.
-If `False`, displays entire traceback.
-
-```{code-cell} ipython3
-%config SqlMagic.short_errors = False
 ```
 
 ## Loading from `pyproject.toml`

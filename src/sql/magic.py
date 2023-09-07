@@ -95,37 +95,12 @@ class SqlMagic(Magics, Configurable):
 
     Provides the %%sql magic."""
 
-    displaycon = Bool(
-        default_value=True, config=True, help="Show connection string after execution"
-    )
+    autocommit = Bool(default_value=True, config=True, help="Set autocommit mode")
     autolimit = Int(
         default_value=0,
         config=True,
         allow_none=True,
         help="Automatically limit the size of the returned result sets",
-    )
-    style = Unicode(
-        default_value="DEFAULT",
-        config=True,
-        help=(
-            "Set the table printing style to any of prettytable's "
-            "defined styles (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, "
-            "RANDOM, SINGLE_BORDER, DOUBLE_BORDER, MARKDOWN )"
-        ),
-    )
-    short_errors = Bool(
-        default_value=True,
-        config=True,
-        help="Don't display the full traceback on SQL Programming Error",
-    )
-    displaylimit = Int(
-        default_value=10,
-        config=True,
-        allow_none=True,
-        help=(
-            "Automatically limit the number of rows "
-            "displayed (full result set is still stored)"
-        ),
     )
     autopandas = Bool(
         default_value=False,
@@ -137,26 +112,23 @@ class SqlMagic(Magics, Configurable):
         config=True,
         help="Return Polars DataFrames instead of regular result sets",
     )
-    polars_dataframe_kwargs = Dict(
-        default_value={},
-        config=True,
-        help=(
-            "Polars DataFrame constructor keyword arguments"
-            "(e.g. infer_schema_length, nan_to_null, schema_overrides, etc)"
-        ),
-    )
     column_local_vars = Bool(
         default_value=False,
         config=True,
         help="Return data into local variables from column names",
     )
-
-    feedback = Int(
-        default_value=1,
-        config=True,
-        help="Verbosity level. 0=minimal, 1=normal, 2=all",
+    displaycon = Bool(
+        default_value=True, config=True, help="Show connection string after execution"
     )
-
+    displaylimit = Int(
+        default_value=10,
+        config=True,
+        allow_none=True,
+        help=(
+            "Automatically limit the number of rows "
+            "displayed (full result set is still stored)"
+        ),
+    )
     dsn_filename = Unicode(
         default_value=str(Path("~/.jupysql/connections.ini").expanduser()),
         config=True,
@@ -165,15 +137,39 @@ class SqlMagic(Magics, Configurable):
         "a sqlalchemy connection string is formed from the "
         "matching section in the DSN file.",
     )
-
-    autocommit = Bool(default_value=True, config=True, help="Set autocommit mode")
-
+    feedback = Int(
+        default_value=1,
+        config=True,
+        help="Verbosity level. 0=minimal, 1=normal, 2=all",
+    )
     named_parameters = Bool(
         default_value=False,
         config=True,
         help=(
             "Allow named parameters in queries "
             "(i.e., 'SELECT * FROM foo WHERE bar = :bar')"
+        ),
+    )
+    polars_dataframe_kwargs = Dict(
+        default_value={},
+        config=True,
+        help=(
+            "Polars DataFrame constructor keyword arguments"
+            "(e.g. infer_schema_length, nan_to_null, schema_overrides, etc)"
+        ),
+    )
+    short_errors = Bool(
+        default_value=True,
+        config=True,
+        help="Don't display the full traceback on SQL Programming Error",
+    )
+    style = Unicode(
+        default_value="DEFAULT",
+        config=True,
+        help=(
+            "Set the table printing style to any of prettytable's "
+            "defined styles (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, "
+            "RANDOM, SINGLE_BORDER, DOUBLE_BORDER, MARKDOWN )"
         ),
     )
 
