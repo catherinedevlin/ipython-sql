@@ -1964,3 +1964,26 @@ INSERT INTO table1 VALUES (1, -1), (2, 1), (3, 2)"""
 SUMMARIZE table1"""
     ).result
     assert out.dict() == expected_result
+
+
+def test_accessing_previously_nonexisting_file(ip_empty, tmp_empty, capsys):
+    ip_empty.run_cell("%sql duckdb://")
+    with pytest.raises(UsageError):
+        ip_empty.run_cell("%sql SELECT * FROM 'data.csv' LIMIT 3")
+
+    Path("data.csv").write_text(
+        "name,age\nDan,33\nBob,19\nSheri,\nVin,33\nMick,\nJay,33\nSky,33"
+    )
+    expected = (
+        "+-------+------+\n"
+        "|  name | age  |\n"
+        "+-------+------+\n"
+        "|  Dan  |  33  |\n"
+        "|  Bob  |  19  |\n"
+        "| Sheri | None |\n"
+        "+-------+------+"
+    )
+
+    ip_empty.run_cell("%sql SELECT * FROM 'data.csv' LIMIT 3")
+    out, _ = capsys.readouterr()
+    assert expected in out

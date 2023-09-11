@@ -14,6 +14,7 @@ from sqlalchemy.exc import (
     StatementError,
     PendingRollbackError,
     InternalError,
+    ProgrammingError,
 )
 from IPython.core.error import UsageError
 import sqlglot
@@ -892,6 +893,14 @@ class SQLAlchemyConnection(AbstractConnection):
                     "Server closed connection. JupySQL executed a ROLLBACK operation.",
                     category=JupySQLRollbackPerformed,
                 )
+                rollback_needed = True
+            else:
+                raise
+
+        except ProgrammingError as e:
+            # error when accessing previously non-existing file with duckdb using
+            # sqlalchemy 2.x
+            if "duckdb.InvalidInputException" in str(e) and "please ROLLBACK" in str(e):
                 rollback_needed = True
             else:
                 raise
