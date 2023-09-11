@@ -10,6 +10,7 @@
 * [Feature] Show feedback when starting a new connection (#807)
 * [Doc] Add chDB integration tutorial
 * [Doc] Clarify the use of `pyproject.toml` and `connections.ini` in documentations (#850)
+* [Doc] Update documentation to use `{{variable}}` instead of `string.Template` and remove `--with` since it's optional (#838)
 * [Fix] Fix result not displayed when `SUMMARIZE` argument is used in duckdb with a sqlalchemy connection (#836)
 
 ## 0.10.1 (2023-08-30)

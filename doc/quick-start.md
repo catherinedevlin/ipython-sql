@@ -7,7 +7,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.5
+    jupytext_version: 1.15.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -115,11 +115,11 @@ AND bill_depth_mm IS NOT NULL
 ## Plotting
 
 ```{code-cell} ipython3
-%sqlplot boxplot --column bill_length_mm bill_depth_mm --table not_nulls --with not_nulls
+%sqlplot boxplot --column bill_length_mm bill_depth_mm --table not_nulls
 ```
 
 ```{code-cell} ipython3
-%sqlplot histogram --column bill_length_mm bill_depth_mm --table not_nulls --with not_nulls
+%sqlplot histogram --column bill_length_mm bill_depth_mm --table not_nulls
 ```
 
 ## `pandas` integration

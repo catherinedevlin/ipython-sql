@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.15.0
+    jupytext_version: 1.15.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -293,29 +293,21 @@ LIMIT 3
 ## Templated SQL queries
 
 ```{code-cell} ipython3
-from string import Template
+target = 1
+```
 
-template = Template(
-    """
+```{code-cell} ipython3
+%%sql
 SELECT *
 FROM my_data
-LIMIT $limit
-"""
-)
-
-limit_one = template.substitute(limit=1)
-limit_two = template.substitute(limit=2)
+WHERE x = {{target}}
 ```
 
 **Important:** Ensure you sanitize the input parameters; as malicious parameters will be able to run arbitrary SQL queries.
 
-```{code-cell} ipython3
-%sql {{limit_one}}
-```
+For more information, visit [Parameterizing SQL queries](../user-guide/template.md) section.
 
-```{code-cell} ipython3
-%sql {{limit_two}}
-```
++++
 
 ## Compose large queries
 
@@ -327,7 +319,7 @@ WHERE x > 1
 ```
 
 ```{code-cell} ipython3
-%%sql --with larger_than_one
+%%sql
 SELECT x, y
 FROM larger_than_one
 WHERE y < 5

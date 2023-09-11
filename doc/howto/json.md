@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.15.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -216,7 +216,7 @@ FROM read_json_auto('people.json')
 ```
 
 ```{code-cell} ipython3
-%%sql --with clean_data_json
+%%sql
 SELECT * FROM clean_data_json
 ```
 
@@ -233,7 +233,7 @@ FROM read_json_objects('people.jsonl', format="auto")
 ```
 
 ```{code-cell} ipython3
-%%sql --with clean_data_jsonl
+%%sql
 SELECT * FROM clean_data_jsonl
 ```
 

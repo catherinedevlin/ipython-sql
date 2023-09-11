@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.5
+    jupytext_version: 1.15.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -62,7 +62,6 @@ Now, load the extension and connect to an in-memory DuckDB database:
 JupySQL allows users to run SQL queries easily using `%sql` and `%%sql` magics. We will use these magics to generate the dataset:
 
 ```{code-cell} ipython3
-
 %%sql
 CREATE TABLE user_activity (
   user_id INT NOT NULL,
@@ -89,7 +88,6 @@ VALUES
 Let's verify that the table is populated correctly.
 
 ```{code-cell} ipython3
-
 %%sql
 SELECT * FROM user_activity
 ```
@@ -101,7 +99,6 @@ As defined above, the growth rate is the percentage increase of the total number
 We first calculate the total number of users in each month. JupySQL allows users to save query snippets using `--save` argument and use these snippets to compose larger queries.
 
 ```{code-cell} ipython3
-
 %%sql --save monthly_user_count
 Select MONTH(date) as month, COUNT(DISTINCT user_id) AS total_users
 FROM user_activity
@@ -109,18 +106,15 @@ GROUP BY MONTH(date)
 ```
 
 Here, we will group the dataset by the month of the date, and then count the number of distinct users as the total number of users.
-The command uses `--with` argument to refer to the snippet saved in the previous query.
-Also, note that '/' in SQL between two integers performs integer division. For example, 10/3 would be 3 instead of 3.33333. So the result needs to be multiplied by 1.0 to convert it to float. 
-
+We can use `monthly_user_count` in the cell below because it is saved from the cell above and jupysql automatically infers it when `monthly_user_count` is passed. 
+Also, note that '/' in SQL between two integers performs integer division. For example, 10/3 would be 3 instead of 3.33333. So the result needs to be multiplied by 1.0 to convert it to float.
 
 ```{code-cell} ipython3
-
-%%sql --with monthly_user_count
+%%sql
 SELECT c1.month as PrevMonth, c2.month as CurrentMonth,ROUND((c2.total_users - c1.total_users)*1.0/c1.total_users*100, 2) AS Growth_Rate_in_Percentage
 FROM monthly_user_count c1, monthly_user_count c2
 WHERE c1.month = c2.month - 1
 ```
-
 
 The user growth rate between January and February is 33.33% while that of the February-March period is 25%.
 
@@ -131,8 +125,7 @@ The use of self join in the query might be confusing. Here is a brief explanatio
 The table we get is a cartesian product of these three rows: 
 
 ```{code-cell} ipython3
-
-%%sql --with monthly_user_count
+%%sql
 SELECT c1.month AS 'c1.month', c1.total_users AS 'c1.total_users', c2.month AS 'c2.month', c2.total_users AS 'c2.total_users'
 FROM monthly_user_count c1, monthly_user_count c2
 ```
@@ -140,8 +133,7 @@ FROM monthly_user_count c1, monthly_user_count c2
 Then, with **WHERE c1.month = c2.month - 1**, we filter out the total number of users for subsequential months.
 
 ```{code-cell} ipython3
-
-%%sql --with monthly_user_count
+%%sql
 SELECT c1.month AS 'c1.month', c1.total_users AS 'c1.total_users', c2.month AS 'c2.month', c2.total_users AS 'c2.total_users'
 FROM monthly_user_count c1, monthly_user_count c2
 WHERE c1.month = c2.month - 1
@@ -162,7 +154,6 @@ The period over which user retention is calculated can vary across companies, He
 We will first create two query snippets : `first_time_users` and `retention_users`.
 
 ```{code-cell} ipython3
-
 %%sql --save first_time_users
 
 SELECT MONTH(date) AS month, COUNT(DISTINCT u.user_id) AS first_time_users
@@ -182,7 +173,6 @@ From the results, we can see that in January, 3 users started to use the app. Si
 Then, for each month, we calculate the number of users who still use the app after one month of first-login
 
 ```{code-cell} ipython3
-
 %%sql --save retention_users
 SELECT MONTH(first_login) AS month, COUNT(DISTINCT u. user_id) AS retention_users
 FROM user_activity u
@@ -203,8 +193,7 @@ As we can see, 2 out of 3 users continue to use the app beyond a month.
 Now, we will join the `first_time_users` and `retention_users` tables and calculate the retention rate.
 
 ```{code-cell} ipython3
-
-%%sql --with first_time_users --with retention_users
+%%sql
 SELECT f.month, first_time_users, IFNULL(retention_users, 0) AS retention_users, ROUND(retention_users * 1.0 / first_time_users, 4)*100 AS retention_rate
 FROM first_time_users f 
 FULL OUTER JOIN retention_users r
@@ -213,4 +202,4 @@ ON f.month = r.month
 
 ## Summary
 
-In this tutorial, we learnt how to use cell magics in JupySQL and easily run SQL queries. We also learnt how we can formulate complex queries using `--save` and `--with` arguments. These tools come in handy when performing complex data analytics tasks like product analytics.
+In this tutorial, we learnt how to use cell magics in JupySQL and easily run SQL queries. We also learnt how we can formulate complex queries using `--save` argument. These tools come in handy when performing complex data analytics tasks like product analytics.

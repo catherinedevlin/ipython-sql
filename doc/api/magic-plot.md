@@ -102,8 +102,10 @@ FROM penguins.csv
 WHERE island = 'Biscoe'
 ```
 
+Since we saved `biscoe` from the cell above, we can pass it as an argument to `--table` since jupysql autogenerates the CTE.
+
 ```{code-cell} ipython3
-%sqlplot boxplot --table biscoe --column body_mass_g --with biscoe
+%sqlplot boxplot --table biscoe --column body_mass_g
 ```
 
 ### Horizontal boxplot
@@ -232,13 +234,13 @@ group by species
 ```
 
 ```{code-cell} ipython3
-%sqlplot bar --table add_col --column species cnt --with add_col
+%sqlplot bar --table add_col --column species cnt
 ```
 
 You can also pass the orientation using the `orient` argument.
 
 ```{code-cell} ipython3
-%sqlplot bar --table add_col --column species cnt --with add_col --orient h
+%sqlplot bar --table add_col --column species cnt --orient h
 ```
 
 You can also show the number on top of the bar using the `S`/`show-numbers` argument.
@@ -280,7 +282,7 @@ group by species
 ```
 
 ```{code-cell} ipython3
-%sqlplot pie --table add_col --column species cnt --with add_col
+%sqlplot pie --table add_col --column species cnt
 ```
 
 Here, `species` is the `labels` column and `cnt` is the `x` column.
