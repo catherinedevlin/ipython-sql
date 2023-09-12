@@ -9,8 +9,6 @@ dependencies:
   - matplotlib
   - pandas
   - pip
-  # jupysql-plugin doesn't work with jupyterlab 4
-  - jupyterlab<4
   - pip:
     # duckdb example
     - duckdb
@@ -21,8 +19,11 @@ dependencies:
     # required to open .md files as nbs
     # pinning it because recent versions give
     # trouble, I think it's because they migrated
-    # to jupyterlab 4
+    # to jupyterlab 4. We cannot use jupyterlab 4
+    # because jupysql-plugin is not compatible
     - jupytext<1.15
+    - jupyterlab<4
+    - jupyter-server<2
     # jupysql
     - --editable .
     - jupysql-plugin
