@@ -12,6 +12,7 @@
 * [Doc] Clarify the use of `pyproject.toml` and `connections.ini` in documentations (#850)
 * [Doc] Update documentation to use `{{variable}}` instead of `string.Template` and remove `--with` since it's optional (#838)
 * [Fix] Fix result not displayed when `SUMMARIZE` argument is used in duckdb with a sqlalchemy connection (#836)
+* [Fix] Show deprecation warnings for legacy plot API (#513)
 * [Fix] Fix error when trying to access previously non-existing file (#840)
 
 ## 0.10.1 (2023-08-30)

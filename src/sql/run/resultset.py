@@ -5,8 +5,8 @@ from io import StringIO
 from html import unescape
 from collections.abc import Iterable
 
-
 import prettytable
+import warnings
 
 from sql.column_guesser import ColumnGuesserMixin
 from sql.run.csv import CSVWriter, CSVResultDescriptor
@@ -282,6 +282,15 @@ class ResultSet(ColumnGuesserMixin):
         Any additional keyword arguments will be passed
         through to ``matplotlib.pylab.pie``.
         """
+        warnings.warn(
+            (
+                ".pie() is deprecated and will be removed in a future version. "
+                "Use %sqlplot pie instead. "
+                "For more help, find us at https://ploomber.io/community "
+            ),
+            UserWarning,
+        )
+
         self.guess_pie_columns(xlabel_sep=key_word_sep)
         import matplotlib.pylab as plt
 
@@ -310,6 +319,14 @@ class ResultSet(ColumnGuesserMixin):
         Any additional keyword arguments will be passed
         through to ``matplotlib.pylab.plot``.
         """
+        warnings.warn(
+            (
+                ".plot() is deprecated and will be removed in a future version. "
+                "For more help, find us at https://ploomber.io/community "
+            ),
+            UserWarning,
+        )
+
         import matplotlib.pylab as plt
 
         self.guess_plot_columns()
@@ -351,6 +368,15 @@ class ResultSet(ColumnGuesserMixin):
         Any additional keyword arguments will be passed
         through to ``matplotlib.pylab.bar``.
         """
+        warnings.warn(
+            (
+                ".bar() is deprecated and will be removed in a future version. "
+                "Use %sqlplot bar instead. "
+                "For more help, find us at https://ploomber.io/community "
+            ),
+            UserWarning,
+        )
+
         import matplotlib.pylab as plt
 
         ax = plt.gca()
