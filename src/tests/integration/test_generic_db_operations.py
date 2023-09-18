@@ -919,10 +919,7 @@ def test_sql_query(ip_with_dynamic_db, cell, request, test_table_name_dict):
         "ip_with_MSSQL",
         "ip_with_Snowflake",
         "ip_with_oracle",
-        pytest.param(
-            "ip_with_clickhouse",
-            marks=pytest.mark.xfail(reason="some issue in cte . issue #812"),
-        ),
+        "ip_with_clickhouse",
     ],
 )
 def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
