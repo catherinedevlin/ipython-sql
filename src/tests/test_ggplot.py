@@ -431,7 +431,7 @@ def test_facet_wrap_stacked_histogram_cmap(diamonds_data):
 
 @_cleanup_cm()
 @image_comparison(
-    baseline_images=["test_facet_wrap_default_with_nulls"],
+    baseline_images=["facet_wrap_default_with_nulls"],
     extensions=["png"],
     remove_text=False,
 )

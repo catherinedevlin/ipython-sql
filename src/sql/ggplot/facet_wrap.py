@@ -17,6 +17,7 @@ class facet:
             SELECT
             distinct ({{column}})
             FROM {{table}}
+            ORDER BY {{column}}
             """
         )
         query = template.render(table=table, column=column)
@@ -25,6 +26,7 @@ class facet:
         # Added to make histogram more inclusive to NULLs
         # Filter out NULL values
         # If value[0] is NULL we skip it
+
         values = [value for value in values if value[0] is not None]
         n_plots = len(values)
         n_cols = len(values) if len(values) < 3 else 3
