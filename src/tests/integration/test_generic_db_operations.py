@@ -41,31 +41,36 @@ def mock_log_api(monkeypatch):
 
 
 @pytest.mark.parametrize(
-    "ip_with_dynamic_db",
+    "ip_with_dynamic_db, query_prefix, query_suffix",
     [
-        "ip_with_postgreSQL",
-        "ip_with_mySQL",
-        "ip_with_mariaDB",
-        "ip_with_SQLite",
-        "ip_with_duckDB_native",
-        "ip_with_duckDB",
-        "ip_with_Snowflake",
-        "ip_with_redshift",
-        "ip_with_clickhouse",
+        ("ip_with_postgreSQL", "", "LIMIT 3"),
+        ("ip_with_mySQL", "", "LIMIT 3"),
+        ("ip_with_mariaDB", "", "LIMIT 3"),
+        ("ip_with_SQLite", "", "LIMIT 3"),
+        ("ip_with_duckDB_native", "", "LIMIT 3"),
+        ("ip_with_duckDB", "", "LIMIT 3"),
+        ("ip_with_Snowflake", "", "LIMIT 3"),
+        ("ip_with_redshift", "", "LIMIT 3"),
+        ("ip_with_clickhouse", "", "LIMIT 3"),
+        ("ip_with_oracle", "", "FETCH FIRST 3 ROWS ONLY"),
+        ("ip_with_MSSQL", "TOP 3", ""),
     ],
 )
-def test_run_query(ip_with_dynamic_db, request, test_table_name_dict):
+def test_run_query(
+    ip_with_dynamic_db, query_prefix, query_suffix, request, test_table_name_dict
+):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 
     # run a query
     out = ip_with_dynamic_db.run_cell(
-        f"%sql SELECT * FROM {test_table_name_dict['taxi']} LIMIT 3"
+        f"%sql SELECT {query_prefix} * FROM {test_table_name_dict['taxi']} \
+            {query_suffix}"
     )
 
     # test --save
     ip_with_dynamic_db.run_cell(
-        f"%sql --save taxi_subset --no-execute SELECT * FROM\
-          {test_table_name_dict['taxi']} LIMIT 3"
+        f"%sql --save taxi_subset --no-execute SELECT {query_prefix} * FROM\
+          {test_table_name_dict['taxi']} {query_suffix}"
     )
 
     out_query_with_save_arg = ip_with_dynamic_db.run_cell(
@@ -168,11 +173,13 @@ def test_create_table_with_indexed_df(
         f"results = %sql SELECT * FROM {test_table_name_dict['taxi']}\
           LIMIT {limit}"
     )
+
     # Prepare expected df
     expected_df = ip_with_dynamic_db.run_cell(
         f"%sql SELECT * FROM {test_table_name_dict['taxi']}\
           LIMIT {limit}"
     )
+
     ip_with_dynamic_db.run_cell(
         f"{test_table_name_dict['new_table_from_df']} = results.DataFrame()"
     )

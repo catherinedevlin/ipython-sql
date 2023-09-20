@@ -2,19 +2,6 @@ from matplotlib import pyplot as plt
 import pytest
 
 
-def test_query_count(ip_with_oracle, test_table_name_dict):
-    # Oracle DB doesn't have LIMIT
-    out = ip_with_oracle.run_line_magic(
-        "sql",
-        f"""
-        SELECT *
-        FROM {test_table_name_dict['taxi']} FETCH FIRST 3 ROWS ONLY
-        """,
-    )
-
-    assert len(out) == 3
-
-
 @pytest.mark.xfail(reason="Some issue with checking isidentifier part in persist")
 def test_create_table_with_indexed_df(ip_with_oracle, test_table_name_dict):
     ip_with_oracle.run_cell("%config SqlMagic.displaylimit = 0")

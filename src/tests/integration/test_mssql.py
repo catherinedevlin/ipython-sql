@@ -3,30 +3,6 @@ from matplotlib import pyplot as plt
 from IPython.core.error import UsageError
 
 
-def test_query_count(ip_with_MSSQL, test_table_name_dict):
-    # MSSQL doesn't have LIMIT
-    out = ip_with_MSSQL.run_line_magic(
-        "sql",
-        f"""
-        SELECT TOP 3 *
-        FROM {test_table_name_dict['taxi']}
-        """,
-    )
-
-    assert len(out) == 3
-
-
-def test_cte(ip_with_MSSQL, test_table_name_dict):
-    ip_with_MSSQL.run_cell(
-        f"%sql --save taxi_subset --no-execute \
-        SELECT TOP 3 * FROM {test_table_name_dict['taxi']} "
-    )
-    out_query_with_save_arg = ip_with_MSSQL.run_cell(
-        "%sql --with taxi_subset SELECT * FROM taxi_subset"
-    )
-    assert len(out_query_with_save_arg.result) == 3
-
-
 def test_create_table_with_indexed_df(ip_with_MSSQL, test_table_name_dict):
     ip_with_MSSQL.run_cell("%config SqlMagic.displaylimit = 0")
 
