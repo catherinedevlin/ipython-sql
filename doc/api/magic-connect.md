@@ -27,10 +27,10 @@ myst:
 
 ## Installation
 
-Since `%sqlcmd connect` uses the optional `jupysql-plugin` package, please install it before continuing:
+Since `%sqlcmd connect` uses the optional `ipywidgets` package:
 
 ```sh
-pip install jupysql-plugin --upgrade
+pip install ipywidgets --upgrade
 ```
 
 ## Create a new connection

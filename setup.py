@@ -23,11 +23,11 @@ install_requires = [
     "sqlalchemy",
     "sqlparse",
     "ipython-genutils>=0.1.0",
-    "sqlglot",
     "jinja2",
     "sqlglot>=11.3.7",
     "ploomber-core>=0.2.7",
     'importlib-metadata;python_version<"3.8"',
+    "jupysql-plugin",
 ]
 
 DEV = [
@@ -50,7 +50,6 @@ DEV = [
     "ipywidgets",
     # for running tests for %sqlcmd explore --table
     "js2py",
-    "jupysql-plugin",
     # for monitoring access to files
     "psutil",
     # for running tests for %sqlcmd connect

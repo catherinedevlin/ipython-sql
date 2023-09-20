@@ -26,7 +26,6 @@ dependencies:
     - jupyter-server<2
     # jupysql
     - --editable .
-    - jupysql-plugin
     # 5.10 introduced an issue that hasn't been fixed
     # https://github.com/microsoft/azuredatastudio/issues/24443
     - traitlets<5.10.0

@@ -6,7 +6,7 @@ except ModuleNotFoundError:
 from ploomber_core.dependencies import requires
 
 
-@requires(["jupysql_plugin"])
+@requires(["jupysql-plugin", "ipywidgets"])
 def connect(others):
     """
     Implementation of `%sqlcmd connect`

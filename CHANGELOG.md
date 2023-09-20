@@ -14,6 +14,7 @@
 * [Fix] Fix result not displayed when `SUMMARIZE` argument is used in duckdb with a sqlalchemy connection (#836)
 * [Fix] Show deprecation warnings for legacy plot API (#513)
 * [Fix] Fix error when trying to access previously non-existing file (#840)
+* [Feature] `jupysql-plugin` is now bundled with `jupysql` by default
 * [Fix] Testing with latest DuckDB version (#498)
 * [Fix] Remove duplicate integration tests (#827)
 

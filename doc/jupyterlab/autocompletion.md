@@ -19,9 +19,6 @@ myst:
 
 # SQL keywords autocompletion
 
-```{note}
-This feature is new and we're looking for feedback, please join our [Slack](https://ploomber.io/community) and share your thoughts!
-```
 
 JupySQL supports autocompletion of the most common SQL keywords. You can press
 the `tab` key while typing the keyword to view the list of suggestions.
@@ -29,7 +26,7 @@ the `tab` key while typing the keyword to view the list of suggestions.
 ## Installation
 
 ```bash
-pip install jupysql jupysql-plugin --quiet
+pip install jupysql --quiet
 ```
 
 +++

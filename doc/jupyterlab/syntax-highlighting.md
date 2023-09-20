@@ -21,10 +21,10 @@ myst:
 
 +++
 
-To enable syntax highlighting, install `jupysql-plugin`:
+To enable syntax highlighting, install `jupysql`:
 
 ```sh
-pip install jupysql-plugin --upgrade
+pip install jupysql --upgrade
 ```
 
 Then, open a notebook and *click* on any `%%sql` cell:
