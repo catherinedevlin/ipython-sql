@@ -1,22 +1,22 @@
 # CHANGELOG
 
-## 0.10.2dev
+## 0.10.2 (2023-09-22)
 
-* [Doc] Fixed typo in the `./doc/integrations/postgres-connect.ipynb` file (Line 180) (#845)
 * [Feature] Improved messages when loading configurations from `pyproject.toml` file.
-* [Feature] Add `--schema/-s` for `%sqlcmd` commands that support `--table/-t` and ensure `--table schema.table` works (#519)
-* [Feature] Add `schema/-s` for `%sqlplot` and ensure `--table schema.table` works (#854)
-* [Feature] Expose link in feedback when it is shown in a terminal (#846)
-* [Feature] Show feedback when starting a new connection (#807)
-* [Doc] Add chDB integration tutorial
-* [Doc] Clarify the use of `pyproject.toml` and `connections.ini` in documentations (#850)
-* [Doc] Update documentation to use `{{variable}}` instead of `string.Template` and remove `--with` since it's optional (#838)
-* [Fix] Fix result not displayed when `SUMMARIZE` argument is used in duckdb with a sqlalchemy connection (#836)
-* [Fix] Show deprecation warnings for legacy plot API (#513)
-* [Fix] Fix error when trying to access previously non-existing file (#840)
+* [Feature] Add `--schema/-s` for `%sqlcmd` commands that support `--table/-t` and ensure `--table schema.table` works ([#519](https://github.com/ploomber/jupysql/issues/519))
+* [Feature] Add `schema/-s` for `%sqlplot` and ensure `--table schema.table` works ([#854](https://github.com/ploomber/jupysql/issues/854))
+* [Feature] Expose link in feedback when it is shown in a terminal ([#846](https://github.com/ploomber/jupysql/issues/846))
+* [Feature] Show feedback when starting a new connection ([#807](https://github.com/ploomber/jupysql/issues/807))
 * [Feature] `jupysql-plugin` is now bundled with `jupysql` by default
-* [Fix] Testing with latest DuckDB version (#498)
-* [Fix] Remove duplicate integration tests (#827)
+* [Fix] Fix result not displayed when `SUMMARIZE` argument is used in duckdb with a sqlalchemy connection ([#836](https://github.com/ploomber/jupysql/issues/836))
+* [Fix] Show deprecation warnings for legacy plot API ([#513](https://github.com/ploomber/jupysql/issues/513))
+* [Fix] Fix error when trying to access previously non-existing file ([#840](https://github.com/ploomber/jupysql/issues/840))
+* [Fix] Testing with latest DuckDB version ([#498](https://github.com/ploomber/jupysql/issues/498))
+* [Fix] Remove duplicate integration tests ([#827](https://github.com/ploomber/jupysql/issues/827))
+* [Doc] Fixed typo in the `./doc/integrations/postgres-connect.ipynb` file (Line 180) ([#845](https://github.com/ploomber/jupysql/issues/845))
+* [Doc] Add chDB integration tutorial
+* [Doc] Clarify the use of `pyproject.toml` and `connections.ini` in documentations ([#850](https://github.com/ploomber/jupysql/issues/850))
+* [Doc] Update documentation to use `{{variable}}` instead of `string.Template` and remove `--with` since it's optional ([#838](https://github.com/ploomber/jupysql/issues/838))
 
 ## 0.10.1 (2023-08-30)
 
