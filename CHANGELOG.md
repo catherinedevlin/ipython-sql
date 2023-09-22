@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.10.3dev
+
 ## 0.10.2 (2023-09-22)
 
 * [Feature] Improved messages when loading configurations from `pyproject.toml` file.
