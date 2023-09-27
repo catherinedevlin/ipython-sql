@@ -140,6 +140,10 @@ class SQLQuery:
             rts=_remove_trailing_semicolon,
         )
 
+    def remove_snippet_dependency(self, snippet):
+        if snippet in self._with_:
+            self._with_.remove(snippet)
+
 
 def _remove_trailing_semicolon(query):
     query_ = query.rstrip()
