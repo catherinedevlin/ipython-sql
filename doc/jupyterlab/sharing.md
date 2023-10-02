@@ -31,4 +31,4 @@ you with a unique URL that you can share.
 pip install jupysql
 ```
 
-> **For detailed instructions [click here.](https://docs.cloud.ploomber.io/en/latest/dashboards/jupyterlab-plugin.html)**
+> **For detailed instructions [click here.](https://docs.cloud.ploomber.io/en/latest/apps/jupyterlab-plugin.html)**

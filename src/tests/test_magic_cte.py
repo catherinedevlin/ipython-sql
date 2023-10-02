@@ -182,3 +182,124 @@ def test_query_syntax_error(ip):
 
     assert excinfo.value.error_type == "RuntimeError"
     assert CTE_MSG.strip() in str(excinfo.value)
+
+
+def test_comment_in_query_stripped(ip):
+    ip.run_cell(
+        """%%sql --save positive_x
+SELECT * FROM number_table WHERE x > 0;
+--some comment
+
+"""
+    )
+    ip.run_cell(
+        """%%sql --with positive_x --save final
+SELECT * FROM positive_x
+"""
+    )
+    cell_final_query = ip.run_cell("%sqlcmd snippets final").result
+    assert (
+        cell_final_query == "WITH `positive_x` AS (\nSELECT * FROM number_table WHERE "
+        "x > 0)\nSELECT * FROM positive_x"
+    )
+
+
+def test_inline_comment_in_query_stripped(ip):
+    ip.run_cell(
+        """%%sql --save positive_x
+SELECT * FROM number_table
+WHERE x > 0; --some comment
+"""
+    )
+    ip.run_cell(
+        """%%sql --with positive_x --save final
+SELECT * FROM positive_x
+"""
+    )
+    cell_final_query = ip.run_cell("%sqlcmd snippets final").result
+    assert (
+        cell_final_query == "WITH `positive_x` AS (\nSELECT * FROM "
+        "number_table\nWHERE x > 0)\nSELECT * FROM positive_x"
+    )
+
+
+def test_comments_in_multiple_with_query_stripped(ip):
+    ip.run_cell(
+        """%%sql --save positive_x
+/* select all
+numbers */
+SELECT * FROM number_table WHERE x > 0;
+--some comment
+
+"""
+    )
+    ip.run_cell(
+        """%%sql --save positive_x_another
+/* select all
+numbers again */
+SELECT * FROM number_table WHERE x > 0;
+--some comment
+
+"""
+    )
+    ip.run_cell(
+        """%%sql --with positive_x --with positive_x_another --save final
+SELECT * FROM positive_x, positive_x_another
+WHERE positive_x.x = positive_x_another.x
+"""
+    )
+    cell_final_query = ip.run_cell("%sqlcmd snippets final").result
+    assert (
+        cell_final_query
+        == "WITH `positive_x` AS (\n\nSELECT * FROM number_table WHERE x > 0), "
+        "`positive_x_another` AS (\n\nSELECT * FROM number_table WHERE x > 0)\n"
+        "SELECT * FROM positive_x, positive_x_another\nWHERE "
+        "positive_x.x = positive_x_another.x"
+    )
+
+
+def test_multiple_comments_in_query_stripped(ip):
+    ip.run_cell(
+        """%%sql --save positive_x
+--select all rows
+SELECT * FROM number_table
+--if x > 0
+WHERE x > 0;
+--final comment
+
+"""
+    )
+    ip.run_cell(
+        """%%sql --with positive_x --save final
+SELECT * FROM positive_x
+"""
+    )
+    cell_final_query = ip.run_cell("%sqlcmd snippets final").result
+    assert (
+        cell_final_query == "WITH `positive_x` AS (\n\nSELECT * FROM number_table\n\n"
+        "WHERE x > 0)\nSELECT * FROM positive_x"
+    )
+
+
+def test_single_and_multiline_comments_in_query_stripped(ip):
+    ip.run_cell(
+        """%%sql --save positive_x
+/* select all
+rows*/
+SELECT * FROM number_table
+--if x > 0
+WHERE x > 0;
+--final comment
+
+"""
+    )
+    ip.run_cell(
+        """%%sql --with positive_x --save final
+SELECT * FROM positive_x
+"""
+    )
+    cell_final_query = ip.run_cell("%sqlcmd snippets final").result
+    assert (
+        cell_final_query == "WITH `positive_x` AS (\n\nSELECT * FROM number_table\n\n"
+        "WHERE x > 0)\nSELECT * FROM positive_x"
+    )

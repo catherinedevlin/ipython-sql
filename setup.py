@@ -19,7 +19,7 @@ install_requires = [
     "prettytable",
     # IPython dropped support for Python 3.8
     "ipython<=8.12.0; python_version <= '3.8'",
-    "ipython",
+    "ipython<8.16.0",
     "sqlalchemy",
     "sqlparse",
     "ipython-genutils>=0.1.0",
