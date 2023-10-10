@@ -18,7 +18,7 @@ import pytest
 from sqlalchemy import create_engine
 from IPython.core.error import UsageError
 from sql.connection import ConnectionManager
-from sql.magic import SqlMagic
+from sql.magic import SqlMagic, get_query_type
 from sql.run.resultset import ResultSet
 from sql import magic
 from sql.warnings import JupySQLQuotedNamedParametersWarning
@@ -1987,3 +1987,108 @@ def test_accessing_previously_nonexisting_file(ip_empty, tmp_empty, capsys):
     ip_empty.run_cell("%sql SELECT * FROM 'data.csv' LIMIT 3")
     out, _ = capsys.readouterr()
     assert expected in out
+
+
+@pytest.mark.parametrize(
+    "sql_snippet, sql_query, expected_result, raises",
+    [
+        (
+            """%%sql --save language_lt1
+select * from languages where rating < 1""",
+            """%%sql
+create table langs as (
+    select * from language_lt1
+)""",
+            """Your query is using the following snippets: language_lt1. \
+The query is not a SELECT type query and as snippets only work \
+with SELECT queries, CTE generation is disabled""",
+            True,
+        ),
+        (
+            """%%sql --save language_lt2
+select * from languages where rating < 2""",
+            """%%sql
+with langs as (
+    select * from language_lt2
+) select * from langs """,
+            """Your query is using one or more of the following snippets: \
+language_lt2. JupySQL does not support snippet expansion within CTEs yet, \
+CTE generation is disabled""",
+            True,
+        ),
+        (
+            """%%sql --save language_lt3
+select * from languages where rating < 3""",
+            """%%sql
+create table langs1 as (
+    WITH language_lt3 as (
+        select * from languages where rating < 3
+    )
+    select * from language_lt3
+) """,
+            """Your query is using the following snippets: language_lt3. \
+The query is not a SELECT type query and as snippets only work \
+with SELECT queries, CTE generation is disabled""",
+            False,
+        ),
+    ],
+)
+def test_warn_when_using_snippets_in_non_select_command(
+    ip_empty, capsys, sql_snippet, sql_query, expected_result, raises
+):
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql create table languages (name VARCHAR, rating INTEGER)")
+    ip_empty.run_cell(
+        """%%sql
+INSERT INTO languages VALUES ('Python', 1), ('Java', 0), ('OCaml', 2)"""
+    )
+
+    ip_empty.run_cell(sql_snippet)
+
+    if raises:
+        with pytest.raises(UsageError) as _:
+            ip_empty.run_cell(sql_query)
+    else:
+        ip_empty.run_cell(sql_query)
+
+    out, _ = capsys.readouterr()
+    print(out)
+    assert expected_result in out
+
+
+@pytest.mark.parametrize(
+    "query, query_type",
+    [
+        (
+            """
+            CREATE TABLE penguins AS (
+                WITH my_penguins AS (
+                    SELECT * FROM penguins.csv
+                )
+                SELECT * FROM my_penguins
+            )
+            """,
+            "CREATE",
+        ),
+        (
+            """
+            WITH my_penguins AS (
+                SELECT * FROM penguins.csv
+            )
+            SELECT * FROM my_penguins
+            """,
+            "SELECT",
+        ),
+        (
+            """
+            WITH my_penguins AS (
+                SELECT * FROM penguins.csv
+            )
+            * FROM my_penguins
+            """,
+            None,
+        ),
+    ],
+)
+def test_get_query_type(query, query_type):
+    assert get_query_type(query) == query_type
