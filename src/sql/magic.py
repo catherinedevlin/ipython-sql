@@ -664,8 +664,12 @@ def set_configs(ip, file_path):
 
 
 def load_SqlMagic_configs(ip):
-    """Loads saved SqlMagic configs in pyproject.toml"""
+    """Loads saved SqlMagic configs in pyproject.toml or ~/.jupysql/config"""
     file_path = util.find_path_from_root("pyproject.toml")
+    if not file_path:
+        alternate_path = Path("~/.jupysql/config").expanduser()
+        if alternate_path.exists():
+            file_path = str(alternate_path)
     if file_path:
         try:
             table_rows = set_configs(ip, file_path)
@@ -680,7 +684,8 @@ def load_SqlMagic_configs(ip):
             if type(e).__name__ == "ModuleNotFoundError":
                 display.message(
                     "The 'toml' package isn't installed. To load settings from "
-                    "the pyproject.toml file, install with: pip install toml"
+                    "pyproject.toml or ~/.jupysql/config, install with: "
+                    "pip install toml"
                 )
                 return
             else:

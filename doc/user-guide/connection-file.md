@@ -46,7 +46,7 @@ However, you can change this:
 ```
 
 ```{tip}
-For configuration settings other than connections, you can use a [`pyproject.toml`](../api/configuration.md#loading-from-pyprojecttoml) file.
+For configuration settings other than connections, you can use a [`pyproject.toml` or `~/.jupysql/config`](../api/configuration.md#loading-from-a-file) file.
 ```
 
 The `.ini` format defines sections and you can define key-value pairs within each section. For example:

@@ -19,7 +19,7 @@ except ModuleNotFoundError:
 SINGLE_QUOTE = "'"
 DOUBLE_QUOTE = '"'
 
-CONFIGURATION_DOCS_STR = "https://jupysql.ploomber.io/en/latest/api/configuration.html#loading-from-pyproject-toml"  # noqa
+CONFIGURATION_DOCS_STR = "https://jupysql.ploomber.io/en/latest/api/configuration.html#loading-from-a-file"  # noqa
 
 
 def sanitize_identifier(identifier):

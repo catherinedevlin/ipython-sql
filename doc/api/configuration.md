@@ -317,12 +317,16 @@ res = %sql SELECT * FROM languages LIMIT 2
 print(res)
 ```
 
-## Loading from `pyproject.toml`
+## Loading from a file
 
 ```{versionadded} 0.9
 ```
 
-You can define configurations in a `pyproject.toml` file and automatically load the configurations when you run `%load_ext sql`. If the file is not found in the current or parent directories, default values will be used. A sample `pyproject.toml` could look like this:
+```{versionchanged} 0.10.3
+Look for `~/.jupysql/config` if `pyproject.toml` doesn't exist.
+```
+
+You can define configurations in a `pyproject.toml` file and automatically load the configurations when you run `%load_ext sql`. If the file is not found in the current or parent directories, jupysql then looks for configurations in `~/.jupysql/config`. If no configuration file is found, default values will be used. A sample configuration file could look like this:
 
 ```
 [tool.jupysql.SqlMagic]
@@ -330,4 +334,4 @@ feedback = true
 autopandas = true
 ```
 
-Note that `pyproject.toml` is only for setting configurations. To store connection details, please use [`connections.ini`](../user-guide/connection-file.md) file.
+Note that these files are only for setting configurations. To store connection details, please use [`connections.ini`](../user-guide/connection-file.md) file.
