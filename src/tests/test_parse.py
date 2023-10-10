@@ -10,6 +10,7 @@ from sql.parse import (
     without_sql_comment,
     magic_args,
     escape_string_literals_with_colon_prefix,
+    escape_string_slicing_notation,
     find_named_parameters,
     _connection_string,
     ConnectionsFile,
@@ -424,3 +425,83 @@ def test_connections_file_get_default_connection_url(tmp_empty, content, expecte
 
     cf = ConnectionsFile(path_to_file="conns.ini")
     assert cf.get_default_connection_url() == expected
+
+
+@pytest.mark.parametrize(
+    "query_jupysql, expected_duckdb",
+    [
+        (
+            "select 'hello'[:2]",
+            "he",
+        ),
+        (
+            "select 'hello'[2:]",
+            "ello",
+        ),
+        (
+            "select 'hello'[2:4]",
+            "ell",
+        ),
+        (
+            "select 'hello'[:-1]",
+            "hell",
+        ),
+    ],
+)
+def test_slicing_jupysql_matches_duckdb_expected(
+    ip_empty, query_jupysql, expected_duckdb
+):
+    ip_empty.run_cell("%load_ext sql")
+    ip_empty.run_cell("%sql duckdb://")
+    raw_result = ip_empty.run_line_magic("sql", query_jupysql)
+    result_jupysql = list(raw_result.dict().values())[0][0]
+    assert result_jupysql == expected_duckdb
+
+
+@pytest.mark.parametrize(
+    "query, expected_escaped, expected_found",
+    [
+        (
+            "SELECT 'hello'",
+            "SELECT 'hello'",
+            [],
+        ),
+        (
+            "SELECT 'hello'[:]",
+            "SELECT 'hello'[:]",
+            [],
+        ),
+        (
+            "SELECT 'hello'[:2]",
+            "SELECT 'hello'[\\:2]",
+            ["2"],
+        ),
+        (
+            "SELECT 'hello'[1:5]",
+            "SELECT 'hello'[1\\:5]",
+            ["5"],
+        ),
+        (
+            "SELECT 'hello'[1:99]",
+            "SELECT 'hello'[1\\:99]",
+            ["99"],
+        ),
+        (
+            "SELECT 'hello'[:123456789]",
+            "SELECT 'hello'[\\:123456789]",
+            ["123456789"],
+        ),
+    ],
+    ids=[
+        "no-slicing",
+        "slicing-empty",
+        "end-index-only",
+        "begin-end-index",
+        "end-index-two-digit",
+        "end-index-many-digit",
+    ],
+)
+def test_escape_string_slicing_notation(query, expected_escaped, expected_found):
+    escaped, found = escape_string_slicing_notation(query)
+    assert escaped == expected_escaped
+    assert found == expected_found

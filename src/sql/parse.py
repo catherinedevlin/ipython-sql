@@ -226,7 +226,8 @@ def escape_string_literals_with_colon_prefix(query):
     """
     Given a query, replaces all occurrences of ':variable' with '\:variable' and
     ":variable" with "\:variable" so that the query can be passed to sqlalchemy.text
-    without the literals being interpreted as bind parameters. It doesn't replace
+    without the literals being interpreted as bind parameters. Also calls
+    escape_string_slicing_with_colon_prefix(). It doesn't replace
     the occurrences of :variable (without quotes)
     """  # noqa
 
@@ -245,7 +246,34 @@ def escape_string_literals_with_colon_prefix(query):
     double_found = re.findall(double_quoted_variable_pattern, query)
     single_found = re.findall(single_quoted_variable_pattern, query)
 
+    # Escape occurrences of : for string slicing
+    query_quoted, _ = escape_string_slicing_notation(query_quoted)
+
     return query_quoted, double_found + single_found
+
+
+def escape_string_slicing_notation(query):
+    """
+    Given a query, replaces all occurrences of 'example'[x:y] with 'example'[x\:y].
+    Escaping the colon using \ ensures correct string slicing behavior rather
+    than being interpreted as a bind parameter.
+
+    Parameters
+    ----------
+    query: str
+        query to be parsed and cleaned
+    """  # noqa
+    identifier_pattern = r"\b[0-9_]*\b"
+
+    # Define the regular expression pattern for matching [x:y]
+    string_slicing_pattern = r"(?<!\\):(" + identifier_pattern + r")(?<!\\)\]"
+
+    # Replace [x:y] with [x\:y]
+    query_escaped = re.sub(string_slicing_pattern, r"\\:\1]", query)
+
+    occurences_found = re.findall(string_slicing_pattern, query)
+
+    return query_escaped, occurences_found
 
 
 def find_named_parameters(input_string):
