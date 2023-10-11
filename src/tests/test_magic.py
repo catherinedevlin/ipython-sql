@@ -1989,6 +1989,72 @@ def test_accessing_previously_nonexisting_file(ip_empty, tmp_empty, capsys):
     assert expected in out
 
 
+expected_summarize = {
+    "column_name": ("memid",),
+    "column_type": ("BIGINT",),
+    "min": ("1",),
+    "max": ("8",),
+    "approx_unique": ("5",),
+    "avg": ("3.8",),
+    "std": ("2.7748873851023217",),
+    "q25": ("2",),
+    "q50": ("3",),
+    "q75": ("6",),
+    "count": (5,),
+    "null_percentage": ("0.0%",),
+}
+expected_select = {"memid": (1, 2, 3, 5, 8)}
+
+
+@pytest.mark.parametrize(
+    "cell, expected_output",
+    [
+        ("%sql /* x */ SUMMARIZE df", expected_summarize),
+        ("%sql /*x*//*x*/ SUMMARIZE /*x*/ df", expected_summarize),
+        (
+            """%%sql
+            /*x*/
+            SUMMARIZE df
+            """,
+            expected_summarize,
+        ),
+        (
+            """%%sql
+            /*x*/
+            /*x*/
+            -- comment
+            SUMMARIZE df
+            /*x*/
+            """,
+            expected_summarize,
+        ),
+        (
+            """%%sql
+            /*x*/
+            SELECT * FROM df
+            """,
+            expected_select,
+        ),
+        (
+            """%%sql
+            /*x*/
+            FROM df SELECT *
+            """,
+            expected_select,
+        ),
+    ],
+)
+def test_comments_in_duckdb_select_summarize(ip_empty, cell, expected_output):
+    ip_empty.run_cell("%sql duckdb://")
+    df = pd.DataFrame(  # noqa: F841
+        data=dict(
+            memid=[1, 2, 3, 5, 8],
+        ),
+    )
+    out = ip_empty.run_cell(cell).result
+    assert out.dict() == expected_output
+
+
 @pytest.mark.parametrize(
     "sql_snippet, sql_query, expected_result, raises",
     [

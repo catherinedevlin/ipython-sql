@@ -717,34 +717,21 @@ class SQLAlchemyConnection(AbstractConnection):
             Parameters to use in the query (:variable format)
         """
         parameters = parameters or {}
-
         # we do not support multiple statements
         if len(sqlparse.split(query)) > 1:
             raise NotImplementedError("Only one statement is supported.")
-
-        words = query.split()
-
-        if words:
-            first_word_statement = words[0].lower()
-        else:
-            first_word_statement = ""
-
-        # NOTE: in duckdb db "from TABLE_NAME" is valid
-        # TODO: we can parse the query to ensure that it's a SELECT statement
-        # for example, it might start with WITH but the final statement might
-        # not be a SELECT
-        # `summarize` is added to support %sql SUMMARIZE table in duckdb
-        is_select = first_word_statement in {"select", "with", "from", "summarize"}
 
         operation = partial(self._execute_with_parameters, query, parameters)
         out = self._execute_with_error_handling(operation)
 
         if self._requires_manual_commit:
-            # calling connection.commit() when using duckdb-engine will yield
-            # empty results if we commit after a SELECT statement
-            # see: https://github.com/Mause/duckdb_engine/issues/734
-            if is_select and self.dialect == "duckdb":
-                return out
+            # Calling connection.commit() when using duckdb-engine will yield
+            # empty results if we commit after a SELECT or SUMMARIZE statement,
+            # see: https://github.com/Mause/duckdb_engine/issues/734.
+            if self.dialect == "duckdb":
+                no_commit = detect_duckdb_summarize_or_select(query)
+                if no_commit:
+                    return out
 
             # in sqlalchemy 1.x, connection has no commit attribute
             if IS_SQLALCHEMY_ONE:
@@ -1185,6 +1172,30 @@ def set_sqlalchemy_isolation_level(conn):
         return True
     except Exception:
         return False
+
+
+def detect_duckdb_summarize_or_select(query):
+    """
+    Checks if the SQL query is a DuckDB SELECT or SUMMARIZE statement.
+
+    Note:
+    Assumes there is only one SQL statement in the query.
+    """
+    statements = sqlparse.parse(query)
+    if statements:
+        if len(statements) > 1:
+            raise NotImplementedError("Multiple statements are not supported")
+        stype = statements[0].get_type()
+        if stype == "SELECT":
+            return True
+        elif stype == "UNKNOWN":
+            # Further analysis is required
+            sql_stripped = sqlparse.format(query, strip_comments=True)
+            words = sql_stripped.split()
+            return len(words) > 0 and (
+                words[0].lower() == "from" or words[0].lower() == "summarize"
+            )
+    return False
 
 
 atexit.register(ConnectionManager.close_all, verbose=True)

@@ -6,6 +6,7 @@ from sql.connection.connection import (
     PLOOMBER_DOCS_LINK_STR,
     default_alias_for_engine,
     ResultSetCollection,
+    detect_duckdb_summarize_or_select,
 )
 
 
@@ -17,4 +18,5 @@ __all__ = [
     "PLOOMBER_DOCS_LINK_STR",
     "default_alias_for_engine",
     "ResultSetCollection",
+    "detect_duckdb_summarize_or_select",
 ]

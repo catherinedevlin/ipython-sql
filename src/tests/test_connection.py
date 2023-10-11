@@ -22,6 +22,7 @@ from sql.connection import (
     is_pep249_compliant,
     default_alias_for_engine,
     ResultSetCollection,
+    detect_duckdb_summarize_or_select,
 )
 from sql.warnings import JupySQLRollbackPerformed
 from sql.connection import error_handling
@@ -1184,3 +1185,63 @@ def test_database_in_directory_that_doesnt_exist(tmp_empty, uri, expected):
         SQLAlchemyConnection(engine=create_engine(uri))
 
     assert expected in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "query, expected_output",
+    [
+        ("SELECT * FROM table", True),
+        ("SUMMARIZE table", True),
+        ("FROM table SELECT *", True),
+        ("UPDATE table SET column=value", False),
+        ("INSERT INTO table (column) VALUES (value)", False),
+        ("INSERT INTO table SELECT * FROM table2", False),
+        (
+            "UPDATE table SET column=10 WHERE column IN (SELECT column FROM table2)",
+            False,
+        ),
+        ("WITH x AS (SELECT * FROM table) SELECT * FROM x", True),
+        ("WITH x AS (SELECT * FROM table) INSERT INTO y SELECT * FROM x", False),
+        ("", False),
+        ("DELETE FROM table", False),
+        ("WITH summarize AS (SELECT * FROM table) SELECT * FROM summarize", True),
+        (
+            """
+            WITH summarize AS (SELECT * FROM table)
+            INSERT INTO y SELECT * FROM summarize
+            """,
+            False,
+        ),
+        ("UPDATE table SET column='SELECT'", False),
+        ("CREATE TABLE SELECT (id INT)", False),
+        ("CREATE TABLE x (SELECT VARCHAR(100))", False),
+        ('INSTALL "x"', False),
+        ("SELECT SUM(column) FILTER (WHERE column > 10) FROM table", True),
+        ("SELECT column FROM (SELECT * FROM table WHERE column = 'SELECT') AS x", True),
+        # Invalid SQL returns false
+        ("INSERT INTO table (column) VALUES ('SELECT')", False),
+        # Comments have no effect
+        ("-- SELECT * FROM table", False),
+        ("-- SELECT * FROM table\nSELECT * FROM table", True),
+        ("-- SELECT * FROM table\nINSERT INTO table SELECT * FROM table2", False),
+        ("-- FROM table SELECT *", False),
+        ("-- FROM table SELECT *\n/**/FROM/**/ table SELECT */**/", True),
+        ("-- FROM table SELECT *\nINSERT INTO table FROM table2 SELECT *", False),
+        (
+            """
+            -- INSERT INTO table SELECT * FROM table2
+            SELECT /**/ * FROM tbl /**/
+            """,
+            True,
+        ),
+        (
+            """
+            -- INSERT INTO table SELECT * FROM table2
+            /**/SUMMARIZE/**/ /**//**/tbl/**/
+            """,
+            True,
+        ),
+    ],
+)
+def test_detect_duckdb_summarize_or_select(query, expected_output):
+    assert detect_duckdb_summarize_or_select(query) == expected_output
