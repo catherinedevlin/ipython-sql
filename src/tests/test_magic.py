@@ -2056,6 +2056,96 @@ def test_comments_in_duckdb_select_summarize(ip_empty, cell, expected_output):
 
 
 @pytest.mark.parametrize(
+    "setup, save_snippet, query_with_error, error_msgs, error_type",
+    [
+        (
+            """
+            %sql duckdb://
+            %sql CREATE TABLE penguins (id INTEGER)
+            %sql INSERT INTO penguins VALUES (1)
+            """,
+            """
+            %%sql --save mysnippet
+            SELECT * FROM penguins
+            """,
+            "%sql select not_a_function(id) from mysnippet",
+            [
+                "Scalar Function with name not_a_function does not exist!",
+            ],
+            "RuntimeError",
+        ),
+        (
+            """
+            %sql duckdb://
+            %sql CREATE TABLE penguins (id INTEGER)
+            %sql INSERT INTO penguins VALUES (1)
+            """,
+            """
+            %%sql --save mysnippet
+            SELECT * FROM penguins
+            """,
+            "%sql select not_a_function(id) from mysnip",
+            [
+                "If using snippets, you may pass the --with argument explicitly.",
+                "There is no table with name 'mysnip'",
+                "Table with name mysnip does not exist!",
+            ],
+            "TableNotFoundError",
+        ),
+        (
+            "%sql sqlite://",
+            """
+            %%sql --save mysnippet
+            select * from test
+            """,
+            "%sql select not_a_function(name) from mysnippet",
+            [
+                "no such function: not_a_function",
+            ],
+            "RuntimeError",
+        ),
+        (
+            "%sql sqlite://",
+            """
+            %%sql --save mysnippet
+            select * from test
+            """,
+            "%sql select not_a_function(name) from mysnip",
+            [
+                "If using snippets, you may pass the --with argument explicitly.",
+                "There is no table with name 'mysnip'",
+                "no such table: mysnip",
+            ],
+            "TableNotFoundError",
+        ),
+    ],
+    ids=[
+        "no-typo-duckdb",
+        "with-typo-duckdb",
+        "no-typo-sqlite",
+        "with-typo-sqlite",
+    ],
+)
+def test_query_snippet_invalid_function_error_message(
+    ip, setup, save_snippet, query_with_error, error_msgs, error_type
+):
+    # Set up snippet
+    ip.run_cell(setup)
+    ip.run_cell(save_snippet)
+
+    # Run query
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(query_with_error)
+
+    # Save result and test error message
+    result_error = excinfo.value.error_type
+    result_msg = str(excinfo.value)
+
+    assert error_type == result_error
+    assert all(msg in result_msg for msg in error_msgs)
+
+
+@pytest.mark.parametrize(
     "sql_snippet, sql_query, expected_result, raises",
     [
         (

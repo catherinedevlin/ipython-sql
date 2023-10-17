@@ -1253,3 +1253,210 @@ SELECT * FROM {__TABLE_NAME__};
     ).result
 
     assert len(result) == 3
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db, snippet_name, error_msgs, error_type",
+    [
+        (
+            "ip_with_postgreSQL",
+            "mysnippet",
+            [
+                "function not_a_function(text) does not exist",
+                "No function matches the given name and argument types",
+            ],
+            "RuntimeError",
+        ),
+        (
+            "ip_with_postgreSQL",
+            "mysnip",
+            [
+                "If using snippets, you may pass the --with argument explicitly.",
+                'relation "mysnip" does not exist',
+            ],
+            "RuntimeError",
+        ),
+        (
+            "ip_with_mySQL",
+            "mysnippet",
+            [
+                "FUNCTION db.not_a_function does not exist",
+            ],
+            "RuntimeError",
+        ),
+        (
+            "ip_with_mySQL",
+            "mysnip",
+            [
+                "If using snippets, you may pass the --with argument explicitly.",
+                "Table 'db.mysnip' doesn't exist",
+            ],
+            "RuntimeError",
+        ),
+        (
+            "ip_with_mariaDB",
+            "mysnippet",
+            [
+                "FUNCTION db.not_a_function does not exist",
+            ],
+            "RuntimeError",
+        ),
+        (
+            "ip_with_mariaDB",
+            "mysnip",
+            [
+                "If using snippets, you may pass the --with argument explicitly.",
+                "Table 'db.mysnip' doesn't exist",
+            ],
+            "RuntimeError",
+        ),
+        (
+            "ip_with_MSSQL",
+            "mysnippet",
+            [
+                "not_a_function' is not a recognized built-in function name",
+            ],
+            "RuntimeError",
+        ),
+        pytest.param(
+            "ip_with_MSSQL",
+            "mysnip",
+            [
+                "If using snippets, you may pass the --with argument explicitly.",
+            ],
+            "RuntimeError",
+            marks=pytest.mark.xfail(
+                reason="MSSQL prioritizes function error over table error"
+            ),
+        ),
+        (
+            "ip_with_Snowflake",
+            "mysnippet",
+            [
+                "FUNCTION not_a_function does not exist",
+            ],
+            "RuntimeError",
+        ),
+        (
+            "ip_with_Snowflake",
+            "mysnip",
+            [
+                "If using snippets, you may pass the --with argument explicitly.",
+            ],
+            "RuntimeError",
+        ),
+        (
+            "ip_with_oracle",
+            "mysnippet",
+            [
+                '"NOT_A_FUNCTION": invalid identifier',
+            ],
+            "RuntimeError",
+        ),
+        (
+            "ip_with_oracle",
+            "mysnip",
+            [
+                "table or view does not exist",
+            ],
+            "RuntimeError",
+        ),
+        (
+            "ip_with_clickhouse",
+            "mysnippet",
+            [
+                "FUNCTION not_a_function does not exist",
+            ],
+            "RuntimeError",
+        ),
+        (
+            "ip_with_clickhouse",
+            "mysnip",
+            [
+                "If using snippets, you may pass the --with argument explicitly.",
+            ],
+            "RuntimeError",
+        ),
+        (
+            "ip_with_redshift",
+            "mysnippet",
+            [
+                "FUNCTION not_a_function does not exist",
+            ],
+            "RuntimeError",
+        ),
+        (
+            "ip_with_redshift",
+            "mysnip",
+            [
+                "If using snippets, you may pass the --with argument explicitly.",
+            ],
+            "RuntimeError",
+        ),
+        pytest.param(
+            "ip_with_duckDB_native",
+            "mysnippet",
+            [
+                "Scalar Function with name not_a_function does not exist!",
+            ],
+            "RuntimeError",
+            marks=pytest.mark.xfail(reason="Issue with catching Catalog Exception"),
+        ),
+        pytest.param(
+            "ip_with_duckDB_native",
+            "mysnip",
+            ["There is no table with name 'mysnip'"],
+            "RuntimeError",
+            marks=pytest.mark.xfail(reason="Issue with catching Catalog Exception"),
+        ),
+    ],
+    ids=[
+        "no-typo-postgreSQL",
+        "with-typo-postgreSQL",
+        "no-typo-mySQL",
+        "with-typo-mySQL",
+        "no-typo-mariaDB",
+        "with-typo-mariaDB",
+        "no-typo-MSSQL",
+        "with-typo-MSSQL",
+        "no-typo-Snowflake",
+        "with-typo-Snowflake",
+        "no-typo-oracle",
+        "with-typo-oracle",
+        "no-typo-clickhouse",
+        "with-typo-clickhouse",
+        "no-typo-redshift",
+        "with-typo-redshift",
+        "no-typo-duckDB-native",
+        "with-typo-duckDB-native",
+    ],
+)
+def test_query_snippet_invalid_function_error_message(
+    request,
+    ip_with_dynamic_db,
+    snippet_name,
+    error_msgs,
+    error_type,
+    test_table_name_dict,
+):
+    # Set up snippet
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    ip_with_dynamic_db.run_cell(
+        f"""
+        %%sql --save mysnippet
+        SELECT * FROM {test_table_name_dict['taxi']}
+        """
+    )
+
+    # Run query
+    with pytest.raises(UsageError) as excinfo:
+        ip_with_dynamic_db.run_cell(
+            f"%sql SELECT not_a_function(taxi_driver_name) FROM {snippet_name}"
+        )
+
+    # Save result and test error message
+    result_error = excinfo.value.error_type
+    result_msg = str(excinfo.value)
+
+    assert error_type == result_error
+    assert all(msg in result_msg for msg in error_msgs)

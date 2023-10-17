@@ -9,6 +9,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from ploomber_core.dependencies import requires
 import ast
 from os.path import isfile
+import re
 
 
 try:
@@ -404,7 +405,7 @@ def is_non_sqlalchemy_error(error):
 def if_substring_exists(string, substrings):
     """Function to check if any of substring in
     substrings exist in string"""
-    return any(msg in string for msg in substrings)
+    return any((msg in string) or (re.search(msg, string)) for msg in substrings)
 
 
 def enclose_table_with_double_quotations(table, conn):

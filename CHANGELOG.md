@@ -6,6 +6,7 @@
 * [Fix] Remove force deleted snippets from dependent snippet's `with` (#717)
 * [Fix] Comments added in SQL query to be stripped before saved as snippet (#886)
 * [Fix] Fixed bug passing :NUMBER while string slicing in query (#901)
+* [Fix] Fixed bug that showed wrong error when querying snippet with invalid function (#902)
 * [Fix] Disabled CTE generation when snippets are detected in a non-SELECT type query. (#651, #652)
 * [Fix] Fix empty result in certain duckdb `SELECT` and `SUMMARIZE` queries with leading comments (#892)
 
