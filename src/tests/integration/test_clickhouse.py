@@ -15,7 +15,6 @@ def test_query_count(ip_with_clickhouse, test_table_name_dict):
     assert len(out) == 3
 
 
-@pytest.mark.xfail(reason="issue with plotting from snippet #811")
 @pytest.mark.parametrize(
     "cell",
     [
