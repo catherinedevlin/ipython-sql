@@ -1393,21 +1393,19 @@ SELECT * FROM {__TABLE_NAME__};
             ],
             "RuntimeError",
         ),
-        pytest.param(
+        (
             "ip_with_duckDB_native",
             "mysnippet",
             [
                 "Scalar Function with name not_a_function does not exist!",
             ],
             "RuntimeError",
-            marks=pytest.mark.xfail(reason="Issue with catching Catalog Exception"),
         ),
-        pytest.param(
+        (
             "ip_with_duckDB_native",
             "mysnip",
-            ["There is no table with name 'mysnip'"],
+            ["Table with name mysnip does not exist!"],
             "RuntimeError",
-            marks=pytest.mark.xfail(reason="Issue with catching Catalog Exception"),
         ),
     ],
     ids=[

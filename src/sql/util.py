@@ -396,6 +396,7 @@ def is_non_sqlalchemy_error(error):
     """Function to check if error is a specific non-SQLAlchemy error"""
     specific_db_errors = [
         "duckdb.CatalogException",
+        "Catalog Error",
         "Parser Error",
         "pyodbc.ProgrammingError",
     ]

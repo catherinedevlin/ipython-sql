@@ -2129,7 +2129,7 @@ def test_comments_in_duckdb_select_summarize(ip_empty, cell, expected_output):
 def test_query_snippet_invalid_function_error_message(
     ip, setup, save_snippet, query_with_error, error_msgs, error_type
 ):
-    # Set up snippet
+    # Set up snippet.
     ip.run_cell(setup)
     ip.run_cell(save_snippet)
 
