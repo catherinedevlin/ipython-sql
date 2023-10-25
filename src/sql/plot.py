@@ -236,7 +236,7 @@ def boxplot(
     if schema:
         _table = f'"{schema}"."{_table}"'
 
-    ax = plt.gca()
+    ax = ax or plt.gca()
     vert = orient == "v"
 
     set_ticklabels = ax.set_xticklabels if vert else ax.set_yticklabels
