@@ -22,6 +22,12 @@ def run_statements(conn, sql, config, parameters=None):
 
     config
         Configuration object
+
+    Examples
+    --------
+
+    .. literalinclude:: ../../examples/run_statements.py
+
     """
     if not sql.strip():
         return "Connected: %s" % conn.name

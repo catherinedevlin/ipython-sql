@@ -40,3 +40,14 @@ The ``sql.store`` module implements utilities to compose and manage large SQL qu
 .. autoclass:: sql.store.SQLStore
     :members:
 
+
+``sql.run.run``
+---------------
+
+The ``sql.run.run`` module implements utility function for running SQL statements with the given connection.
+
+``run_statements``
+******************
+
+.. autofunction:: sql.run.run.run_statements
+
