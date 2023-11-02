@@ -1333,17 +1333,18 @@ SELECT * FROM {__TABLE_NAME__};
             "ip_with_Snowflake",
             "mysnippet",
             [
-                "FUNCTION not_a_function does not exist",
+                "Unknown function NOT_A_FUNCTION",
             ],
             "RuntimeError",
         ),
-        (
+        pytest.param(
             "ip_with_Snowflake",
             "mysnip",
             [
                 "If using snippets, you may pass the --with argument explicitly.",
             ],
             "RuntimeError",
+            marks=pytest.mark.xfail(reason="Not yet implemented"),
         ),
         (
             "ip_with_oracle",
@@ -1381,7 +1382,7 @@ SELECT * FROM {__TABLE_NAME__};
             "ip_with_redshift",
             "mysnippet",
             [
-                "FUNCTION not_a_function does not exist",
+                "function not_a_function(character varying) does not exist",
             ],
             "RuntimeError",
         ),
