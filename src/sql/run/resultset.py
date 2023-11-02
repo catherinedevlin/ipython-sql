@@ -499,10 +499,18 @@ def _convert_to_data_frame(
         # we need to re-execute the statement because if we fetched some rows
         # already, .df() will return None. But only if it's a select statement
         # otherwise we might end up re-execute INSERT INTO or CREATE TABLE
-        # statements
+        # statements.
         is_select = _statement_is_select(result_set._statement)
 
         if is_select:
+            # If command includes PIVOT, current transaction must be closed.
+            # Otherwise, re-executing the statement will return
+            # TransactionContext Error: cannot start a transaction within a transaction
+            if "pivot" in result_set._statement.lower():
+                # fetchall retrieves the previous results and completes the transaction
+                # nothing is done with the results from fetchall()
+                native_connection.fetchall()
+
             native_connection.execute(result_set._statement)
 
         return getattr(native_connection, converter_name)()
@@ -536,4 +544,5 @@ def _statement_is_select(statement):
         statement_.startswith("select")
         or statement_.startswith("from")
         or statement_.startswith("with")
+        or statement_.startswith("pivot")
     )
