@@ -399,6 +399,8 @@ def is_non_sqlalchemy_error(error):
         "Catalog Error",
         "Parser Error",
         "pyodbc.ProgrammingError",
+        # Clickhouse errors
+        "DB::Exception:",
     ]
     return any(msg in str(error) for msg in specific_db_errors)
 
