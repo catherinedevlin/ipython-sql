@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.10.4dev
+
 ## 0.10.3 (2023-11-06)
 
 * [Feature] Allow user-level config using ~/.jupysql/config ([#880](https://github.com/ploomber/jupysql/issues/880))
