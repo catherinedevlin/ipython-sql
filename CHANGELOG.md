@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## 0.10.4dev
+* [Fix] Fix bug causing empty result on SQL with trailing semicolon and comment (#907)
 
 ## 0.10.3 (2023-11-06)
 
