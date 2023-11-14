@@ -3,6 +3,8 @@
 ## 0.10.4dev
 * [Fix] Fix bug causing empty result on SQL with trailing semicolon and comment (#907)
 
+* [Fix] Fixed bug that returns empty results when exception is raised from DB driver
+
 ## 0.10.3 (2023-11-06)
 
 * [Feature] Allow user-level config using ~/.jupysql/config ([#880](https://github.com/ploomber/jupysql/issues/880))

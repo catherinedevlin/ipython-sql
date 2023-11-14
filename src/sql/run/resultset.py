@@ -14,6 +14,8 @@ from sql.telemetry import telemetry
 from sql.run.table import CustomPrettyTable
 from sql._current import _config_feedback_all
 
+from sql.exceptions import RuntimeError
+
 
 class ResultSet(ColumnGuesserMixin):
     """
@@ -420,7 +422,16 @@ class ResultSet(ColumnGuesserMixin):
             # psycopg2 raises psycopg2.ProgrammingError error when running a script
             # that doesn't return rows e.g, 'CREATE TABLE' but others don't
             # (e.g., duckdb), so here we catch all
-            except Exception:
+            except Exception as e:
+                if not any(
+                    substring in str(e)
+                    for substring in [
+                        "This result object does not return rows",
+                        "no results to fetch",
+                    ]
+                ):
+                    # raise specific DB driver errors
+                    raise RuntimeError(f"Error running the query: {str(e)}") from e
                 self.mark_fetching_as_done()
                 return
 
