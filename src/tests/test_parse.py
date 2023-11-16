@@ -8,6 +8,7 @@ from sql.parse import (
     connection_str_from_dsn_section,
     parse,
     without_sql_comment,
+    split_args_and_sql,
     magic_args,
     escape_string_literals_with_colon_prefix,
     escape_string_slicing_notation,
@@ -505,3 +506,86 @@ def test_escape_string_slicing_notation(query, expected_escaped, expected_found)
     escaped, found = escape_string_slicing_notation(query)
     assert escaped == expected_escaped
     assert found == expected_found
+
+
+@pytest.mark.parametrize(
+    "line, expected_args, expected_sql",
+    [
+        (
+            "-p --save snippet -N",
+            "-p --save snippet -N",
+            "",
+        ),
+        (
+            "select * from authors",
+            "select * from authors",
+            "",
+        ),
+        (
+            "select '[1,2,3]'::json -> 1",
+            "",
+            "select '[1,2,3]'::json -> 1",
+        ),
+        (
+            "--save snippet --alias query1 select '[1,2,3]'::json -> 1",
+            "--save snippet --alias query1 ",
+            "select '[1,2,3]'::json -> 1",
+        ),
+        (
+            "--save snippet --alias query1 from authors select name \
+where id = (readers ->> 0)",
+            "--save snippet --alias query1 ",
+            "from authors select name where id = (readers ->> 0)",
+        ),
+        (
+            "--save snippet --alias query1 with temp as (select * from authors) \
+select name where id = (publishers -> 'Scott')",
+            "--save snippet --alias query1 ",
+            "with temp as (select * from authors) select name \
+where id = (publishers -> 'Scott')",
+        ),
+        (
+            "--save snippet --alias query1 pivot authors on id \
+where name = (names ->> 'Brenda')",
+            "--save snippet --alias query1 ",
+            "pivot authors on id where name = (names ->> 'Brenda')",
+        ),
+        (
+            "-p --save snippet -N create table (names -> 1) (id INT, name VARCHAR(10))",
+            "-p --save snippet -N ",
+            "create table (names -> 1) (id INT, name VARCHAR(10))",
+        ),
+        (
+            "-p --save snippet -N update authors where id = '[5,6]::json'->1",
+            "-p --save snippet -N ",
+            "update authors where id = '[5,6]::json'->1",
+        ),
+        (
+            "-p --save snippet -N delete from authors where name = (books->>'Turner')",
+            "-p --save snippet -N ",
+            "delete from authors where name = (books->>'Turner')",
+        ),
+        (
+            "-p --save snippet -N insert into authors values('[100]'::json->0)",
+            "-p --save snippet -N ",
+            "insert into authors values('[100]'::json->0)",
+        ),
+    ],
+    ids=[
+        "no-query",
+        "no-args",
+        "no-args-json",
+        "select",
+        "from",
+        "with",
+        "pivot",
+        "create",
+        "update",
+        "delete",
+        "insert",
+    ],
+)
+def test_split_args_and_sql(line, expected_args, expected_sql):
+    args_line, sql_line = split_args_and_sql(line)
+    assert args_line == expected_args
+    assert sql_line == expected_sql

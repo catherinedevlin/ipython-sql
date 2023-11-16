@@ -2254,6 +2254,103 @@ def test_get_query_type(query, query_type):
     "query, expected",
     [
         (
+            "%sql select '{\"a\": 1}'::json -> 'a';",
+            "1",
+        ),
+        (
+            '%sql select \'[{"b": "c"}]\'::json -> 0;',
+            '{"b":"c"}',
+        ),
+        (
+            "%sql select '{\"a\": 1}'::json ->> 'a';",
+            "1",
+        ),
+        (
+            '%sql select \'[{"b": "c"}]\'::json ->> 0;',
+            '{"b":"c"}',
+        ),
+        (
+            """%%sql select '{\"a\": 1}'::json
+            ->
+            'a';""",
+            "1",
+        ),
+        (
+            """%%sql select '[{\"b\": \"c\"}]'::json
+                ->
+            0;""",
+            '{"b":"c"}',
+        ),
+        (
+            """%%sql select '{\"a\": 1}'::json
+              ->>
+            'a';""",
+            "1",
+        ),
+        (
+            """%%sql
+            select
+            \'[{"b": "c"}]\'::json
+            ->>
+            0;""",
+            '{"b":"c"}',
+        ),
+    ],
+    ids=[
+        "single-key",
+        "single-index",
+        "double-key",
+        "double-index",
+        "single-key-multi-line",
+        "single-index-multi-line-tab",
+        "double-key-multi-line-space",
+        "double-index-multi-line",
+    ],
+)
+def test_json_arrow_operators(ip, query, expected):
+    ip.run_cell("%sql duckdb://")
+    result = ip.run_cell(query).result
+    result = list(result.dict().values())[0][0]
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    "query_save, query_snippet, expected",
+    [
+        (
+            """%%sql --save snippet
+            select '{\"a\": 1}'::json -> 'a';""",
+            "%sql select * from snippet",
+            "1",
+        ),
+        (
+            """%sql --save snippet select '[{\"b\": \"c\"}]'::json ->> 0;""",
+            "%sql select * from snippet",
+            '{"b":"c"}',
+        ),
+        (
+            """%%sql --save snippet
+            select '[1, 2, 3]'::json
+            -> 2
+            as number""",
+            "%sql select number from snippet",
+            "3",
+        ),
+    ],
+    ids=["cell-magic-key", "line-magic-index", "cell-magic-multi-line-as-column"],
+)
+def test_json_arrow_operators_with_snippets(ip, query_save, query_snippet, expected):
+    ip.run_cell("%sql duckdb://")
+    ip.run_cell(query_save)
+    result = ip.run_cell(query_snippet).result
+    result = list(result.dict().values())[0][0]
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    "query, expected",
+    [
+        (
             """%%sql
 SELECT 1""",
             1,
