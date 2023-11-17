@@ -9,6 +9,7 @@ import warnings
 from sqlalchemy.engine.url import URL
 
 from sql import exceptions
+from sql.util import check_duplicate_arguments
 
 # Keywords used to identify the beginning of SQL queries
 # in split_args_and_sql(). Should cover all cases but can
@@ -278,11 +279,17 @@ def split_args_and_sql(line):
     return arg_line, sql_line
 
 
-def magic_args(magic_execute, line):
+def magic_args(magic_execute, line, cmd_from, allowed_duplicates=None):
+    """
+    Returns the parsed arguments from the line as parsed by magic_execute
+    """
+    allowed_duplicates = allowed_duplicates or []
     line = without_sql_comment(parser=magic_execute.parser, line=line)
     arg_line, sql_line = split_args_and_sql(line)
 
     args = shlex.split(arg_line, posix=False)
+    if len(args) > 1:
+        check_duplicate_arguments(magic_execute, cmd_from, args, allowed_duplicates)
     parsed = magic_execute.parser.parse_args(args)
 
     if sql_line:

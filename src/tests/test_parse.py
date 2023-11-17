@@ -3,6 +3,7 @@ from pathlib import Path
 
 
 import pytest
+from IPython.core.error import UsageError
 
 from sql.parse import (
     connection_str_from_dsn_section,
@@ -16,7 +17,6 @@ from sql.parse import (
     _connection_string,
     ConnectionsFile,
 )
-
 
 default_connect_args = {"options": "-csearch_path=test"}
 
@@ -299,28 +299,355 @@ def complete_with_defaults(mapping):
 
 
 @pytest.mark.parametrize(
-    "line, expected",
+    "line, cmd_from, args, aliases",
     [
+        # FOR %sql
+        # for creator/c
         (
-            "some-argument",
-            {"line": ["some-argument"]},
+            "--creator creator1 --creator creator2",
+            "sql",
+            ["--creator", "--creator"],
+            [],
         ),
         (
-            "a b c",
-            {"line": ["a", "b", "c"]},
+            "-c creator1 -c creator2",
+            "sql",
+            ["-c", "-c"],
+            [],
         ),
+        (
+            "--creator creator1 -c creator2",
+            "sql",
+            ["--creator", "-c"],
+            [("c", "creator")],
+        ),
+        # for persist/p
+        (
+            "--persist my_data1 --persist my_data2",
+            "sql",
+            ["--persist", "--persist"],
+            [],
+        ),
+        (
+            "-p my_data1 -p my_data2",
+            "sql",
+            ["-p", "-p"],
+            [],
+        ),
+        (
+            "--persist my_data1 -p my_data2",
+            "sql",
+            ["--persist", "-p"],
+            [("p", "persist")],
+        ),
+        # for no-index/n
+        (
+            "--persist my_data3 --no-index --no-index",
+            "sql",
+            ["--persist", "--no-index", "--no-index"],
+            [],
+        ),
+        (
+            "--persist my_data3 -n -n",
+            "sql",
+            ["--persist", "-n", "-n"],
+            [],
+        ),
+        (
+            "--persist my_data3 --no-index -n",
+            "sql",
+            ["--persist", "--no-index", "-n"],
+            [("n", "no-index")],
+        ),
+        # for file/f
+        (
+            "--file my-query.sql --file my-query.sql",
+            "sql",
+            ["--file", "--file"],
+            [],
+        ),
+        (
+            "-f my-query.sql -f my-query.sql",
+            "sql",
+            ["-f", "-f"],
+            [],
+        ),
+        (
+            "--file my-query.sql -f my-query.sql",
+            "sql",
+            ["--file", "-f"],
+            [("f", "file")],
+        ),
+        # for alias/A
+        (
+            "duckdb:// --alias test1 --alias test2",
+            "sql",
+            ["--alias", "--alias"],
+            [],
+        ),
+        (
+            "duckdb:// -A test1 -A test2",
+            "sql",
+            ["-A", "-A"],
+            [],
+        ),
+        (
+            "duckdb:// --alias test1 -A test2",
+            "sql",
+            ["--alias", "-A"],
+            [("A", "alias")],
+        ),
+        # for connections/l
+        (
+            "--connections --connections",
+            "sql",
+            ["--connections", "--connections"],
+            [],
+        ),
+        (
+            "-l -l",
+            "sql",
+            ["-l", "-l"],
+            [],
+        ),
+        (
+            "--connections -l",
+            "sql",
+            ["--connections", "-l"],
+            [("l", "connections")],
+        ),
+        # for close/x
+        (
+            "--close db-two --close db-three",
+            "sql",
+            ["--close", "--close"],
+            [],
+        ),
+        (
+            "-x db-two -x db-three",
+            "sql",
+            ["-x", "-x"],
+            [],
+        ),
+        (
+            "--close db-two -x db-three",
+            "sql",
+            ["--close", "-x"],
+            [("x", "close")],
+        ),
+        # FOR %sqlplot
+        # for table/t
+        (
+            "histogram --table penguins --table penguins --column body_mass_g",
+            "sqlplot",
+            ["--table", "--table", "--column"],
+            [],
+        ),
+        (
+            "histogram -t penguins -t penguins.csv --column body_mass_g",
+            "sqlplot",
+            ["-t", "-t", "--column"],
+            [],
+        ),
+        (
+            "histogram --table penguins -t penguins --column body_mass_g",
+            "sqlplot",
+            ["--table", "-t", "--column"],
+            [("t", "table")],
+        ),
+        # for column/c
+        (
+            "histogram --table penguins --column bill_length_mm penguins "
+            "--column body_mass_g",
+            "sqlplot",
+            ["--table", "--column", "--column"],
+            [],
+        ),
+        (
+            "histogram --table penguins -c bill_length_mm penguins -c body_mass_g",
+            "sqlplot",
+            ["--table", "-c", "-c"],
+            [],
+        ),
+        (
+            "histogram --table penguins --column bill_length_mm penguins "
+            "-c body_mass_g",
+            "sqlplot",
+            ["--table", "--column", "-c"],
+            [("c", "column")],
+        ),
+        # for bins/b
+        (
+            "histogram --table penguins --column body_mass_g --bins 30 --bins 40",
+            "sqlplot",
+            ["--table", "--column", "--bins", "--bins"],
+            [],
+        ),
+        (
+            "histogram --table penguins --column body_mass_g -b 30 -b 40",
+            "sqlplot",
+            ["--table", "--column", "-b", "-b"],
+            [],
+        ),
+        (
+            "histogram --table penguins --column body_mass_g --bins 30 -b 40",
+            "sqlplot",
+            ["--table", "--column", "--bins", "-b"],
+            [("b", "bins")],
+        ),
+        # for breaks/B
+        (
+            "histogram --table penguins.csv --column body_mass_g "
+            "--breaks 3200 4000 4800 --breaks 3200 4000 4800",
+            "sqlplot",
+            ["--table", "--column", "--breaks", "--breaks"],
+            [],
+        ),
+        (
+            "histogram --table penguins.csv --column body_mass_g "
+            "-B 3200 4000 4800 -B 3200 4000 4800",
+            "sqlplot",
+            ["--table", "--column", "-B", "-B"],
+            [],
+        ),
+        (
+            "histogram --table penguins.csv --column body_mass_g "
+            "--breaks 3200 4000 4800 -B 3200 4000 4800",
+            "sqlplot",
+            ["--table", "--column", "--breaks", "-B"],
+            [("B", "breaks")],
+        ),
+        # for binwidth/W
+        (
+            "histogram --table penguins.csv --column body_mass_g "
+            "--binwidth 150 --binwidth 150",
+            "sqlplot",
+            ["--table", "--column", "--binwidth", "--binwidth"],
+            [],
+        ),
+        (
+            "histogram --table penguins.csv --column body_mass_g -W 150 -W 150",
+            "sqlplot",
+            ["--table", "--column", "-W", "-W"],
+            [],
+        ),
+        (
+            "histogram --table penguins.csv --column body_mass_g --binwidth 150 -W 150",
+            "sqlplot",
+            ["--table", "--column", "--binwidth", "-W"],
+            [("W", "binwidth")],
+        ),
+        # for orient/o
+        (
+            "boxplot --table penguins --column body_mass_g --orient h --orient h",
+            "sqlplot",
+            ["--table", "--column", "--orient", "--orient"],
+            [],
+        ),
+        (
+            "boxplot --table penguins --column body_mass_g -o h -o h",
+            "sqlplot",
+            ["--table", "--column", "-o", "-o"],
+            [],
+        ),
+        (
+            "boxplot --table penguins --column body_mass_g --orient h -o h",
+            "sqlplot",
+            ["--table", "--column", "--orient", "-o"],
+            [("o", "orient")],
+        ),
+        # for show-numbers/S
+        (
+            "pie --table penguins.csv --column species --show-numbers --show-numbers",
+            "sqlplot",
+            ["--table", "--column", "--show-numbers", "--show-numbers"],
+            [],
+        ),
+        (
+            "pie --table penguins.csv --column species -S -S",
+            "sqlplot",
+            ["--table", "--column", "-S", "-S"],
+            [],
+        ),
+        (
+            "pie --table penguins.csv --column species --show-numbers -S",
+            "sqlplot",
+            ["--table", "--column", "--show-numbers", "-S"],
+            [("S", "show-numbers")],
+        ),
+        # FOR %sqlcmd
+        # for schema/s
+        (
+            "tables --schema s1 --schema s2",
+            "sqlcmd",
+            ["--schema", "--schema"],
+            [],
+        ),
+        (
+            "tables -s s1 -s s2",
+            "sqlcmd",
+            ["-s", "-s"],
+            [],
+        ),
+        (
+            "tables --schema s1 -s s2",
+            "sqlcmd",
+            ["--schema", "-s"],
+            [("s", "schema")],
+        ),
+        # for table/t
+        (
+            "columns --table penguins --table penguins",
+            "sqlcmd",
+            ["--table", "--table"],
+            [],
+        ),
+        (
+            "columns -t penguins -t penguins",
+            "sqlcmd",
+            ["-t", "-t"],
+            [],
+        ),
+        (
+            "columns --table penguins -t penguins",
+            "sqlcmd",
+            ["--table", "-t"],
+            [("t", "table")],
+        ),
+    ],
+)
+def test_magic_args_raises_usageerror(
+    check_duplicate_message_factory,
+    load_penguin,
+    ip_empty,
+    line,
+    cmd_from,
+    args,
+    aliases,
+):
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell(f"%{cmd_from} {line}")
+    assert check_duplicate_message_factory(cmd_from, args, aliases) in str(
+        excinfo.value
+    )
+
+
+@pytest.mark.parametrize(
+    "line, expected_out",
+    [
+        ("some-argument", {"line": ["some-argument"]}),
+        ("a b c", {"line": ["a", "b", "c"]}),
         (
             "a b c --file query.sql",
             {"line": ["a", "b", "c"], "file": "query.sql"},
         ),
     ],
 )
-def test_magic_args(ip, line, expected):
+def test_magic_args(ip, line, expected_out):
     sql_line = ip.magics_manager.lsmagic()["line"]["sql"]
 
-    args = magic_args(sql_line, line)
-
-    assert args.__dict__ == complete_with_defaults(expected)
+    args = magic_args(sql_line, line, "sql", [])
+    assert args.__dict__ == complete_with_defaults(expected_out)
 
 
 @pytest.mark.parametrize(

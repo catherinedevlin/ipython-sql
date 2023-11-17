@@ -157,6 +157,119 @@ def show_deprecation_warning():
     )
 
 
+def check_duplicate_arguments(
+    magic_execute, cmd_from, args, allowed_duplicates=None, disallowed_aliases=None
+) -> bool:
+    """
+    Raises UsageError when duplicate arguments are passed to magics.
+    Returns true if no duplicates in arguments or aliases.
+
+    Parameters
+    ----------
+    magic_execute
+        The execute method of the magic class.
+    cmd_from
+        Which magic class invoked this function. One of 'sql', 'sqlplot' or 'sqlcmd'.
+    args
+        The arguments passed to the magic command.
+    allowed_duplicates
+        The duplicate arguments that are allowed for the class which invoked this
+        function. Defaults to None.
+    disallowed_aliases
+        The aliases for the arguments that are not allowed to be used together
+        for the class that invokes this function. Defaults to None.
+
+    Returns
+    -------
+    boolean
+        When there are no duplicates, a True bool is returned.
+    """
+    allowed_duplicates = allowed_duplicates or []
+    disallowed_aliases = disallowed_aliases or {}
+
+    aliased_arguments = {}
+    unaliased_arguments = []
+
+    # Separates the aliased_arguments and unaliased_arguments.
+    # Aliased arguments example: '-w' and '--with'
+    if cmd_from != "sqlcmd":
+        for decorator in magic_execute.decorators:
+            decorator_args = decorator.args
+            if len(decorator_args) > 1:
+                aliased_arguments[decorator_args[0]] = decorator_args[1]
+            else:
+                if decorator_args[0].startswith("--") or decorator_args[0].startswith(
+                    "-"
+                ):
+                    unaliased_arguments.append(decorator_args[0])
+
+    if aliased_arguments == {}:
+        aliased_arguments = disallowed_aliases
+
+    # Separate arguments from passed options
+    args = [arg for arg in args if arg.startswith("--") or arg.startswith("-")]
+
+    # Separate single and double hyphen arguments
+    # Using sets here for better performance of looking up hash tables
+    single_hyphen_opts = set()
+    double_hyphen_opts = set()
+
+    for arg in args:
+        if arg.startswith("--"):
+            double_hyphen_opts.add(arg)
+        elif arg.startswith("-"):
+            single_hyphen_opts.add(arg)
+
+    # Get duplicate arguments
+    duplicate_args = []
+    visited_args = set()
+    for arg in args:
+        if arg not in allowed_duplicates:
+            if arg not in visited_args:
+                visited_args.add(arg)
+            else:
+                duplicate_args.append(arg)
+
+    # Check if alias pairs are present and track the pair for the error message
+    # Example: would filter out `-w` and `--with` if both are present
+    alias_pairs_present = [
+        (opt, aliased_arguments[opt])
+        for opt in single_hyphen_opts
+        if opt in aliased_arguments
+        if aliased_arguments[opt] in double_hyphen_opts
+    ]
+
+    # Generate error message based on presence of duplicates and
+    # aliased arguments
+    error_message = ""
+    if duplicate_args:
+        duplicates_error = (
+            f"Duplicate arguments in %{cmd_from}. "
+            "Please use only one of each of the following: "
+            f"{', '.join(sorted(duplicate_args))}. "
+        )
+    else:
+        duplicates_error = ""
+
+    if alias_pairs_present:
+        arg_list = sorted([" or ".join(pair) for pair in alias_pairs_present])
+        alias_error = (
+            f"Duplicate aliases for arguments in %{cmd_from}. "
+            "Please use either one of "
+            f"{', '.join(arg_list)}."
+        )
+    else:
+        alias_error = ""
+
+    error_message = f"{duplicates_error}{alias_error}"
+
+    # If there is an error message to be raised, raise it
+    if error_message:
+        raise exceptions.UsageError(error_message)
+
+    return True
+
+
 def find_path_from_root(file_name):
     """
     Recursively finds an absolute path to file_name starting

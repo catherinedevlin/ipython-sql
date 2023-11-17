@@ -18,6 +18,37 @@ PATH_TO_TMP_ASSETS = PATH_TO_TESTS / "tmp"
 PATH_TO_TMP_ASSETS.mkdir(exist_ok=True)
 
 
+@pytest.fixture
+def check_duplicate_message_factory():
+    def _generate_error_message(cmd, args, aliases=None):
+        error_message = ""
+        duplicates = set([arg for arg in args if args.count(arg) != 1])
+
+        if duplicates:
+            error_message += (
+                f"Duplicate arguments in %{cmd}. "
+                "Please use only one of each of the following: "
+                f"{', '.join(sorted(duplicates))}."
+            )
+            if aliases:
+                error_message += " "
+
+        if aliases:
+            alias_list = []
+            for pair in sorted(aliases):
+                print(pair[0], pair[1])
+                alias_list.append(f"{f'-{pair[0]}'} or {f'--{pair[1]}'}")
+            error_message += (
+                f"Duplicate aliases for arguments in %{cmd}. "
+                "Please use either one of "
+                f"{', '.join(alias_list)}."
+            )
+
+        return error_message
+
+    return _generate_error_message
+
+
 @pytest.fixture(scope="function", autouse=True)
 def isolate_tests(monkeypatch):
     """

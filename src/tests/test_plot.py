@@ -138,9 +138,7 @@ SELECT *
 FROM data.csv
 """
     )
-    out = ip.run_cell(
-        "%sqlplot histogram --table data.csv --column age --table data.csv"
-    )
+    out = ip.run_cell("%sqlplot histogram --table data.csv --column age")
     assert isinstance(out.result, matplotlib.axes._axes.Axes)
 
 
@@ -155,7 +153,5 @@ SELECT *
 FROM data.csv
 """
     )
-    out = ip.run_cell(
-        "%sqlplot histogram --table data.csv --column age --table data.csv"
-    )
+    out = ip.run_cell("%sqlplot histogram --table data.csv --column age")
     assert isinstance(out.result, matplotlib.axes._axes.Axes)
