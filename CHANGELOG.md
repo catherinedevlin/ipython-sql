@@ -3,8 +3,8 @@
 ## 0.10.4dev
 * [Fix] Fix bug causing empty result on SQL with trailing semicolon and comment (#907)
 * [Fix] Fix bug %sql not parsing JSON arrow operators correctly (#918)
-
 * [Fix] Fixed bug that returns empty results when exception is raised from DB driver
+* [Fix] Fixed bug that returns snippet typo error message when another table is misspelled (#940)
 
 ## 0.10.3 (2023-11-06)
 

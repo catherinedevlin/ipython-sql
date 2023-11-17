@@ -2429,3 +2429,136 @@ SELECT 2;
 def test_query_comment_after_semicolon(ip, query, expected):
     result = ip.run_cell(query).result
     assert list(result.dict().values())[-1][0] == expected
+
+
+@pytest.mark.parametrize(
+    "query, error_type, error_message",
+    [
+        (
+            """%%sql
+SELECT * FROM snip;
+SELECT * from temp;""",
+            "TableNotFoundError",
+            """If using snippets, you may pass the --with argument explicitly.
+For more details please refer: \
+https://jupysql.ploomber.io/en/latest/compose.html#with-argument
+
+There is no table with name 'snip'.
+Did you mean: 'snippet'
+
+
+Original error message from DB driver:
+(duckdb.CatalogException) Catalog Error: Table with name snip does not exist!
+Did you mean "temp"?
+LINE 1: SELECT * FROM snip;
+                      ^
+[SQL: SELECT * FROM snip;]""",
+        ),
+        (
+            """%%sql
+SELECT * FROM snippet;
+SELECT * from tem;""",
+            "RuntimeError",
+            """If using snippets, you may pass the --with argument explicitly.
+For more details please refer: \
+https://jupysql.ploomber.io/en/latest/compose.html#with-argument
+
+
+Original error message from DB driver:
+(duckdb.CatalogException) Catalog Error: Table with name tem does not exist!
+Did you mean "temp"?
+LINE 1: SELECT * from tem;
+                      ^
+[SQL: SELECT * from tem;]""",
+        ),
+        (
+            """%%sql
+SELECT * FROM snip;
+SELECT * from tem;""",
+            "TableNotFoundError",
+            """If using snippets, you may pass the --with argument explicitly.
+For more details please refer: \
+https://jupysql.ploomber.io/en/latest/compose.html#with-argument
+
+There is no table with name 'snip'.
+Did you mean: 'snippet'
+
+
+Original error message from DB driver:
+(duckdb.CatalogException) Catalog Error: Table with name snip does not exist!
+Did you mean "temp"?
+LINE 1: SELECT * FROM snip;
+                      ^
+[SQL: SELECT * FROM snip;]""",
+        ),
+        (
+            """%%sql
+SELECT * FROM s;
+SELECT * from temp;""",
+            "RuntimeError",
+            """If using snippets, you may pass the --with argument explicitly.
+For more details please refer: \
+https://jupysql.ploomber.io/en/latest/compose.html#with-argument
+
+
+Original error message from DB driver:
+(duckdb.CatalogException) Catalog Error: Table with name s does not exist!
+Did you mean "temp"?
+LINE 1: SELECT * FROM s;
+                      ^
+[SQL: SELECT * FROM s;]""",
+        ),
+        (
+            """%%sql
+DROP TABLE temp;
+SELECT * FROM snippet;
+SELECT * from temp;""",
+            "RuntimeError",
+            """If using snippets, you may pass the --with argument explicitly.
+For more details please refer: \
+https://jupysql.ploomber.io/en/latest/compose.html#with-argument
+
+
+Original error message from DB driver:
+(duckdb.CatalogException) Catalog Error: Table with name snippet does not exist!
+Did you mean "pg_type"?
+LINE 1: SELECT * FROM snippet;
+                      ^
+[SQL: SELECT * FROM snippet;]""",
+        ),
+    ],
+    ids=[
+        "snippet-typo",
+        "table-typo",
+        "both-typo",
+        "snippet-typo-no-suggestion",
+        "no-typo-drop-table",
+    ],
+)
+def test_table_does_not_exist_with_snippet_error(
+    ip_empty, query, error_type, error_message
+):
+    ip_empty.run_cell(
+        """%load_ext sql
+%sql duckdb://"""
+    )
+    # Create temp table
+    ip_empty.run_cell(
+        """%%sql
+CREATE TABLE temp AS
+SELECT * FROM penguins.csv"""
+    )
+
+    # Create snippet
+    ip_empty.run_cell(
+        """%%sql --save snippet
+SELECT * FROM penguins.csv;"""
+    )
+
+    # Run query
+    with pytest.raises(Exception) as excinfo:
+        ip_empty.run_cell(query)
+
+    # Test error and message
+    assert error_type == excinfo.value.error_type
+    assert error_message in str(excinfo.value)

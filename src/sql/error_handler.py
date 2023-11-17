@@ -29,6 +29,11 @@ def _snippet_typo_error_message(query):
             suggestions = util.find_close_match(table, get_all_keys())
             err_message = f"There is no table with name {table!r}."
             if len(suggestions) > 0:
+                # If snippet is found in suggestions, this snippet
+                # must not be misspelled (a different table name is)
+                # so we don't show this message.
+                if table in suggestions:
+                    continue
                 suggestions_message = util.get_suggestions_message(suggestions)
                 return f"{err_message}{suggestions_message}"
     return ""
