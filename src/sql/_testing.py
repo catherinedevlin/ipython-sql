@@ -191,11 +191,11 @@ databaseConfig = {
         "database": None,
         "docker_ct": {
             "name": "oracle",
-            "image": "gvenzl/oracle-xe",
+            "image": "gvenzl/oracle-free",
             "ports": {1521: 1521},
         },
         "query": {
-            "service_name": "XEPDB1",
+            "service_name": "FREEPDB1",
         },
     },
     "redshift": {
