@@ -1459,3 +1459,93 @@ def test_query_snippet_invalid_function_error_message(
 
     assert error_type == result_error
     assert all(msg in result_msg for msg in error_msgs)
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db, args",
+    [
+        ("ip_with_postgreSQL", ""),
+        ("ip_with_duckDB", ""),
+        # snowflake does not support "CREATE INDEX", so we need to
+        # pass --no-index
+        ("ip_with_Snowflake", "--no-index"),
+        pytest.param(
+            "ip_with_mySQL",
+            "",
+            marks=pytest.mark.xfail(reason="Access denied for user"),
+        ),
+        pytest.param(
+            "ip_with_mariaDB",
+            "",
+            marks=pytest.mark.xfail(reason="Access denied for user"),
+        ),
+        pytest.param(
+            "ip_with_SQLite", "", marks=pytest.mark.xfail(reason="schema not supported")
+        ),
+        pytest.param(
+            "ip_with_duckDB_native",
+            "",
+            marks=pytest.mark.xfail(
+                reason="'duckdb.DuckDBPyConnection' object has no attribute 'rowcount'"
+            ),
+        ),
+        pytest.param(
+            "ip_with_redshift",
+            "",
+            marks=pytest.mark.xfail(reason="permission denied for database dev"),
+        ),
+        pytest.param(
+            "ip_with_clickhouse",
+            "",
+            marks=pytest.mark.xfail(
+                reason="sqlalchemy.exc.CompileError: "
+                "No engine for table <table_name>"
+            ),
+        ),
+    ],
+)
+def test_persist_in_schema(ip_with_dynamic_db, args, request, test_table_name_dict):
+    limit = 15
+    expected = 15
+
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    # Clean up
+
+    ip_with_dynamic_db.run_cell("%config SqlMagic.displaylimit = 0")
+
+    ip_with_dynamic_db.run_cell("%sql CREATE SCHEMA IF NOT EXISTS schema1;")
+
+    ip_with_dynamic_db.run_cell(
+        f"%sql DROP TABLE IF EXISTS "
+        f"schema1.{test_table_name_dict['new_table_from_df']}"
+    )
+
+    # Prepare DF
+    ip_with_dynamic_db.run_cell(
+        f"results = %sql SELECT * FROM {test_table_name_dict['taxi']}\
+          LIMIT {limit}"
+    )
+
+    # Prepare expected df
+    expected_df = ip_with_dynamic_db.run_cell(
+        f"%sql SELECT * FROM {test_table_name_dict['taxi']}\
+          LIMIT {limit}"
+    )
+
+    ip_with_dynamic_db.run_cell(
+        f"{test_table_name_dict['new_table_from_df']} = results.DataFrame()"
+    )
+    # Create table from DF
+    persist_out = ip_with_dynamic_db.run_cell(
+        f"%sql --persist schema1.{test_table_name_dict['new_table_from_df']} {args}"
+    )
+    out_df = ip_with_dynamic_db.run_cell(
+        f"%sql SELECT * FROM schema1.{test_table_name_dict['new_table_from_df']}"
+    )
+    assert persist_out.error_in_exec is None and out_df.error_in_exec is None
+    assert len(out_df.result) == expected
+
+    expected_df_ = expected_df.result.DataFrame()
+    out_df_ = out_df.result.DataFrame()
+
+    assert expected_df_.equals(out_df_.loc[:, out_df_.columns != "level_0"])

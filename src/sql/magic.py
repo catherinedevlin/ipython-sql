@@ -628,6 +628,14 @@ class SqlMagic(Magics, Configurable):
 
         frame_name = raw.strip(";")
 
+        # user may pass schema.dataframe (required for certain DBs
+        # like Trino)
+        schema_name = None
+        if "." in frame_name:
+            schema_frame = frame_name.split(".")
+            schema_name = schema_frame[0]
+            frame_name = schema_frame[1]
+
         # invalid identifier
         if not frame_name.isidentifier():
             raise exceptions.UsageError(
@@ -666,7 +674,11 @@ class SqlMagic(Magics, Configurable):
             if_exists = "fail"
 
         conn.to_table(
-            table_name=table_name, data_frame=frame, if_exists=if_exists, index=index
+            table_name=table_name,
+            data_frame=frame,
+            if_exists=if_exists,
+            index=index,
+            schema=schema_name,
         )
 
 

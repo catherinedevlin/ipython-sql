@@ -240,6 +240,42 @@ def test_persist(ip):
     assert persisted == [(0, 1, "foo"), (1, 2, "bar")]
 
 
+def test_persist_in_schema(ip_empty):
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql CREATE SCHEMA IF NOT EXISTS schema1;")
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    ip_empty.push({"df": df})
+    ip_empty.run_cell("%sql --persist schema1.df")
+    persisted = ip_empty.run_cell("%sql SELECT * FROM schema1.df;").result.DataFrame()
+    assert persisted["a"].tolist() == [1, 2, 3]
+
+
+def test_persist_replace_in_schema(ip_empty):
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql CREATE SCHEMA IF NOT EXISTS schema1;")
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    ip_empty.push({"df": df})
+    ip_empty.run_cell("%sql --persist schema1.df")
+    df = pd.DataFrame({"a": [6, 7]})
+    ip_empty.push({"df": df})
+    ip_empty.run_cell("%sql --perist-replace schema1.df")
+    persisted = ip_empty.run_cell("%sql SELECT * FROM schema1.df;").result.DataFrame()
+    assert persisted["a"].tolist() == [1, 2, 3]
+
+
+def test_append_in_schema(ip_empty):
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql CREATE SCHEMA IF NOT EXISTS schema1;")
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    ip_empty.push({"df": df})
+    ip_empty.run_cell("%sql --persist schema1.df")
+    df = pd.DataFrame({"a": [6, 7]})
+    ip_empty.push({"df": df})
+    ip_empty.run_cell("%sql --append schema1.df")
+    persisted = ip_empty.run_cell("%sql SELECT * FROM schema1.df;").result.DataFrame()
+    assert persisted["a"].tolist() == [1, 2, 3, 6, 7]
+
+
 def test_persist_no_index(ip):
     runsql(ip, "")
     ip.run_cell("results = %sql SELECT * FROM test;")

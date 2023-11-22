@@ -127,3 +127,23 @@ df
 ```{code-cell} ipython3
 %sql SELECT * FROM df;
 ```
+
+### `--persist` in schema
+
+A schema can also be specified when persisting a dataframe.
+
+```{code-cell} ipython3
+%%sql duckdb://
+CREATE SCHEMA IF NOT EXISTS schema1;
+CREATE TABLE numbers (num INTEGER);
+INSERT INTO numbers VALUES (1);
+INSERT INTO numbers VALUES (2);
+```
+
+```{code-cell} ipython3
+results = %sql SELECT * FROM numbers;
+```
+
+```{code-cell} ipython3
+%sql --persist schema1.results
+```

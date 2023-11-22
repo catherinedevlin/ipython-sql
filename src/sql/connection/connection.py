@@ -492,7 +492,7 @@ class AbstractConnection(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def to_table(self, table_name, data_frame, if_exists, index):
+    def to_table(self, table_name, data_frame, if_exists, index, schema=None):
         """Create a table from a pandas DataFrame"""
         pass
 
@@ -941,7 +941,7 @@ class SQLAlchemyConnection(AbstractConnection):
         except Exception as e:
             raise _error_invalid_connection_info(e, connect_str) from e
 
-    def to_table(self, table_name, data_frame, if_exists, index):
+    def to_table(self, table_name, data_frame, if_exists, index, schema=None):
         """Create a table from a pandas DataFrame"""
         operation = partial(
             data_frame.to_sql,
@@ -949,6 +949,7 @@ class SQLAlchemyConnection(AbstractConnection):
             self.connection_sqlalchemy,
             if_exists=if_exists,
             index=index,
+            schema=schema,
         )
 
         try:
@@ -1052,7 +1053,7 @@ class DBAPIConnection(AbstractConnection):
             "This feature is only available for SQLAlchemy connections"
         )
 
-    def to_table(self, table_name, data_frame, if_exists, index):
+    def to_table(self, table_name, data_frame, if_exists, index, schema=None):
         raise exceptions.NotImplementedError(
             "--persist/--persist-replace is not available for DBAPI connections"
             " (only available for SQLAlchemy connections)"
