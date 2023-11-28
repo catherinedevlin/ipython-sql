@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.10.5dev
+
 ## 0.10.4 (2023-11-28)
 
 * [Feature] Allow user to specify the schema when saving dataframes using `--persist` ([#945](https://github.com/ploomber/jupysql/issues/945))
