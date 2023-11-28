@@ -2244,7 +2244,6 @@ INSERT INTO languages VALUES ('Python', 1), ('Java', 0), ('OCaml', 2)"""
         ip_empty.run_cell(sql_query)
 
     out, _ = capsys.readouterr()
-    print(out)
     assert expected_result in out
 
 

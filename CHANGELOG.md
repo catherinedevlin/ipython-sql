@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## 0.10.5dev
+* [Fix] Look into ~/.jupysql/config for config if pyproject.toml does not have a SqlMagic section (#911)
 
 ## 0.10.4 (2023-11-28)
 
