@@ -1,13 +1,14 @@
 # CHANGELOG
 
-## 0.10.4dev
-* [Doc] Use Oracle Database Free for Oracle Database Quick Start tutorial (#943)
-* [Fix] Fix bug causing empty result on SQL with trailing semicolon and comment (#907)
-* [Fix] Fix bug %sql not parsing JSON arrow operators correctly (#918)
+## 0.10.4 (2023-11-28)
+
+* [Feature] Allow user to specify the schema when saving dataframes using `--persist` ([#945](https://github.com/ploomber/jupysql/issues/945))
+* [Fix] Fix bug causing empty result on SQL with trailing semicolon and comment ([#907](https://github.com/ploomber/jupysql/issues/907))
+* [Fix] Fix bug %sql not parsing JSON arrow operators correctly ([#918](https://github.com/ploomber/jupysql/issues/918))
 * [Fix] Fixed bug that returns empty results when exception is raised from DB driver
-* [Fix] Added guards to check and raise errors when arguments are entered twice in %sql, %sqlcmd and %sqlplot (#806)
-* [Fix] Fixed bug that returns snippet typo error message when another table is misspelled (#940)
-* [Feature] Allow user to specify the schema when saving dataframes using `--persist` (#945)
+* [Fix] Added guards to check and raise errors when arguments are entered twice in %sql, %sqlcmd and %sqlplot ([#806](https://github.com/ploomber/jupysql/issues/806))
+* [Fix] Fixed bug that returns snippet typo error message when another table is misspelled ([#940](https://github.com/ploomber/jupysql/issues/940))
+* [Doc] Use Oracle Database Free for Oracle Database Quick Start tutorial ([#943](https://github.com/ploomber/jupysql/issues/943))
 
 ## 0.10.3 (2023-11-06)
 
