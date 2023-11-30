@@ -2,6 +2,7 @@
 
 ## 0.10.5dev
 * [Fix] Look into ~/.jupysql/config for config if pyproject.toml does not have a SqlMagic section (#911)
+* [Fix] Update to be compatible with DuckDB v0.9.0 (#897) and Pandas 2.1.0 (#890) 
 
 ## 0.10.4 (2023-11-28)
 

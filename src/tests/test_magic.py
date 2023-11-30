@@ -2483,7 +2483,7 @@ Did you mean: 'snippet'
 
 
 Original error message from DB driver:
-(duckdb.CatalogException) Catalog Error: Table with name snip does not exist!
+(duckdb.duckdb.CatalogException) Catalog Error: Table with name snip does not exist!
 Did you mean "temp"?
 LINE 1: SELECT * FROM snip;
                       ^
@@ -2500,7 +2500,7 @@ https://jupysql.ploomber.io/en/latest/compose.html#with-argument
 
 
 Original error message from DB driver:
-(duckdb.CatalogException) Catalog Error: Table with name tem does not exist!
+(duckdb.duckdb.CatalogException) Catalog Error: Table with name tem does not exist!
 Did you mean "temp"?
 LINE 1: SELECT * from tem;
                       ^
@@ -2520,7 +2520,7 @@ Did you mean: 'snippet'
 
 
 Original error message from DB driver:
-(duckdb.CatalogException) Catalog Error: Table with name snip does not exist!
+(duckdb.duckdb.CatalogException) Catalog Error: Table with name snip does not exist!
 Did you mean "temp"?
 LINE 1: SELECT * FROM snip;
                       ^
@@ -2537,7 +2537,7 @@ https://jupysql.ploomber.io/en/latest/compose.html#with-argument
 
 
 Original error message from DB driver:
-(duckdb.CatalogException) Catalog Error: Table with name s does not exist!
+(duckdb.duckdb.CatalogException) Catalog Error: Table with name s does not exist!
 Did you mean "temp"?
 LINE 1: SELECT * FROM s;
                       ^
@@ -2555,7 +2555,7 @@ https://jupysql.ploomber.io/en/latest/compose.html#with-argument
 
 
 Original error message from DB driver:
-(duckdb.CatalogException) Catalog Error: Table with name snippet does not exist!
+(duckdb.duckdb.CatalogException) Catalog Error: Table with name snippet does not exist!
 Did you mean "pg_type"?
 LINE 1: SELECT * FROM snippet;
                       ^

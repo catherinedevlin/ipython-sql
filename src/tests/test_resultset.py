@@ -750,11 +750,11 @@ INSERT INTO Cities VALUES ('US', 'New York City', 2020, 8772);
 
     # Assert result matches expected
     expected_result = {
-        "Country": ["NL", "US", "US"],
-        "Name": ["Amsterdam", "Seattle", "New York City"],
-        "2000": [1005.0, 564.0, 8015.0],
-        "2010": [1065.0, 608.0, 8175.0],
-        "2020": [1158.0, 738.0, 8772.0],
+        "Country": ["US", "US", "NL"],
+        "Name": ["New York City", "Seattle", "Amsterdam"],
+        "2000": [8015.0, 564.0, 1005.0],
+        "2010": [8175.0, 608.0, 1065.0],
+        "2020": [8772.0, 738.0, 1158.0],
     }
     expected = getattr(library, "DataFrame")(expected_result)
     assert getattr(result, equal_func)(expected)

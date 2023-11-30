@@ -771,7 +771,7 @@ def test_connections_file_get_default_connection_url(tmp_empty, content, expecte
             "ell",
         ),
         (
-            "select 'hello'[:-1]",
+            "select 'hello'[:-2]",
             "hell",
         ),
     ],

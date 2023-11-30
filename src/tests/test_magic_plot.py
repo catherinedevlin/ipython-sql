@@ -444,6 +444,7 @@ def test_bar_one_col_h(load_data_one_col, ip):
     ip.run_cell("%sqlplot bar -t data_one.csv -c x -o h")
 
 
+@pytest.mark.xfail(reason="DuckDB v0.9.0 bug")
 @_cleanup_cm()
 @image_comparison(
     baseline_images=["bar_one_col_num_h"], extensions=["png"], remove_text=True
@@ -452,6 +453,7 @@ def test_bar_one_col_num_h(load_data_one_col, ip):
     ip.run_cell("%sqlplot bar -t data_one.csv -c x -o h -S")
 
 
+@pytest.mark.xfail(reason="DuckDB v0.9.0 bug")
 @_cleanup_cm()
 @image_comparison(
     baseline_images=["bar_one_col_num_v"], extensions=["png"], remove_text=True
@@ -685,6 +687,7 @@ def test_histogram_with_table_in_schema(ip_with_schema_and_table, cmd, conn):
     ip_with_schema_and_table.run_cell(cmd)
 
 
+@pytest.mark.xfail(reason="DuckDB v0.9.0 bug")
 @pytest.mark.parametrize(
     "cmd, conn",
     [
@@ -716,6 +719,7 @@ def test_bar_with_table_in_schema(ip_with_schema_and_table, cmd, conn):
     ip_with_schema_and_table.run_cell(cmd)
 
 
+@pytest.mark.xfail(reason="DuckDB v0.9.0 bug")
 @pytest.mark.parametrize(
     "cmd, conn",
     [
