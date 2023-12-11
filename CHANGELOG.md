@@ -1,8 +1,9 @@
 # CHANGELOG
 
-## 0.10.5dev
-* [Fix] Look into `~/.jupysql/config` for config if pyproject.toml does not have a SqlMagic section (#911)
-* [Fix] Update to be compatible with DuckDB v0.9.0 (#897) and Pandas 2.1.0 (#890) 
+## 0.10.5 (2023-12-11)
+
+* [Fix] Look into `~/.jupysql/config` for config if pyproject.toml does not have a SqlMagic section ([#911](https://github.com/ploomber/jupysql/issues/911))
+* [Fix] Update to be compatible with DuckDB v0.9.0 ([#897](https://github.com/ploomber/jupysql/issues/897)) and Pandas 2.1.0 ([#890](https://github.com/ploomber/jupysql/issues/890))
 * [Fix] Pins `sqlplot<20.0.0`
 
 ## 0.10.4 (2023-11-28)
