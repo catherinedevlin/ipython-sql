@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## 0.10.6dev
+* [Fix] Fix error when `%sql` includes a query with negative numbers (#958)
 
 ## 0.10.5 (2023-12-11)
 
