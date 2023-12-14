@@ -259,9 +259,22 @@ def split_args_and_sql(line):
     """
     arg_line, sql_line = line, ""
 
-    # Only separate when json arrow operators used
-    # Otherwise, behavior is unchanged
-    if not any(op in line for op in ["->", "-->"]):
+    # When queries include filenames, they may include SQL keywords
+    #   ex. 'penguins_selected'.csv contains "select"
+    # In these cases, splitting the query leads to parsing errors.
+    # So we ignore any filenames by removing text between double quotes ""
+    # and single quotes '' below.
+    # Note: This won't affect the query because we are only modifying the
+    # text we use to check for SQL commands. Any splitting is done
+    # on the original line which includes filenames.
+    line_no_filenames = re.sub(r"('.*')", "", line)  # 'file.csv' --> ''
+    line_no_filenames = re.sub(r'(".*")', "", line_no_filenames)  # "file.csv" --> ""
+
+    # Now that filenames are removed, check the line for any SQL commands
+    # If any SQL commands are found in the line, we split the line into args and sql.
+    #   Note: lines without SQL commands will not be split
+    #       ex. %sql duckdb:// or %sqlplot boxplot --table data.csv
+    if not any(cmd in line_no_filenames for cmd in SQL_COMMANDS):
         return arg_line, sql_line
 
     # Identify beginning of sql query using keywords
@@ -288,12 +301,15 @@ def magic_args(magic_execute, line, cmd_from, allowed_duplicates=None):
     arg_line, sql_line = split_args_and_sql(line)
 
     args = shlex.split(arg_line, posix=False)
+
     if len(args) > 1:
         check_duplicate_arguments(magic_execute, cmd_from, args, allowed_duplicates)
+
     parsed = magic_execute.parser.parse_args(args)
 
     if sql_line:
         parsed.line = shlex.split(sql_line, posix=False)
+
     return parsed
 
 

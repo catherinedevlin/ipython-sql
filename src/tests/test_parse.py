@@ -845,8 +845,8 @@ def test_escape_string_slicing_notation(query, expected_escaped, expected_found)
         ),
         (
             "select * from authors",
-            "select * from authors",
             "",
+            "select * from authors",
         ),
         (
             "select '[1,2,3]'::json -> 1",

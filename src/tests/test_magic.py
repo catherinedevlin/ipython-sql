@@ -2597,3 +2597,26 @@ SELECT * FROM penguins.csv;"""
     # Test error and message
     assert error_type == excinfo.value.error_type
     assert error_message in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "query, expected",
+    [
+        ("%sql select 5 * -2", (-10,)),
+        ("%sql select 5 * - 2", (-10,)),
+        ("%sql select 5 * -2;", (-10,)),
+        ("%sql select -5 * 2;", (-10,)),
+        ("%sql select 5 * -2 ;", (-10,)),
+        ("%sql select 5 * - 2;", (-10,)),
+        ("%sql select x * -2 from number_table", (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)),
+        ("%sql select x *-2 from number_table", (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)),
+        ("%sql select x * - 2 from number_table", (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)),
+        ("%sql select x *- 2 from number_table", (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)),
+        ("%sql select -x * 2 from number_table", (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)),
+        ("%sql select - x * 2 from number_table", (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)),
+        ("%sql select - x* 2 from number_table", (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)),
+    ],
+)
+def test_negative_operations_query(ip, query, expected):
+    result = ip.run_cell(query).result
+    assert list(result.dict().values())[-1] == expected
