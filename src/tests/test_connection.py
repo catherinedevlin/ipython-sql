@@ -196,7 +196,7 @@ def test_is_use_backtick_template_sqlglot_missing_tokenizer_AttributeError(
     conn = SQLAlchemyConnection(engine=create_engine("sqlite://"))
 
     monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "mysql")
-    monkeypatch.setattr(sqlglot.Dialect.get_or_raise("mysql"), "Tokenizer", None)
+    monkeypatch.setattr(sqlglot.dialects.mysql.MySQL, "Tokenizer", None)
 
     assert conn.is_use_backtick_template() is False
 
