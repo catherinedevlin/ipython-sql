@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.10.7dev
+
 ## 0.10.6 (2023-12-21)
 
 * [Fix] Fix error when `%sql` includes a query with negative numbers ([#958](https://github.com/ploomber/jupysql/issues/958))
