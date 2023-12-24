@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.10.7dev
+## 0.10.7 (2023-12-23)
 
 * [Feature] Add Spark Connection as a dialect for Jupysql ([#965](https://github.com/ploomber/jupysql/issues/965)) (by [@gilandose](https://github.com/gilandose))
 
