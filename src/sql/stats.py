@@ -45,7 +45,6 @@ FROM {{table}}
     other = list(conn.execute(query, with_).fetchone())
 
     keys = ["q1", "med", "q3", "mean", "N"]
-
     return {k: float(v) for k, v in zip(keys, percentiles + other)}
 
 

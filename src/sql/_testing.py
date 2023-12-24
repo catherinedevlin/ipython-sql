@@ -210,6 +210,10 @@ databaseConfig = {
         "docker_ct": None,
         "query": {},
     },
+    "spark": {
+        "alias": "SparkSession",
+        "drivername": "SparkSession",
+    },
     "clickhouse": {
         "drivername": "clickhouse+native",
         "username": "username",

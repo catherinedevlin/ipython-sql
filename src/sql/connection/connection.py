@@ -16,6 +16,9 @@ from sqlalchemy.exc import (
     InternalError,
     ProgrammingError,
 )
+
+from sql.run.sparkdataframe import handle_spark_dataframe
+
 from IPython.core.error import UsageError
 import sqlglot
 import sqlparse
@@ -257,6 +260,10 @@ class ConnectionManager:
                 )
             elif is_pep249_compliant(descriptor):
                 cls.current = DBAPIConnection(descriptor, config=config, alias=alias)
+            elif is_spark(descriptor):
+                cls.current = SparkConnectConnection(
+                    descriptor, config=config, alias=alias
+                )
             else:
                 existing = rough_dict_get(cls.connections, descriptor)
                 if existing and existing.alias == alias:
@@ -1060,6 +1067,82 @@ class DBAPIConnection(AbstractConnection):
         )
 
 
+class SparkConnectConnection(AbstractConnection):
+    is_dbapi_connection = False
+
+    @telemetry.log_call("SparkConnectConnection", payload=True)
+    def __init__(self, payload, connection, alias=None, config=None):
+        try:
+            payload["engine"] = type(connection)
+        except Exception as e:
+            payload["engine_parsing_error"] = str(e)
+        self._driver = None
+
+        # TODO: implement the dialect blacklist and add unit tests
+        self._requires_manual_commit = True if config is None else config.autocommit
+
+        self._connection = connection
+        self._connection_class_name = type(connection).__name__
+
+        # calling init from AbstractConnection must be the last thing we do as it
+        # register the connection
+        super().__init__(alias=alias or self._connection_class_name)
+
+        self.name = self._connection_class_name
+
+    @property
+    def dialect(self):
+        """Returns a string with the SQL dialect name"""
+        return "spark2"
+
+    def raw_execute(self, query, parameters=None):
+        """Run the query without any pre-processing"""
+        return handle_spark_dataframe(self._connection.sql(query))
+
+    def _get_database_information(self):
+        """
+        Get the dialect, driver, and database server version info of current
+        connection
+        """
+        return {
+            "dialect": self.dialect,
+            "driver": self._connection_class_name,
+            "server_version_info": self._connection.version,
+        }
+
+    @property
+    def url(self):
+        """Returns None since Spark connections don't have a url"""
+        return None
+
+    @property
+    def connection_sqlalchemy(self):
+        """
+        Raises NotImplementedError since Spark connections don't have a SQLAlchemy
+        connection object
+        """
+        raise NotImplementedError(
+            "This feature is only available for SQLAlchemy connections"
+        )
+
+    def to_table(self, table_name, data_frame, if_exists, index, schema=None):
+        mode = (
+            "overwrite"
+            if if_exists == "replace"
+            else "append"
+            if if_exists == "append"
+            else "error"
+        )
+        self._connection.createDataFrame(data_frame).write.mode(mode).saveAsTable(
+            f"{schema}.{table_name}" if schema else table_name
+        )
+
+    def close(self):
+        """Override of the abstract close as SparkSession is usually
+        shared with pyspark"""
+        pass
+
+
 def _check_if_duckdb_dbapi_connection(conn):
     """Check if the connection is a native duckdb connection"""
     # NOTE: duckdb defines df and pl to efficiently convert results to
@@ -1149,6 +1232,26 @@ def is_pep249_compliant(conn):
         # Checking whether the connection object has the method
         # and if it is callable
         if not hasattr(conn, method_name) or not callable(getattr(conn, method_name)):
+            return False
+
+    return True
+
+
+def is_spark(conn):
+    """Check if it is a SparkSession by checking for available methods"""
+
+    sparksession_methods = [
+        "table",
+        "read",
+        "createDataFrame",
+        "sql",
+        "stop",
+        "catalog",
+        "version",
+    ]
+    for method_name in sparksession_methods:
+        # Checking whether the connection object has the method
+        if not hasattr(conn, method_name):
             return False
 
     return True

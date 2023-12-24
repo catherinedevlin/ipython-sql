@@ -234,6 +234,26 @@ value enables the ones from previous values plus new ones:
 - `2`: All feedback
   - Footer to distinguish pandas/polars data frames from JupySQL's result sets
 
+## `lazy_execution`
+
+```{versionadded} 0.10.7
+This option only works when connecting to Spark
+```
+
+Default: `False`
+
+Return lazy relation to dataset rather than executing through JupySql.
+
+```{code-cell} ipython3
+%config SqlMagic.lazy_execution = True
+df = %sql SELECT * FROM languages
+```
+
+```{code-cell} ipython3
+%config SqlMagic.lazy_execution = False
+res = %sql SELECT * FROM languages
+```
+
 ## `named_parameters`
 
 ```{versionadded} 0.9

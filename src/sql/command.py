@@ -5,7 +5,7 @@ from sqlalchemy.engine import Engine
 
 from sql import parse, exceptions
 from sql.store import store
-from sql.connection import ConnectionManager, is_pep249_compliant
+from sql.connection import ConnectionManager, is_pep249_compliant, is_spark
 from sql.util import validate_nonidentifier_connection
 
 
@@ -49,7 +49,11 @@ class SQLCommand:
         if (
             one_arg
             and self.args.line[0] in user_ns
-            and (isinstance(user_ns[self.args.line[0]], Engine) or is_dbapi_connection_)
+            and (
+                isinstance(user_ns[self.args.line[0]], Engine)
+                or is_dbapi_connection_
+                or is_spark(user_ns[self.args.line[0]])
+            )
         ):
             line_for_command = []
             add_conn = True

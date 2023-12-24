@@ -8,7 +8,12 @@ from sqlalchemy import create_engine
 import pytest
 
 
-from sql.connection import SQLAlchemyConnection, DBAPIConnection, ConnectionManager
+from sql.connection import (
+    SQLAlchemyConnection,
+    DBAPIConnection,
+    ConnectionManager,
+    SparkConnectConnection,
+)
 from sql import _testing
 from sql.connection import connection
 
@@ -92,6 +97,7 @@ def test_connection_properties(dynamic_db, request, Constructor, alias, dialect)
             partial(DBAPIConnection, alias="another-alias"),
             "another-alias",
         ],
+        ["setup_spark", SparkConnectConnection, "SparkSession"],
     ],
 )
 def test_connection_identifiers(

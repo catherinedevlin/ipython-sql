@@ -21,6 +21,7 @@ ALL_DATABASES = [
     "ip_with_Snowflake",
     "ip_with_oracle",
     "ip_with_clickhouse",
+    "ip_with_spark",
 ]
 
 
@@ -54,6 +55,7 @@ def mock_log_api(monkeypatch):
         ("ip_with_clickhouse", "", "LIMIT 3"),
         ("ip_with_oracle", "", "FETCH FIRST 3 ROWS ONLY"),
         ("ip_with_MSSQL", "TOP 3", ""),
+        ("ip_with_spark", "", "LIMIT 3"),
     ],
 )
 def test_run_query(
@@ -93,6 +95,7 @@ def test_run_query(
         "ip_with_Snowflake",
         "ip_with_redshift",
         "ip_with_clickhouse",
+        "ip_with_spark",
     ],
 )
 def test_handle_multiple_open_result_sets(
@@ -151,6 +154,7 @@ def test_handle_multiple_open_result_sets(
                 "No engine for table <table_name>"
             ),
         ),
+        ("ip_with_spark", "--no-index"),
     ],
 )
 def test_create_table_with_indexed_df(
@@ -218,6 +222,7 @@ def get_connection_count(ip_with_dynamic_db):
         ("ip_with_MSSQL", 1),
         ("ip_with_Snowflake", 1),
         ("ip_with_clickhouse", 1),
+        ("ip_with_spark", 1),
     ],
 )
 def test_active_connection_number(ip_with_dynamic_db, expected, request):
@@ -273,6 +278,7 @@ def test_close_and_connect(
         ("ip_with_Snowflake", "snowflake", "snowflake"),
         ("ip_with_oracle", "oracle", "oracledb"),
         ("ip_with_clickhouse", "clickhouse", "native"),
+        ("ip_with_spark", "spark2", "SparkSession"),
     ],
 )
 def test_telemetry_execute_command_has_connection_info(
@@ -337,6 +343,7 @@ def test_telemetry_execute_command_has_connection_info(
         ("ip_with_Snowflake"),
         ("ip_with_duckDB_native"),
         ("ip_with_redshift"),
+        ("ip_with_spark"),
         pytest.param(
             "ip_with_MSSQL",
             marks=pytest.mark.xfail(reason="sqlglot does not support SQL server"),
@@ -419,6 +426,9 @@ BOX_PLOT_FAIL_REASON = (
                 reason="Plotting from snippet not working in clickhouse"
             ),
         ),
+        pytest.param(
+            "ip_with_spark", marks=pytest.mark.xfail(reason=BOX_PLOT_FAIL_REASON)
+        ),
     ],
 )
 def test_sqlplot_boxplot(ip_with_dynamic_db, cell, request, test_table_name_dict):
@@ -442,6 +452,7 @@ def test_sqlplot_boxplot(ip_with_dynamic_db, cell, request, test_table_name_dict
         "ip_with_duckDB",
         "ip_with_redshift",
         "ip_with_MSSQL",
+        "ip_with_spark",
     ],
 )
 def test_sqlplot_bar(ip_with_dynamic_db, request, test_table_name_dict):
@@ -464,7 +475,13 @@ def test_sqlplot_bar(ip_with_dynamic_db, request, test_table_name_dict):
 
 @pytest.mark.parametrize(
     "ip_with_dynamic_db",
-    ["ip_with_postgreSQL", "ip_with_duckDB", "ip_with_redshift", "ip_with_MSSQL"],
+    [
+        "ip_with_postgreSQL",
+        "ip_with_duckDB",
+        "ip_with_redshift",
+        "ip_with_MSSQL",
+        "ip_with_spark",
+    ],
 )
 def test_sqlplot_pie(ip_with_dynamic_db, request, test_table_name_dict):
     plt.cla()
@@ -517,6 +534,7 @@ def test_sqlplot_pie(ip_with_dynamic_db, request, test_table_name_dict):
                 reason="Plotting from snippet not working in clickhouse"
             ),
         ),
+        "ip_with_spark",
     ],
 )
 def test_sqlplot_using_schema(ip_with_dynamic_db, request):
@@ -569,6 +587,7 @@ VALUES
         ("ip_with_Snowflake"),
         ("ip_with_oracle"),
         ("ip_with_clickhouse"),
+        ("ip_with_spark"),
     ],
 )
 def test_sqlcmd_test(ip_with_dynamic_db, request, test_table_name_dict):
@@ -604,6 +623,7 @@ def test_sqlcmd_test(ip_with_dynamic_db, request, test_table_name_dict):
         ),
         ("ip_with_oracle"),
         ("ip_with_clickhouse"),
+        ("ip_with_spark"),
     ],
 )
 def test_profile_data_mismatch(ip_with_dynamic_db, request, capsys):
@@ -786,6 +806,25 @@ def test_profile_data_mismatch(ip_with_dynamic_db, request, capsys):
             },
             "Following statistics are not available in",
         ),
+        (
+            "ip_with_spark",
+            "taxi",
+            ["taxi_driver_name"],
+            {
+                "count": [45],
+                "mean": [math.nan],
+                "min": ["Eric Ken"],
+                "max": ["Kevin Kelly"],
+                "unique": [3],
+                "freq": [15],
+                "top": ["Eric Ken"],
+                "std": [math.nan],
+                "25%": [math.nan],
+                "50%": [math.nan],
+                "75%": [math.nan],
+            },
+            None,
+        ),
     ],
 )
 def test_sqlcmd_profile(
@@ -847,6 +886,10 @@ def test_sqlcmd_profile(
         ("ip_with_MSSQL"),
         ("ip_with_Snowflake"),
         ("ip_with_clickhouse"),
+        pytest.param(
+            "ip_with_spark",
+            marks=pytest.mark.xfail(reason="Not Implemented"),
+        ),
     ],
 )
 def test_sqlcmd_columns(ip_with_dynamic_db, table, request, test_table_name_dict):
@@ -873,6 +916,10 @@ def test_sqlcmd_columns(ip_with_dynamic_db, table, request, test_table_name_dict
         ("ip_with_MSSQL"),
         ("ip_with_Snowflake"),
         ("ip_with_clickhouse"),
+        pytest.param(
+            "ip_with_spark",
+            marks=pytest.mark.xfail(reason="Not Implemented"),
+        ),
     ],
 )
 def test_sqlcmd_tables(ip_with_dynamic_db, request):
@@ -927,6 +974,7 @@ def test_sql_query(ip_with_dynamic_db, cell, request, test_table_name_dict):
         "ip_with_Snowflake",
         "ip_with_oracle",
         "ip_with_clickhouse",
+        "ip_with_spark",
     ],
 )
 def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
@@ -957,6 +1005,7 @@ def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
             "ip_with_clickhouse",
             marks=pytest.mark.xfail(reason="Not yet implemented"),
         ),
+        "ip_with_spark",
     ],
 )
 def test_sql_error_suggests_using_cte(ip_with_dynamic_db, request):
@@ -987,6 +1036,7 @@ S"""
         "ip_with_MSSQL",
         "ip_with_oracle",
         "ip_with_clickhouse",
+        "ip_with_spark",
     ],
 )
 def test_results_sets_are_closed(ip_with_dynamic_db, request, test_table_name_dict):
@@ -1024,6 +1074,7 @@ DROP TABLE my_numbers
         "ip_with_MSSQL",
         "ip_with_oracle",
         "ip_with_clickhouse",
+        "ip_with_spark",
     ],
 )
 @pytest.mark.parametrize(
@@ -1150,6 +1201,7 @@ CREATE_GLOBAL_TEMPORARY_TABLE = (
             CREATE_TABLE,
             marks=pytest.mark.xfail(reason="Not working yet"),
         ),
+        ("ip_with_spark", CREATE_TABLE),
     ],
 )
 def test_autocommit_create_table_single_cell(
@@ -1222,6 +1274,7 @@ SELECT * FROM {__TABLE_NAME__};
             CREATE_TABLE,
             marks=pytest.mark.xfail(reason="Not working yet"),
         ),
+        ("ip_with_spark", CREATE_TABLE),
     ],
 )
 def test_autocommit_create_table_multiple_cells(
@@ -1408,6 +1461,20 @@ SELECT * FROM {__TABLE_NAME__};
             ["Table with name mysnip does not exist!"],
             "RuntimeError",
         ),
+        (
+            "ip_with_spark",
+            "mysnippet",
+            [
+                "Cannot resolve function `not_a_function` on search path",
+            ],
+            "RuntimeError",
+        ),
+        (
+            "ip_with_spark",
+            "mysnip",
+            ["Cannot resolve function `not_a_function` on search path"],
+            "RuntimeError",
+        ),
     ],
     ids=[
         "no-typo-postgreSQL",
@@ -1428,6 +1495,8 @@ SELECT * FROM {__TABLE_NAME__};
         "with-typo-redshift",
         "no-typo-duckDB-native",
         "with-typo-duckDB-native",
+        "no-typo-spark",
+        "with-typo-spark",
     ],
 )
 def test_query_snippet_invalid_function_error_message(
@@ -1456,7 +1525,7 @@ def test_query_snippet_invalid_function_error_message(
     # Save result and test error message
     result_error = excinfo.value.error_type
     result_msg = str(excinfo.value)
-
+    print(result_msg)
     assert error_type == result_error
     assert all(msg in result_msg for msg in error_msgs)
 
@@ -1502,6 +1571,7 @@ def test_query_snippet_invalid_function_error_message(
                 "No engine for table <table_name>"
             ),
         ),
+        ("ip_with_spark", "--no-index"),
     ],
 )
 def test_persist_in_schema(ip_with_dynamic_db, args, request, test_table_name_dict):

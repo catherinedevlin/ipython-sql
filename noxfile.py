@@ -35,6 +35,8 @@ INTEGRATION_PIP_DEPENDENCIES = [
     "pyodbc==4.0.34",
     "sqlalchemy-pytds",
     "python-tds",
+    "pyspark>=3.4.1",
+    "grpcio-status",
 ]
 
 

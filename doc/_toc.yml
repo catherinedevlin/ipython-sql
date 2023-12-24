@@ -43,6 +43,7 @@ parts:
       - file: integrations/duckdb-native
       - file: integrations/compatibility
       - file: integrations/chdb
+      - file: integrations/spark
 
   - caption: API Reference
     chapters:

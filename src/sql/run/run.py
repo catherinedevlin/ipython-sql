@@ -52,6 +52,8 @@ def run_statements(conn, sql, config, parameters=None):
         # regular query
         else:
             result = conn.raw_execute(statement, parameters=parameters)
+            if is_spark(conn.dialect) and config.lazy_execution:
+                return result.dataframe
 
             if (
                 config.feedback >= 1
@@ -67,6 +69,10 @@ def run_statements(conn, sql, config, parameters=None):
 def is_postgres_or_redshift(dialect):
     """Checks if dialect is postgres or redshift"""
     return "postgres" in str(dialect) or "redshift" in str(dialect)
+
+
+def is_spark(dialect):
+    return "spark" in str(dialect)
 
 
 def select_df_type(resultset, config):

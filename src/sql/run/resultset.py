@@ -434,7 +434,10 @@ class ResultSet(ColumnGuesserMixin):
                     raise RuntimeError(f"Error running the query: {str(e)}") from e
                 self.mark_fetching_as_done()
                 return
-
+            # spark doesn't support cursor
+            if hasattr(self._sqlaproxy, "dataframe"):
+                self._results = []
+                self._pretty_table.clear()
             self._extend_results(returned)
 
             if len(returned) < size:
@@ -458,6 +461,9 @@ class ResultSet(ColumnGuesserMixin):
 
     def fetchall(self):
         if not self._done_fetching():
+            if hasattr(self._sqlaproxy, "dataframe"):
+                self._results = []
+                self._pretty_table.clear()
             self._extend_results(self.sqlaproxy.fetchall())
             self.mark_fetching_as_done()
 
@@ -500,6 +506,8 @@ def _convert_to_data_frame(
     # maybe create accessors in the connection objects?
     if result_set._conn.is_dbapi_connection:
         native_connection = result_set.sqlaproxy
+    elif hasattr(result_set.sqlaproxy, "dataframe"):
+        return result_set.sqlaproxy.dataframe.toPandas()
     else:
         native_connection = result_set._conn._connection.connection
 

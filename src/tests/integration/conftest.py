@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import shutil
 import pandas as pd
+from pyspark.sql import SparkSession
 import pytest
 from sqlalchemy import MetaData, Table, create_engine, text
 import uuid
@@ -286,6 +287,49 @@ def setup_duckDB_native(test_table_name_dict):
     conn = duckdb.connect(database=":memory:", read_only=False)
     yield conn
     conn.close()
+
+
+@pytest.fixture(scope="session")
+def setup_spark(test_table_name_dict):
+    import os
+    import shutil
+    import sys
+
+    os.environ["PYSPARK_PYTHON"] = sys.executable
+    os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
+    spark = SparkSession.builder.master("local[1]").enableHiveSupport().getOrCreate()
+    load_generic_testing_data_spark(spark, test_table_name_dict)
+    yield spark
+    spark.stop()
+    shutil.rmtree("metastore_db", ignore_errors=True)
+    shutil.rmtree("spark-warehouse", ignore_errors=True)
+    os.remove("derby.log")
+
+
+def load_generic_testing_data_spark(spark: SparkSession, test_table_name_dict):
+    spark.createDataFrame(
+        pd.DataFrame(
+            {"taxi_driver_name": ["Eric Ken", "John Smith", "Kevin Kelly"] * 15}
+        )
+    ).createOrReplaceTempView(test_table_name_dict["taxi"])
+    spark.createDataFrame(
+        pd.DataFrame({"x": range(0, 5), "y": range(5, 10)})
+    ).createOrReplaceTempView(test_table_name_dict["plot_something"])
+    spark.createDataFrame(
+        pd.DataFrame({"numbers_elements": [1, 2, 3] * 20})
+    ).createOrReplaceTempView(test_table_name_dict["numbers"])
+
+
+@pytest.fixture
+def ip_with_spark(ip_empty, setup_spark):
+    alias = "SparkSession"
+
+    ip_empty.push({"conn": setup_spark})
+    # Select database engine, use different sqlite database endpoint
+    ip_empty.run_cell("%sql " + "conn" + " --alias " + alias)
+    yield ip_empty
+    # Disconnect database
+    ip_empty.run_cell("%sql -x " + alias)
 
 
 def load_generic_testing_data_duckdb_native(ip, test_table_name_dict):

@@ -50,6 +50,7 @@ def _detailed_message_with_error_type(error, query):
         "error in your sql syntax",
         "incorrect syntax",
         "invalid sql",
+        "syntax_error",
     ]
     not_found_substrings = [
         r"(\btable with name\b).+(\bdoes not exist\b)",

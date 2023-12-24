@@ -543,6 +543,9 @@ def is_non_sqlalchemy_error(error):
         "pyodbc.ProgrammingError",
         # Clickhouse errors
         "DB::Exception:",
+        # Pyspark
+        "UNRESOLVED_ROUTINE",
+        "PARSE_SYNTAX_ERROR",
     ]
     return any(msg in str(error) for msg in specific_db_errors)
 
