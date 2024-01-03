@@ -19,10 +19,6 @@ myst:
     property=og:locale: en_US
 ---
 
-```{note}
-Open this tutorial on Binder to try the interactive components.
-```
-
 +++
 
 # Interactive ggplot

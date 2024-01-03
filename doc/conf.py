@@ -59,7 +59,6 @@ html_theme = "sphinx_book_theme"
 html_theme_options = {
     "launch_buttons": {
         "notebook_interface": "jupyterlab",
-        "binderhub_url": "https://binder.ploomber.io",
         "jupyterhub_url": "",
         "thebe": False,
         "colab_url": "",
