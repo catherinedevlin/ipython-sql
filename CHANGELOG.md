@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## 0.10.8dev
+* [Fix] Fix edge case where `select` and other SQL keywords were not properly used to find where the user's query started, causing argument parsing issues (#973)
 
 ## 0.10.7 (2023-12-23)
 
