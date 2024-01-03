@@ -2330,6 +2330,18 @@ def test_get_query_type(query, query_type):
             0;""",
             '{"b":"c"}',
         ),
+        (
+            "%sql SELECT '{\"a\": 1}'::json -> 'a';",
+            "1",
+        ),
+        (
+            "%sql SELect '{\"a\": 1}'::json -> 'a';",
+            "1",
+        ),
+        (
+            "%sql SELECT json('{\"a\": 1}') -> 'a';",
+            "1",
+        ),
     ],
     ids=[
         "single-key",
@@ -2340,6 +2352,9 @@ def test_get_query_type(query, query_type):
         "single-index-multi-line-tab",
         "double-key-multi-line-space",
         "double-index-multi-line",
+        "single-key-all-caps",
+        "single-key-mixed-caps",
+        "single-key-cast-parentheses",
     ],
 )
 def test_json_arrow_operators(ip, query, expected):

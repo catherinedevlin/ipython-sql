@@ -274,7 +274,7 @@ def split_args_and_sql(line):
     # If any SQL commands are found in the line, we split the line into args and sql.
     #   Note: lines without SQL commands will not be split
     #       ex. %sql duckdb:// or %sqlplot boxplot --table data.csv
-    if not any(cmd in line_no_filenames for cmd in SQL_COMMANDS):
+    if not any(cmd in line_no_filenames.lower() for cmd in SQL_COMMANDS):
         return arg_line, sql_line
 
     # Identify beginning of sql query using keywords
@@ -308,7 +308,10 @@ def magic_args(magic_execute, line, cmd_from, allowed_duplicates=None):
     parsed = magic_execute.parser.parse_args(args)
 
     if sql_line:
-        parsed.line = shlex.split(sql_line, posix=False)
+        if parsed.line != "":
+            parsed.line.extend(shlex.split(sql_line, posix=False))
+        else:
+            parsed.line = shlex.split(sql_line, posix=False)
 
     return parsed
 
