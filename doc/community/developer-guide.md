@@ -477,6 +477,36 @@ We run integration tests against cloud databases like Snowflake, which requires 
 
 Please note that if you submit a pull request from a forked repository, the integration testing phase will be skipped because the pre-registered accounts won't be accessible.
 
+#### Using Snowflake
+
+While running live integration tests or testing manually with Snowflake, you may run into the below error:
+
+```
+No active warehouse selected in the current session. Select an active warehouse with the 'use warehouse' command.
+```
+
+This occurs when you have connected with a registered account but have no current warehouses. If you have permission to create one, open a worksheet and run:
+
+```sql
+CREATE WAREHOUSE <wh_name> WITH WAREHOUSE_SIZE = <wh_size>
+```
+
+If you need permissions, have the admin run: 
+
+```sql
+CREATE ROLE create_wh_role;
+GRANT ROLE create_wh_role TO USER <your_username>;
+GRANT CREATE WAREHOUSE ON ACCOUNT TO ROLE create_wh_role;
+```
+
+Now, open your own worksheet and run:
+
+```sql
+USE ROLE create_wh_role;
+CREATE WAREHOUSE <wh_name> WITH WAREHOUSE_SIZE = <wh_size>
+```
+
+Now, initiate a connection using your new warehouse and run your tests/queries.
 +++
 
 ## SQL transpilation
