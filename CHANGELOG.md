@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.10.9dev
+
 ## 0.10.8 (2024-01-25)
 
 * [Feature] Add support for parametrizing string type arguments of `%%sql`, `%sqlplot`, `%sqlcmd`' ([#699](https://github.com/ploomber/jupysql/issues/699))
