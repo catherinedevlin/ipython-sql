@@ -23,6 +23,9 @@
   <a href="https://www.youtube.com/channel/UCaIS5BMlmeNQE4-Gn0xTDXQ">YouTube</a>
 </p>
 
+> [!TIP]
+> Deploy AI apps for free on [Ploomber Cloud!](https://ploomber.io/?utm_medium=github&utm_source=jupysql)
+
 Run SQL in Jupyter/IPython via a `%sql` and `%%sql` magics.
 
 ## Features
