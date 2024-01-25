@@ -1,0 +1,46 @@
+# CI - DB Integration - SqlAlchemy v1 is designed to run integration testing against SQLAlchemy v1.
+# Target database: Clickhouse
+# Sqlalchemy version: 1.4 (required by clickhouse-sqlalchemy)
+
+name: CI - DB Integration - SQLAlchemy V1
+
+on:
+  workflow_call:
+
+jobs:
+  database-sqlalchemy-v1-integration-test:
+    strategy:
+      matrix:
+        python-version: ['3.11']
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+
+    env:
+      PLOOMBER_VERSION_CHECK_DISABLED: true
+      PYTHON_VERSION: ${{ matrix.python-version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade nox
+          nox --session test_integration_sqlachemy_v1 --install-only
+
+      - name: Integration Test
+        run: |
+          nox --session test_integration_sqlachemy_v1 --no-install --reuse-existing-virtualenvs
+
+      - name: Upload failed images artifacts
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+            name: failed-image-artifacts-sqlalchemy-v1 ${{ matrix.os }} ${{ matrix.python-version }}
+            path: result_images/

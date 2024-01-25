@@ -32,7 +32,8 @@ install_requires = [
 DEV = [
     "flake8",
     "pytest",
-    "pandas",  # previously pinned to 2.0.3
+    # 24/01/24 Pandas 2.2.0 breaking CI: https://github.com/ploomber/jupysql/issues/983
+    "pandas<2.2.0",  # previously pinned to 2.0.3
     "polars==0.17.2",  # 04/18/23 this breaks our CI
     "pyarrow",
     "invoke",

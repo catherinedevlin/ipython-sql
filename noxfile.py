@@ -127,6 +127,9 @@ def test_integration_cloud(session):
     Run integration tests on cloud databases (currently snowflake and redshift)
     (NOTE: the sqlalchemy-snowflake and sqlalchemy-redshift driver only work with
     SQLAlchemy 1.x)
+    This is disabled currently, refer: https://github.com/ploomber/jupysql/issues/984
+    If it is required to enable these tests add a job in
+    .github/workflows/ci.yaml file.
     """
 
     # TODO: do not require integration test dependencies if only running snowflake
@@ -143,6 +146,34 @@ def test_integration_cloud(session):
         "src/tests/integration",
         "-k",
         "snowflake or redshift or clickhouse",
+        "-v",
+    )
+
+
+@nox.session(
+    venv_backend=VENV_BACKEND,
+    python=environ.get("PYTHON_VERSION", "3.11"),
+)
+def test_integration_sqlachemy_v1(session):
+    """
+    Run integration tests on SQLAlchemy v1
+    (NOTE: the clickhouse-sqlalchemy driver only works with
+    SQLAlchemy 1.x)
+    """
+
+    # tests
+    _install(session, integration=True)
+    session.install(
+        "snowflake-sqlalchemy",
+        "redshift-connector",
+        "sqlalchemy-redshift",
+        "clickhouse-sqlalchemy",
+    )
+    session.run(
+        "pytest",
+        "src/tests/integration",
+        "-k",
+        "clickhouse",
         "-v",
     )
 

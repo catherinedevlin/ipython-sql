@@ -24,6 +24,10 @@ ALL_DATABASES = [
     "ip_with_spark",
 ]
 
+# NOTE: We don't need to add tests for Snowflake and Redshift
+# for future PRs.
+# Reference issue: https://github.com/ploomber/jupysql/issues/984
+
 
 @pytest.fixture(autouse=True)
 def run_around_tests(tmpdir_factory):

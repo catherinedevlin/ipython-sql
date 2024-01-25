@@ -473,13 +473,38 @@ To see the databases available, check out [`src/tests/integration/conftest.py`](
 
 ### Integration tests with cloud databases
 
-We run integration tests against cloud databases like Snowflake, which requires using pre-registered accounts to evaluate their behavior. To initiate these tests, please create a branch in our [ploomber/jupyter repository](https://github.com/ploomber/jupysql).
+Currently, we do not run integration tests against cloud databases like Snowflake and Amazon Redshift.
 
-Please note that if you submit a pull request from a forked repository, the integration testing phase will be skipped because the pre-registered accounts won't be accessible.
+To run Snowflake integration tests locally first set your Snowflake account's username and password:
+
+```bash
+export SF_USERNAME="username"
+export SF_PASSWORD="password"
+```
+
+Then run the pytest command:
+
+```bash
+pytest src/tests/integration -k snowflake
+```
+
+Similarly, for Redshift, set the following environment variables:
+
+```bash
+export REDSHIFT_USERNAME="username"
+export REDSHIFT_PASSWORD="password"
+export REDSHIFT_HOST="host"
+```
+
+Then run the below command:
+
+```bash
+pytest src/tests/integration -k redshift
+```
 
 #### Using Snowflake
 
-While running live integration tests or testing manually with Snowflake, you may run into the below error:
+While testing manually with Snowflake, you may run into the below error:
 
 ```
 No active warehouse selected in the current session. Select an active warehouse with the 'use warehouse' command.
