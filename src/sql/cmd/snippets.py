@@ -3,6 +3,7 @@ from sql import store
 from sql.exceptions import UsageError
 from sql.cmd.cmd_utils import CmdParser
 from sql.display import Table, Message
+from sql.util import expand_args, is_rendering_required, render_string_using_namespace
 
 
 def _modify_display_msg(key, remaining_keys, dependent_keys=None):
@@ -32,12 +33,13 @@ def _modify_display_msg(key, remaining_keys, dependent_keys=None):
     return msg
 
 
-def snippets(others):
+def snippets(others, user_ns):
     """
     Implementation of `%sqlcmd snippets`
     This function handles all the arguments related to %sqlcmd snippets, namely
     listing stored snippets, and delete/ force delete/ force delete a snippet and
-    all its dependent snippets.
+    all its dependent snippets. It also uses the kernel namespace for expanding
+    arguments declared as variables.
 
 
     Parameters
@@ -45,6 +47,8 @@ def snippets(others):
     others : str,
         A string containing the command line arguments.
 
+    user_ns : dict,
+        User namespace of IPython kernel
     """
     parser = CmdParser()
     parser.add_argument(
@@ -66,6 +70,7 @@ def snippets(others):
     )
     all_snippets = store.get_all_keys()
     if len(others) == 1:
+        others[0] = render_string_using_namespace(others[0], user_ns)
         if others[0] in all_snippets:
             return str(store.store[others[0]])
 
@@ -79,6 +84,9 @@ def snippets(others):
         raise UsageError(err_msg)
 
     args = parser.parse_args(others)
+    if is_rendering_required(" ".join(others)):
+        expand_args(args, user_ns)
+
     SNIPPET_ARGS = [args.delete, args.delete_force, args.delete_force_all]
     if SNIPPET_ARGS.count(None) == len(SNIPPET_ARGS):
         if len(all_snippets) == 0:

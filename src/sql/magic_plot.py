@@ -1,4 +1,4 @@
-from IPython.core.magic import Magics, line_magic, magics_class
+from IPython.core.magic import Magics, line_magic, magics_class, no_var_expand
 from IPython.core.magic_arguments import argument, magic_arguments
 from ploomber_core.exceptions import modify_exceptions
 
@@ -21,6 +21,7 @@ SUPPORTED_PLOTS = ["histogram", "boxplot", "bar", "pie"]
 class SqlPlotMagic(Magics, Configurable):
     """%sqlplot magic"""
 
+    @no_var_expand
     @line_magic("sqlplot")
     @magic_arguments()
     @argument(
@@ -82,6 +83,9 @@ class SqlPlotMagic(Magics, Configurable):
         """
 
         cmd = SQLPlotCommand(self, line)
+
+        if util.is_rendering_required(line):
+            util.expand_args(cmd.args, self.shell.user_ns.copy())
 
         if len(cmd.args.column) == 1:
             column = cmd.args.column[0]

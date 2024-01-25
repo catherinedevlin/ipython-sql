@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.15.1
+    jupytext_version: 1.16.0
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -292,4 +292,51 @@ You can also show the percentage on top of the pie using the `S`/`show-numbers` 
 
 ```{code-cell} ipython3
 %sqlplot pie --table penguins.csv --column species -S
+```
+
+## Parametrizing arguments
+
+JupySQL supports variable expansion of arguments in the form of `{{variable}}`. This allows the user to specify arguments with placeholders that can be replaced by variables dynamically.
+
+```{code-cell} ipython3
+%%sql 
+DROP TABLE IF EXISTS penguins;
+CREATE SCHEMA IF NOT EXISTS s1;
+CREATE TABLE s1.penguins (
+    species VARCHAR(255),
+    island VARCHAR(255),
+    bill_length_mm DECIMAL(5, 2),
+    bill_depth_mm DECIMAL(5, 2),
+    flipper_length_mm DECIMAL(5, 2),
+    body_mass_g INTEGER,
+    sex VARCHAR(255)
+);
+COPY s1.penguins FROM 'penguins.csv' WITH (FORMAT CSV, HEADER TRUE);
+```
+
+```{code-cell} ipython3
+table = "penguins"
+schema = "s1"
+orient = "h"
+column = "bill_length_mm"
+```
+
+```{code-cell} ipython3
+%sqlplot boxplot --table {{table}} --schema {{schema}} --column {{column}} --orient {{orient}}
+```
+
+Now let's see another example using `--with`:
+
+```{code-cell} ipython3
+snippet = "gentoo"
+```
+
+```{code-cell} ipython3
+%%sql --save {{snippet}}
+SELECT * FROM {{schema}}.{{table}} 
+WHERE species == 'Gentoo'
+```
+
+```{code-cell} ipython3
+%sqlplot boxplot --table {{snippet}} --with {{snippet}} --column {{column}}
 ```

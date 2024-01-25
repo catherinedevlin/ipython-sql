@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.15.1
+    jupytext_version: 1.16.0
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -358,4 +358,22 @@ LIMIT 3
 
 ```{code-cell} ipython3
 %sql --file my-query.sql
+```
+
+## Parameterizing arguments
+
+JupySQL supports variable expansion of arguments in the form of `{{variable}}`. This allows the user to specify arguments with placeholders that can be replaced by variables dynamically.
+
+Let's see an example of creating a connection using an alias and closing the same through variable substitution.
+
+```{code-cell} ipython3
+alias = "db-four"
+```
+
+```{code-cell} ipython3
+%sql sqlite:///db_four.db --alias {{alias}}
+```
+
+```{code-cell} ipython3
+%sql --close {{alias}}
 ```

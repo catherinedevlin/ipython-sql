@@ -3,6 +3,7 @@ import sql.connection
 from sqlglot import select, condition
 from prettytable import PrettyTable
 from sql.cmd.cmd_utils import CmdParser
+from sql.util import expand_args, is_rendering_required
 
 
 def return_test_results(args, conn, query):
@@ -77,18 +78,23 @@ def run_each_individually(args, conn):
     return storage
 
 
-def test(others):
+def test(others, user_ns):
     """
     Implementation of `%sqlcmd test`
 
     This function takes in a string containing command line arguments,
     parses them to extract the table name, column name, and conditions
     to return if those conditions are satisfied in that table
+    It also uses the kernel namespace for expanding arguments declared as
+    variables.
 
     Parameters
     ----------
     others : str,
             A string containing the command line arguments.
+
+    user_ns : dict,
+        User namespace of IPython kernel
 
     Returns
     -------
@@ -141,6 +147,8 @@ def test(others):
     )
 
     args = parser.parse_args(others)
+    if is_rendering_required(" ".join(others)):
+        expand_args(args, user_ns)
 
     COMPARATOR_ARGS = [
         args.greater,

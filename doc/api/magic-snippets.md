@@ -150,3 +150,28 @@ Now, force delete `chinstrap` and its dependent `chinstrap_sub`:
 ```{code-cell} ipython3
 %sqlcmd snippets -A chinstrap
 ```
+
+
+## Parameterizing arguments
+
+JupySQL supports variable expansion of arguments in the form of `{{variable}}`. This allows the user to specify arguments with placeholders that can be replaced by variables dynamically.
+
+Let's see some examples:
+
+```{code-cell} ipython3
+snippet_name = "gentoo"
+```
+
+```{code-cell} ipython3
+%%sql --save {{snippet_name}}
+SELECT * FROM penguins.csv where species == 'Gentoo'
+```
+
+```{code-cell} ipython3
+gentoo_snippet = %sqlcmd snippets {{snippet_name}}
+print(gentoo_snippet)
+```
+
+```{code-cell} ipython3
+%sqlcmd snippets -d {{snippet_name}}
+```

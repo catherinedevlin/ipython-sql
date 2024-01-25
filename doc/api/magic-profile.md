@@ -202,3 +202,27 @@ Let’s profile `my_numbers` of `b_schema`
 ```{code-cell} ipython3
 %sqlcmd profile --table my_numbers --schema b_schema
 ```
+
+# Parametrizing arguments
+
+JupySQL supports variable expansion of arguments in the form of `{{variable}}`. This allows the user to specify arguments with placeholders that can be replaced by variables dynamically.
+
+Let's look at an example that uses variable expansion for `table`, `schema` and `output` arguments:
+
+```{code-cell} ipython3
+table = "my_numbers"
+schema = "b_schema"
+output = "numbers-report.html"
+```
+
+```{code-cell} ipython3
+:tags: [hide-output]
+
+%sqlcmd profile --table {{table}} --schema {{schema}} --output {{output}}
+```
+
+```{code-cell} ipython3
+from IPython.display import HTML
+
+HTML(output)
+```

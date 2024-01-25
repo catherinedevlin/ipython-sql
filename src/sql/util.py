@@ -11,6 +11,8 @@ import ast
 from os.path import isfile
 import re
 
+from jinja2 import Template
+
 
 try:
     import toml
@@ -574,3 +576,59 @@ def enclose_table_with_double_quotations(table, conn):
         _table = _table.replace('"', "`")
 
     return _table
+
+
+def is_rendering_required(line):
+    """Function to check possibility of line
+    text containing expandable arguments"""
+
+    return "{{" in line and "}}" in line
+
+
+def render_string_using_namespace(value, user_ns):
+    """
+    Function to substitute command line arguments
+    with variables defined by user in the IPython
+    kernel.
+
+    Parameters
+    ----------
+    value : str,
+        text to be rendered
+
+    user_ns : dict,
+        User namespace of IPython kernel
+    """
+
+    if isinstance(value, str) and value.startswith("{{") and value.endswith("}}"):
+        return Template(value).render(user_ns)
+    return value
+
+
+def expand_args(args, user_ns):
+    """
+    Function to substitute command line arguments
+    with variables defined by user in the IPython
+    kernel.
+
+    Parameters
+    ----------
+    args : argparse.Namespace,
+        object to hold the command line arguments.
+
+    user_ns : dict,
+        User namespace of IPython kernel
+    """
+
+    for attribute in vars(args):
+        value = getattr(args, attribute)
+        if value:
+            if isinstance(value, list):
+                substituted_value = []
+                for item in value:
+                    rendered_value = render_string_using_namespace(item, user_ns)
+                    substituted_value.append(rendered_value)
+                setattr(args, attribute, substituted_value)
+            else:
+                rendered_value = render_string_using_namespace(value, user_ns)
+                setattr(args, attribute, rendered_value)

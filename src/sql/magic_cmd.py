@@ -2,7 +2,7 @@ import sys
 import argparse
 import shlex
 
-from IPython.core.magic import Magics, line_magic, magics_class
+from IPython.core.magic import Magics, line_magic, magics_class, no_var_expand
 from IPython.core.magic_arguments import argument, magic_arguments
 from sql.inspect import support_only_sql_alchemy_connection
 from sql.cmd.tables import tables
@@ -35,6 +35,7 @@ class CmdParser(argparse.ArgumentParser):
 class SqlCmdMagic(Magics, Configurable):
     """%sqlcmd magic"""
 
+    @no_var_expand
     @line_magic("sqlcmd")
     @magic_arguments()
     @argument("line", type=str, help="Command name")
@@ -128,5 +129,7 @@ class SqlCmdMagic(Magics, Configurable):
         }
 
         cmd = router.get(cmd_name)
-        if cmd:
+        if cmd_name == "connect":
             return cmd(others)
+        else:
+            return cmd(others, self.shell.user_ns.copy())

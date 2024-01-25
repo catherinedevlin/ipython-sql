@@ -101,6 +101,20 @@ CREATE TABLE s2.t2(id INTEGER PRIMARY KEY, j VARCHAR);
 %sqlcmd tables -s s1
 ```
 
+JupySQL supports variable expansion of arguments in the form of `{{variable}}`. This allows the user to specify arguments with placeholders that can be replaced by variables dynamically.
+
+Let's see an example:
+
+```{code-cell} ipython3
+schema = "s1"
+```
+
+```{code-cell} ipython3
+:tags: [hide-output]
+
+%sqlcmd tables -s {{schema}}
+```
+
 As expected, the argument returns the table names under schema s1, which is t1.
 
 +++
@@ -122,4 +136,17 @@ Arguments:
 ```{code-cell} ipython3
 
 %sqlcmd columns -s s1 -t t1
+```
+
+JupySQL also supports variable expansion of arguments of `columns`. Let's see an example:
+
+```{code-cell} ipython3
+
+table = "t1"
+schema = "s1"
+```
+
+```{code-cell} ipython3
+
+%sqlcmd columns -s {{schema}} -t {{table}}
 ```

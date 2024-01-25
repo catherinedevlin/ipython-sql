@@ -80,3 +80,16 @@ The test fails, returning both Shakespeare and Brecht.
 
 Currently, 5 different comparator arguments are supported: `greater`, `greater-or-equal`, `less-than`, `less-than-or-equal`, and `no-nulls`. 
 
+## Parametrizing arguments
+
+JupySQL supports variable expansion of arguments in the form of `{{variable}}`. Let's see an example of running tests using parametrization:
+
+```{code-cell} ipython3
+table = "writer"
+column = "year_of_death"
+limit = "2000"
+```
+
+```{code-cell} ipython3
+%sqlcmd test --table {{table}} --column {{column}} --less-than {{limit}}
+```

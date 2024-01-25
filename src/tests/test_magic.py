@@ -2635,3 +2635,92 @@ SELECT * FROM penguins.csv;"""
 def test_negative_operations_query(ip, query, expected):
     result = ip.run_cell(query).result
     assert list(result.dict().values())[-1] == expected
+
+
+def test_bracket_var_substitution_save(ip):
+    ip.user_global_ns["col"] = "first_name"
+    ip.user_global_ns["snippet"] = "mysnippet"
+    ip.run_cell(
+        "%sql --save {{snippet}} SELECT * FROM author WHERE {{col}} = 'William' "
+    )
+    out = ip.run_cell("%sql SELECT * FROM {{snippet}}").result
+    assert out[0] == (
+        "William",
+        "Shakespeare",
+        1616,
+    )
+
+
+def test_var_substitution_save_with(ip):
+    ip.user_global_ns["col"] = "first_name"
+    ip.user_global_ns["snippet_one"] = "william"
+    ip.user_global_ns["snippet_two"] = "bertold"
+    ip.run_cell(
+        "%sql --save {{snippet_one}} SELECT * FROM author WHERE {{col}} = 'William' "
+    )
+    ip.run_cell(
+        "%sql --save {{snippet_two}} SELECT * FROM author WHERE {{col}} = 'Bertold' "
+    )
+    out = ip.run_cell(
+        """%%sql --with {{snippet_one}} --with {{snippet_two}}
+SELECT * FROM {{snippet_one}}
+UNION
+SELECT * FROM {{snippet_two}}
+"""
+    ).result
+
+    assert out[1] == (
+        "William",
+        "Shakespeare",
+        1616,
+    )
+    assert out[0] == (
+        "Bertold",
+        "Brecht",
+        1956,
+    )
+
+
+def test_var_substitution_alias(clean_conns, ip_empty, tmp_empty):
+    ip_empty.user_global_ns["alias"] = "one"
+    ip_empty.run_cell("%sql sqlite:///one.db --alias {{alias}}")
+    assert {"one"} == set(ConnectionManager.connections)
+
+
+@pytest.mark.parametrize(
+    "close_cell",
+    [
+        "%sql -x {{alias}}",
+        "%sql --close {{alias}}",
+    ],
+)
+def test_var_substitution_close_connection_with_alias(ip, tmp_empty, close_cell):
+    ip.user_global_ns["alias"] = "one"
+    process = psutil.Process()
+
+    ip.run_cell("%sql sqlite:///one.db --alias {{alias}}")
+
+    assert {Path(f.path).name for f in process.open_files()} >= {"one.db"}
+
+    ip.run_cell(close_cell)
+
+    assert "sqlite:///one.db" not in ConnectionManager.connections
+    assert "first" not in ConnectionManager.connections
+    assert "one.db" not in {Path(f.path).name for f in process.open_files()}
+
+
+def test_var_substitution_section(ip_empty, tmp_empty):
+    Path("connections.ini").write_text(
+        """
+[duck]
+drivername = duckdb
+"""
+    )
+    ip_empty.user_global_ns["section"] = "duck"
+
+    ip_empty.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
+
+    ip_empty.run_cell("%sql --section {{section}}")
+
+    conns = ConnectionManager.connections
+    assert conns == {"duck": ANY}

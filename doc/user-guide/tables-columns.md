@@ -68,6 +68,7 @@ Pass `--schema/-s` to get tables in a different schema:
 
 +++
 
+
 ## List columns
 
 Use `%sqlcmd columns --table/-t` to get the columns for the given table.
@@ -103,4 +104,15 @@ Get the columns for the table in the newly created schema:
 
 ```{code-cell} ipython3
 %sqlcmd columns --table numbers --schema some_schema
+```
+
+JupySQL supports variable expansion of arguments in the form of `{{variable}}`. Let's see an example of parametrizing `table` and `schema`:
+
+```{code-cell} ipython3
+table = "numbers"
+schema = "some_schema"
+```
+
+```{code-cell} ipython3
+%sqlcmd columns --table {{table}} --schema {{schema}}
 ```

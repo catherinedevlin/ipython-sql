@@ -40,7 +40,6 @@ from sql.magic_plot import SqlPlotMagic
 from sql.magic_cmd import SqlCmdMagic
 from sql._patch import patch_ipython_usage_error
 from sql import util
-from sql.util import pretty_print
 from sql.error_handler import handle_exception
 from sql._current import _set_sql_magic
 
@@ -409,6 +408,9 @@ class SqlMagic(Magics, Configurable):
 
         args = command.args
 
+        if util.is_rendering_required(line):
+            util.expand_args(args, user_ns)
+
         if args.section and args.alias:
             raise exceptions.UsageError(
                 "Cannot use --section with --alias since the section name "
@@ -435,7 +437,7 @@ class SqlMagic(Magics, Configurable):
                         command.set_sql_with(with_)
                         display.message(
                             f"Generating CTE with stored snippets: \
-{pretty_print(with_)}"
+{util.pretty_print(with_)}"
                         )
                 else:
                     with_ = None
