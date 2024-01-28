@@ -391,45 +391,52 @@ def get_user_configs(primary_path, alternate_path):
     # in that particular order
     path_list = [primary_path, alternate_path]
     for file_path in path_list:
-        section_to_find = None
         section_found = False
         if file_path and file_path.exists():
             data = load_toml(file_path)
-            section_names = ["tool", "jupysql", "SqlMagic"]
 
-            # Look for SqlMagic section in toml file
-            while section_names:
-                section_found = False
-                section_to_find, sections_from_user = section_names.pop(0), data.keys()
+            data = data.get("tool")
 
-                if section_to_find not in sections_from_user:
-                    close_match = difflib.get_close_matches(
-                        section_to_find, sections_from_user
-                    )
-
-                    if not close_match:
-                        if display_tip:
-                            display.message(
-                                f"Tip: You may define configurations in {primary_path}"
-                                f" or {alternate_path}. "
-                            )
-                            display_tip = False
-                        break
-                    else:
-                        raise exceptions.ConfigurationError(
-                            f"{pretty_print(close_match)} is an invalid section "
-                            f"name in {file_path}. "
-                            f"Did you mean '{section_to_find}'?"
+            # Look for jupysql section under tool
+            if data:
+                keys = data.keys()
+                data = data.get("jupysql")
+                if data is None:
+                    similar_key = case_insensitive_match("jupysql", keys)
+                    if similar_key:
+                        display.message(
+                            f"Hint: We found 'tool.{similar_key}' in {file_path}. "
+                            f"Did you mean 'tool.jupysql'?"
                         )
 
-                section_found = True
-                data = data[section_to_find]
+            # Look for SqlMagic section under jupysql
+            if data:
+                keys = data.keys()
+                data = data.get("SqlMagic")
+                if data is None:
+                    similar_key_list = find_close_match("SqlMagic", keys)
+                    if similar_key_list:
+                        raise exceptions.ConfigurationError(
+                            f"[tool.jupysql.{similar_key_list[0]}] is an "
+                            f"invalid section name in {file_path}. "
+                            f"Did you mean [tool.jupysql.SqlMagic]?"
+                        )
 
-        if section_to_find == "SqlMagic" and section_found and not data:
-            display.message(
-                f"[tool.jupysql.SqlMagic] present in {file_path} but empty. "
-            )
-            display_tip = False
+            if data is None:
+                if display_tip:
+                    display.message(
+                        f"Tip: You may define configurations in {primary_path}"
+                        f" or {alternate_path}. "
+                    )
+                    display_tip = False
+            elif data == {}:
+                section_found = True
+                display.message(
+                    f"[tool.jupysql.SqlMagic] present in {file_path} but empty. "
+                )
+                display_tip = False
+            else:
+                section_found = True
 
         if not display_tip and not configuration_docs_displayed:
             display.message_html(
@@ -443,7 +450,7 @@ def get_user_configs(primary_path, alternate_path):
         elif section_found and data:
             return data, file_path
 
-    return data, None
+    return None, None
 
 
 def get_default_configs(sql):
@@ -632,3 +639,32 @@ def expand_args(args, user_ns):
             else:
                 rendered_value = render_string_using_namespace(value, user_ns)
                 setattr(args, attribute, rendered_value)
+
+
+def case_insensitive_match(target, string_list):
+    """
+    Perform a case-insensitive match of a target string against a list of strings.
+
+    Parameters
+    ----------
+    target : str
+        The target string to match.
+    string_list : list of str
+        The list of strings to search through.
+
+    Returns
+    -------
+    str or None
+        The first matching string from the list, preserving its original case,
+        or None if there is no match.
+
+    Examples
+    --------
+    >>> case_insensitive_match('foo', ['bar', 'FOO'])
+    'FOO'
+    """
+    target_lower = target.lower()
+    for string in string_list:
+        if string.lower() == target_lower:
+            return string
+    return None
