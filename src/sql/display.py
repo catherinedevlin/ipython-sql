@@ -1,6 +1,7 @@
 """
 A module to display confirmation messages and contextual information to the user
 """
+
 import html
 
 from prettytable import PrettyTable

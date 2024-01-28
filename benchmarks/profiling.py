@@ -4,6 +4,7 @@ Sample script to profile the sql magic.
 >>> pip install line_profiler
 >>> kernprof -lv profiling.py
 """
+
 from sql.magic import SqlMagic
 from IPython import InteractiveShell
 import duckdb

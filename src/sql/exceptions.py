@@ -10,6 +10,7 @@ IPython.core.error.UsageError doesn't work, so `exception_factory` is a workarou
 to create new errors that are IPython.core.error.UsageError but with a different name.
 
 """
+
 from IPython.core import error
 
 
