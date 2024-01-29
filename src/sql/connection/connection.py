@@ -723,7 +723,6 @@ class SQLAlchemyConnection(AbstractConnection):
         parameters : dict, default None
             Parameters to use in the query (:variable format)
         """
-        parameters = parameters or {}
         # we do not support multiple statements
         if len(sqlparse.split(query)) > 1:
             raise NotImplementedError("Only one statement is supported.")
@@ -758,6 +757,10 @@ class SQLAlchemyConnection(AbstractConnection):
 
     def _execute_with_parameters(self, query, parameters):
         """Execute the query with the given parameters"""
+        if parameters == {}:
+            return self._connection.exec_driver_sql(query)
+
+        parameters = parameters or {}
         if IS_SQLALCHEMY_ONE:
             out = self._connection.execute(sqlalchemy.text(query), **parameters)
         else:
@@ -818,7 +821,7 @@ class SQLAlchemyConnection(AbstractConnection):
             return self._connection_execute(query, parameters)
         else:
             try:
-                return self._connection_execute(query)
+                return self._connection_execute(query, parameters)
             except StatementError as e:
                 # add a more helpful message if the users passes :variable but
                 # the feature isn't enabled
@@ -829,9 +832,20 @@ class SQLAlchemyConnection(AbstractConnection):
                         named_params_ = ", ".join(named_params)
                         e.add_detail(
                             f"Your query contains named parameters ({named_params_}) "
-                            "but the named parameters feature is disabled. Enable it "
-                            "with: %config SqlMagic.named_parameters=True"
+                            'but the named parameters feature is "warn". \nEnable it '
+                            'with: %config SqlMagic.named_parameters="enabled" \nor '
+                            "disable it with: "
+                            '%config SqlMagic.named_parameters="disabled"\n'
+                            "For more info, see the docs: "
+                            "https://jupysql.ploomber.io/en/latest/api/configuration.html#named-parameters"  # noqa
                         )
+                elif parameters == {}:
+                    e.add_detail(
+                        'The named parameters feature is "disabled". '
+                        'Enable it with: %config SqlMagic.named_parameters="enabled".\n'
+                        "For more info, see the docs: "
+                        "https://jupysql.ploomber.io/en/latest/api/configuration.html#named-parameters"  # noqa
+                    )
                 raise
 
     def _execute_with_error_handling(self, operation):

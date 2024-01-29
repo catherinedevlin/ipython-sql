@@ -5,6 +5,8 @@
 
 ## 0.10.9dev
 
+* [Feature] Add option to disable named parameters; options now changed to: `warn`, `enabled`, and `disabled` - fixes (#971) and (#972)
+
 ## 0.10.8 (2024-01-25)
 
 * [Feature] Add support for parametrizing string type arguments of `%%sql`, `%sqlplot`, `%sqlcmd`' ([#699](https://github.com/ploomber/jupysql/issues/699))

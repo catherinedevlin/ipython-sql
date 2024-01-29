@@ -1569,9 +1569,13 @@ def test_error_suggests_turning_feature_on_if_it_detects_named_params(ip):
         ip.run_cell("%sql SELECT * FROM penguins.csv where species = :species")
 
     suggestion = (
-        "Your query contains named parameters (species) but the named "
-        "parameters feature is disabled. Enable it with: "
-        "%config SqlMagic.named_parameters=True"
+        "Your query contains named parameters (species) "
+        'but the named parameters feature is "warn". \nEnable it '
+        'with: %config SqlMagic.named_parameters="enabled" \nor '
+        "disable it with: "
+        '%config SqlMagic.named_parameters="disabled"\n'
+        "For more info, see the docs: "
+        "https://jupysql.ploomber.io/en/latest/api/configuration.html"
     )
     assert suggestion in str(excinfo.value)
 
@@ -2724,3 +2728,40 @@ drivername = duckdb
 
     conns = ConnectionManager.connections
     assert conns == {"duck": ANY}
+
+
+@pytest.mark.parametrize(
+    "query, expected",
+    [
+        (
+            '%sql select json(\'[{"a":1}, {"b":2}]\')',
+            '[{"a":1},{"b":2}]',
+        ),
+        (
+            '%sql select \'[{"a":1}, {"b":2}]\'::json',
+            '[{"a":1}, {"b":2}]',
+        ),
+    ],
+)
+def test_disable_named_parameters_with_json(ip, query, expected):
+    ip.run_cell("%sql duckdb://")
+    ip.run_cell("%config SqlMagic.named_parameters='disabled'")
+    result = ip.run_cell(query).result
+    assert str(list(result.dict().values())[0][0]) == expected
+
+
+def test_disabled_named_parameters_shows_disabled_warning(ip):
+    ip.run_cell("%config SqlMagic.named_parameters='disabled'")
+    query_should_warn = "%sql select json('[{\"a\"::1}')"
+
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(query_should_warn)
+
+    expected_warning = (
+        'The named parameters feature is "disabled". '
+        'Enable it with: %config SqlMagic.named_parameters="enabled".\n'
+        "For more info, see the docs: "
+        "https://jupysql.ploomber.io/en/latest/api/configuration.html"
+    )
+
+    assert expected_warning in str(excinfo.value)

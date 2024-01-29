@@ -256,15 +256,28 @@ res = %sql SELECT * FROM languages
 
 ## `named_parameters`
 
-```{versionadded} 0.9
+```{versionchanged} 0.10.9
 ```
 
-Default: `False`
+Default: `warn`
 
-If True, it enables named parameters `:variable`. Learn more in the [tutorial.](../user-guide/template.md)
+If `warn`, a warning will be raised when named parameters are included in the statement.
+If `enabled`, the statement will be executed with named parameters enabled.
+If `disabled`, the statement will be executed with named parameters disabled.
+
+```{important}
+The `disabled` feature makes use of SQLAlchemy's `exec_driver_sql()` instead of `execute()`
+to execute SQL statements without the use of bound parameters. This operation doesn't include 
+other SQL compilation steps which could affect the behavior of your program.
+If you encounter problems, please open an issue on [Slack](https://ploomber.io/community) or [Github](https://github.com/ploomber/jupysql).
+```
+
+Learn more in the [tutorial.](../user-guide/template.md)
+
+Named parameters can be declared with `:variable`. 
 
 ```{code-cell} ipython3
-%config SqlMagic.named_parameters=True
+%config SqlMagic.named_parameters="enabled"
 ```
 
 ```{code-cell} ipython3

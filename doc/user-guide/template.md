@@ -213,7 +213,7 @@ Let's verify data in one of the tables:
 (named-parameters)=
 ## Parametrization via `:variable`
 
-```{versionadded} 0.9
+```{versionchanged} 0.10.9
 ```
 
 There is a second method to parametrize variables via `:variable`. This method has the following limitations
@@ -225,7 +225,7 @@ There is a second method to parametrize variables via `:variable`. This method h
 To enable it:
 
 ```{code-cell} ipython3
-%config SqlMagic.named_parameters = True
+%config SqlMagic.named_parameters = "enabled"
 ```
 
 ```{code-cell} ipython3
@@ -294,3 +294,14 @@ sex = "FEMALE"
 %%sql
 SELECT * FROM one_sex
 ```
+
+### Disabling named parameters
+
+Sometimes, valid SQL can contain instances of `:x` which should not be mistaken as named parameters.
+In this case, you may want to disable named parameters:
+
+```{code-cell} ipython3
+%config SqlMagic.named_parameters = "disabled"
+```
+
+This can be helpful when executing statements which include JSON or other DB-specific syntax.
