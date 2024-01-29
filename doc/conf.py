@@ -70,7 +70,8 @@ html_theme_options = {
     "home_page_in_toc": True,
     "announcement": (
         "Deploy AI apps for free on  "
-        "<a href='https://ploomber.io/?utm_medium=readthedocs&utm_source=jupysql'>Ploomber Cloud!</a>"
+        "<a href='https://ploomber.io/?utm_medium=readthedocs&utm_source=jupysql'>"
+        "Ploomber Cloud!</a>"
     ),
     "use_repository_button": True,
     "use_edit_page_button": False,
