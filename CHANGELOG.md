@@ -1,11 +1,10 @@
 # CHANGELOG
 
-* [Fix] Fix error when fuzzy matching configuration file (now we only match config keys) (#975 by @maciejb)
-* [Fix] Fix error that caused JupySQL to read a config file even when there was no JupySQL config (#975 by @maciejb)
-
 ## 0.10.9dev
 
 * [Feature] Add option to disable named parameters; options now changed to: `warn`, `enabled`, and `disabled` - fixes (#971) and (#972)
+* [Fix] Fix error when fuzzy matching configuration file (now we only match config keys) (#975 by @maciejb)
+* [Fix] Fix error that caused JupySQL to read a config file even when there was no JupySQL config (#975 by @maciejb)
 
 ## 0.10.8 (2024-01-25)
 
