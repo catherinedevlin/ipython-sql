@@ -69,8 +69,8 @@ html_theme_options = {
     "analytics": {"google_analytics_id": "G-JBZ8NNQSLN"},
     "home_page_in_toc": True,
     "announcement": (
-        "Host Voilà and Streamlit apps for free with "
-        "<a href='https://www.platform.ploomber.io/register/'>Ploomber Cloud!</a>"
+        "Deploy AI apps for free on  "
+        "<a href='https://ploomber.io/?utm_medium=readthedocs&utm_source=jupysql'>Ploomber Cloud!</a>"
     ),
     "use_repository_button": True,
     "use_edit_page_button": False,
