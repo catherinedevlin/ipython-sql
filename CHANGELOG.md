@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.10.10dev
+
 ## 0.10.9 (2024-01-31)
 
 * [Feature] Add option to disable named parameters; options now changed to: `warn`, `enabled`, and `disabled` - fixes ([#971](https://github.com/ploomber/jupysql/issues/971)) and ([#972](https://github.com/ploomber/jupysql/issues/972))
