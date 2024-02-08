@@ -24,9 +24,11 @@ install_requires = [
     "ipython-genutils>=0.1.0",
     "jinja2",
     "sqlglot>=11.3.7",
-    "ploomber-core>=0.2.7",
     'importlib-metadata;python_version<"3.8"',
-    "jupysql-plugin",
+    # we removed the share notebook button in this version
+    "jupysql-plugin>=0.4.2",
+    "ploomber-core>=0.2.7",
+    "ploomber-extension",
 ]
 
 DEV = [

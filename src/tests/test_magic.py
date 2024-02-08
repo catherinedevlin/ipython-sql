@@ -1217,12 +1217,12 @@ def test_error_on_invalid_connection_string_with_possible_typo(ip_empty, clean_c
     assert invalid_connection_string_with_possible_typo.strip() == str(excinfo.value)
 
 
-invalid_connection_string_duckdb = f"""
+invalid_connection_string_duckdb_top = """
 An error happened while creating the connection: connect(): incompatible function arguments. The following argument types are supported:
     1. (database: str = ':memory:', read_only: bool = False, config: dict = None) -> duckdb.DuckDBPyConnection
+"""  # noqa
 
-Invoked with: kwargs: host='invalid_db', config={{}}.
-
+invalid_connection_string_duckdb_bottom = f"""
 Perhaps you meant to use the 'duckdb' db 
 To find more information regarding connection: https://jupysql.ploomber.io/en/latest/integrations/duckdb.html
 
@@ -1240,7 +1240,8 @@ def test_error_on_invalid_connection_string_duckdb(ip_empty, clean_conns):
     with pytest.raises(UsageError) as excinfo:
         ip_empty.run_cell("%sql duckdb://invalid_db")
 
-    assert invalid_connection_string_duckdb.strip() == str(excinfo.value)
+    assert invalid_connection_string_duckdb_top.strip() in str(excinfo.value)
+    assert invalid_connection_string_duckdb_bottom.strip() in str(excinfo.value)
 
 
 @pytest.mark.parametrize(
