@@ -530,7 +530,11 @@ def extract_tables_from_query(query):
         [] if error in parsing the query
     """
     try:
-        tables = [table.name for table in parse_one(query).find_all(exp.Table)]
+        tables = [
+            table.name
+            for table in parse_one(query).find_all(exp.Table)
+            if hasattr(table, "name")
+        ]
         return tables
     except ParseError:
         # TODO : Instead of returning [] return the

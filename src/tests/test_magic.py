@@ -3,6 +3,7 @@ import uuid
 import logging
 import platform
 import sqlite3
+from decimal import Decimal
 from pathlib import Path
 import os.path
 import re
@@ -1981,14 +1982,14 @@ def test_summarize_in_duckdb(ip_empty):
         "column_type": ("INTEGER", "INTEGER"),
         "min": ("1", "-1"),
         "max": ("3", "2"),
-        "approx_unique": ("3", "3"),
+        "approx_unique": (3, 3),
         "avg": ("2.0", "0.6666666666666666"),
         "std": ("1.0", "1.5275252316519468"),
         "q25": ("1", "0"),
         "q50": ("2", "1"),
         "q75": ("3", "2"),
         "count": (3, 3),
-        "null_percentage": ("0.0%", "0.0%"),
+        "null_percentage": (Decimal("0.00"), Decimal("0.00")),
     }
 
     ip_empty.run_cell("%sql duckdb://")
@@ -2035,14 +2036,14 @@ expected_summarize = {
     "column_type": ("BIGINT",),
     "min": ("1",),
     "max": ("8",),
-    "approx_unique": ("5",),
+    "approx_unique": (5,),
     "avg": ("3.8",),
     "std": ("2.7748873851023217",),
     "q25": ("2",),
     "q50": ("3",),
     "q75": ("6",),
     "count": (5,),
-    "null_percentage": ("0.0%",),
+    "null_percentage": (Decimal("0.00"),),
 }
 expected_select = {"memid": (1, 2, 3, 5, 8)}
 
