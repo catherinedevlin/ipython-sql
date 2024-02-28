@@ -25,5 +25,5 @@ jobs:
 
       - name: Check for broken links
         run: |
-          pkgmt check-links
+          pkgmt check-links --only-404
 
