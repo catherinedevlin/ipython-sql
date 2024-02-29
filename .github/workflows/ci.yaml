@@ -71,12 +71,6 @@ jobs:
             exit 0
           fi
 
-
-  integration-test-sqlalchemy-v1:
-    needs: [preliminary]
-    if: needs.preliminary.outputs.check_doc_modified == 'failure'
-    uses: ./.github/workflows/ci-integration-db-sqlalchemy-v1.yaml
-
   integration-test-non-live:
     needs: [preliminary]
     if: needs.preliminary.outputs.check_doc_modified == 'failure'
@@ -196,7 +190,7 @@ jobs:
 
 
   release:
-    needs: [test, test-sqlalchemy-v1, check, integration-test-non-live, integration-test-sqlalchemy-v1]
+    needs: [test, test-sqlalchemy-v1, check, integration-test-non-live]
     if: startsWith(github.ref, 'refs/tags') && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
 

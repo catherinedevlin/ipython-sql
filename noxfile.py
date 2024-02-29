@@ -154,34 +154,6 @@ def test_integration_cloud(session):
     venv_backend=VENV_BACKEND,
     python=environ.get("PYTHON_VERSION", "3.11"),
 )
-def test_integration_sqlachemy_v1(session):
-    """
-    Run integration tests on SQLAlchemy v1
-    (NOTE: the clickhouse-sqlalchemy driver only works with
-    SQLAlchemy 1.x)
-    """
-
-    # tests
-    _install(session, integration=True)
-    session.install(
-        "snowflake-sqlalchemy",
-        "redshift-connector",
-        "sqlalchemy-redshift",
-        "clickhouse-sqlalchemy",
-    )
-    session.run(
-        "pytest",
-        "src/tests/integration",
-        "-k",
-        "clickhouse",
-        "-v",
-    )
-
-
-@nox.session(
-    venv_backend=VENV_BACKEND,
-    python=environ.get("PYTHON_VERSION", "3.11"),
-)
 def test_integration(session):
     """Run integration tests (to check compatibility with databases)"""
     _install(session, integration=True)
