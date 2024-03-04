@@ -31,4 +31,4 @@ you with a unique URL that you can share.
 pip install jupysql
 ```
 
-> **For detailed instructions [click here.](https://docs.cloud.ploomber.io/en/latest/nb-share/notebook-sharing.html)**
+> **For detailed instructions [click here.](https://docs.cloud.ploomber.io/en/latest/features/notebook-sharing.html)**
