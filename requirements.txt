@@ -1,4 +1,4 @@
-prettytable
+prettytable==3.11.0
 ipython
 sqlalchemy>=2.0
 sqlparse
